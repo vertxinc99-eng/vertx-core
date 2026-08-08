@@ -39,3 +39,5 @@
 .manual-assist summary{cursor:pointer;padding:16px;font-weight:700}
 .manual-inner{padding:0 16px 16px}
 .manual-result{margin-top:12px}
+
+.material-info .material-spec{display:block;color:#91bfff;font-weight:700;margin-top:4px;margin-bottom:2px}
