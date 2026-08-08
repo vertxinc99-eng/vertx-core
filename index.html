@@ -3,105 +3,108 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#05080d">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>VERTX CORE β0.5</title>
+  <meta name="theme-color" content="#07111b">
+  <title>VERTX CORE β0.5.1</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <button class="brand" data-go="home" aria-label="ホームへ">
-        <span class="brand-mark">V</span>
-        <span><b>VERTX</b><small>CORE β0.5</small></span>
-      </button>
+      <div>
+        <p class="eyebrow">VERTX</p>
+        <h1>CORE <span>β0.5.1</span></h1>
+      </div>
       <button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button>
     </header>
 
     <main>
       <section id="home" class="screen active">
-        <article class="hero card">
-          <div><p class="eyebrow">FIELD OPERATIONS</p><h1>資材注文を、<br><span>もっと速く。</span></h1></div>
-          <button class="primary-btn hero-btn" data-go="order">＋ 新しい注文</button>
-        </article>
+        <div class="hero card">
+          <p class="muted">お疲れさまです</p>
+          <h2>今日も安全第一で。</h2>
+          <button class="primary-btn" data-go="sites">＋ 注文を作る</button>
+        </div>
 
         <div class="stats-grid">
-          <article class="card stat"><span>今日の注文</span><strong id="todayCount">0</strong><small>件</small></article>
-          <article class="card stat"><span>保存済み</span><strong id="historyCount">0</strong><small>件</small></article>
+          <article class="card stat"><span>今日の注文</span><strong id="todayCount">0</strong></article>
+          <article class="card stat"><span>保存済み履歴</span><strong id="historyCount">0</strong></article>
         </div>
 
-        <div class="section-head"><div><p class="eyebrow">QUICK ACCESS</p><h2>クイックメニュー</h2></div></div>
+        <div class="section-head"><h3>クイックメニュー</h3></div>
         <div class="menu-grid">
-          <button class="menu-card featured" data-go="order"><span class="menu-icon">＋</span><b>資材注文</b><small>数量を入力して注文作成</small></button>
-          <button class="menu-card" data-go="history"><span class="menu-icon">↺</span><b>注文履歴</b><small>確認・コピー・再注文</small></button>
+          <button class="menu-card" data-go="sites"><span>📍</span><b>現場から注文</b><small>現場を選んですぐ発注</small></button>
+          <button class="menu-card" data-go="order"><span>📦</span><b>資材注文</b><small>資材から直接作成</small></button>
+          <button class="menu-card" data-go="history"><span>📋</span><b>注文履歴</b><small>再注文にも対応</small></button>
+          <button class="menu-card" data-go="favorites"><span>★</span><b>お気に入り</b><small>よく使う資材だけ表示</small></button>
         </div>
-        <div id="latestOrder"></div>
+      </section>
+
+      <section id="sites" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE</p><h2>現場を選択</h2></div></div>
+        <div class="card form-card compact-form">
+          <label>新しい現場名<input id="newSiteName" type="text" placeholder="例：品川〇〇ビル"></label>
+          <button id="addSiteBtn" class="secondary-btn full">＋ 現場を追加</button>
+        </div>
+        <div class="section-head"><h3>登録現場</h3></div>
+        <div id="siteList" class="history-list"></div>
       </section>
 
       <section id="order" class="screen">
-        <div class="screen-head">
-          <button class="back-btn" data-go="home">‹</button>
-          <div><p class="eyebrow">NEW ORDER</p><h2>資材注文</h2></div>
-        </div>
-
-        <article class="card order-meta">
-          <label><span>現場名</span><input id="siteNameQuick" type="text" placeholder="例：品川〇〇ビル"></label>
-          <label><span>希望日</span><input id="deliveryDateQuick" type="date"></label>
-        </article>
-
-        <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="資材名で検索"></label>
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ORDER</p><h2>資材注文</h2></div></div>
+        <div id="selectedSiteBanner" class="site-banner hidden"></div>
+        <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="資材を検索"></label>
         <div class="chips" id="categoryChips"></div>
         <div id="materialList" class="material-list"></div>
-
         <div class="sticky-summary card">
-          <div class="summary-number"><span>数量</span><strong><span id="totalQty">0</span><small>点</small></strong></div>
-          <div class="summary-number"><span>重量</span><strong><span id="totalWeight">0</span><small>kg</small></strong></div>
-          <div class="truck-pill" id="truckMini">未選択</div>
-          <button id="toConfirmBtn" class="primary-btn">確認へ</button>
+          <div><span>合計</span><strong><span id="totalQty">0</span>点</strong></div>
+          <div><span>重量</span><strong><span id="totalWeight">0.0</span>kg / <span id="totalTons">0.00</span>t</strong></div>
+          <button id="toConfirmBtn" class="primary-btn">注文確認へ</button>
         </div>
+      </section>
+
+      <section id="favorites" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">FAVORITE</p><h2>お気に入り</h2></div></div>
+        <div id="favoriteList" class="material-list"></div>
       </section>
 
       <section id="confirm" class="screen">
-        <div class="screen-head"><button class="back-btn" data-go="order">‹</button><div><p class="eyebrow">ORDER CHECK</p><h2>注文確認</h2></div></div>
-        <article class="card confirm-hero">
-          <div><span>推奨車両</span><strong id="truckRecommend">—</strong><small id="truckReason">資材を選択してください</small></div>
-          <div class="weight-ring"><b id="confirmWeightBig">0</b><small>kg</small></div>
-        </article>
-        <article class="card form-card">
+        <div class="screen-head"><button class="back-btn" data-go="order">‹</button><div><p class="eyebrow">CONFIRM</p><h2>注文確認</h2></div></div>
+        <div class="card form-card">
           <label>現場名<input id="siteName" type="text" placeholder="例：品川〇〇ビル"></label>
           <label>希望日<input id="deliveryDate" type="date"></label>
-          <label>搬入時間<input id="deliveryTime" type="time"></label>
-          <label>メモ<textarea id="orderMemo" rows="3" placeholder="搬入場所・注意事項など"></textarea></label>
-        </article>
-        <div class="section-head"><h2>注文内容</h2></div>
-        <div id="confirmItems" class="card confirm-list"></div>
-        <div class="action-stack">
-          <button id="copyOrderBtn" class="secondary-btn full">注文内容をコピー</button>
-          <button id="lineShareBtn" class="line-btn full">LINEで送る</button>
-          <button id="submitOrderBtn" class="primary-btn full">注文を保存する</button>
+          <label>メモ<textarea id="orderMemo" rows="3" placeholder="搬入時間・注意事項など"></textarea></label>
         </div>
+        <div class="section-head"><h3>注文内容</h3></div>
+        <div id="confirmItems" class="card confirm-list"></div>
+        <div class="card totals-card">
+          <div><span>合計数量</span><strong id="confirmQty">0点</strong></div>
+          <div><span>推定重量</span><strong id="confirmWeight">0.0kg</strong></div>
+          <div><span>乗る車</span><strong id="truckRecommendation">軽トラ</strong></div>
+        </div>
+        <button id="submitOrderBtn" class="primary-btn full">この内容で注文を保存</button>
       </section>
 
       <section id="history" class="screen">
-        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ORDER LOG</p><h2>注文履歴</h2></div></div>
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">HISTORY</p><h2>注文履歴</h2></div></div>
         <div id="historyList" class="history-list"></div>
       </section>
 
       <section id="success" class="screen success-screen">
-        <div class="success-mark">✓</div><p class="eyebrow">SAVED</p><h2>注文を保存しました</h2>
-        <p class="muted center">履歴から再注文・コピーができます。</p>
+        <div class="success-mark">✓</div><p class="eyebrow">COMPLETE</p><h2>注文を保存しました</h2>
+        <p class="muted center">履歴からいつでも確認・再注文できます。</p>
         <button class="primary-btn full" data-go="history">注文履歴を見る</button>
         <button class="secondary-btn full" data-go="home">ホームへ戻る</button>
       </section>
     </main>
 
-    <nav class="bottom-nav">
+    <nav class="bottom-nav" aria-label="メインナビゲーション">
       <button data-go="home" class="nav-item active"><span>⌂</span><small>ホーム</small></button>
-      <button data-go="order" class="nav-item"><span>＋</span><small>注文</small></button>
+      <button data-go="sites" class="nav-item"><span>⌖</span><small>現場</small></button>
+      <button data-go="order" class="nav-item"><span>▣</span><small>注文</small></button>
       <button data-go="history" class="nav-item"><span>☷</span><small>履歴</small></button>
     </nav>
   </div>
-  <div id="toast" class="toast" role="status"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
 </body>
 </html>
