@@ -29,7 +29,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function go(screenId){
   $$('.screen').forEach(el=>el.classList.toggle('active',el.id===screenId));
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.go===screenId || (screenId==='confirm'&&el.dataset.go==='order')));
-  if(screenId==='history')renderHistory(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();
+  if(screenId==='history')renderHistory(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();if(screenId==='siteStock')renderSiteStock();if(screenId==='shortage')renderShortage();if(screenId==='sets')renderSets();if(screenId==='dispatch')renderDispatch();if(screenId==='compare')loadCompareDrawings();
   window.scrollTo({top:0,behavior:'instant'});
 }
 function totals(){return MATERIALS.reduce((a,m)=>{const q=state.cart[m.id]||0;a.qty+=q;a.weight+=q*Number(m.weight||0);return a},{qty:0,weight:0})}
@@ -38,7 +38,20 @@ function truckFor(weightKg){const tons=weightKg/1000;if(tons<=0.35)return '軽�
 function formatWeight(weightKg){return `${Number(weightKg).toFixed(1)}kg / ${(Number(weightKg)/1000).toFixed(2)}t`}
 
 const CATEGORY_ORDER=['枠','枠組','アンチ','ハーフアンチ','ブレス','手摺・下さん','布板・足場板','単管','クランプ・金物','ジャッキ・ベース','壁つなぎ','防音パネル','養生・ネット','階段・昇降','梁・補強','安全設備','その他'];
-function renderCategories(){const available=[...new Set(MATERIALS.map(m=>m.category))];const cats=['すべて',...CATEGORY_ORDER.filter(c=>available.includes(c)),...available.filter(c=>!CATEGORY_ORDER.includes(c)).sort((a,b)=>a.localeCompare(b,'ja'))];$('#categoryChips').innerHTML=cats.map(c=>`<button class="chip ${state.category===c?'active':''}" data-category="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');$$('#categoryChips .chip').forEach(b=>b.onclick=()=>{state.category=b.dataset.category;renderCategories();renderMaterials()})}
+const GROUP_ORDER=['枠足場用','単管足場用','クランプ類','ジャッキ・ベース','壁つなぎ','防音パネル','シート・養生類','階段・昇降','その他'];
+function materialGroup(m){
+  const n=`${m.name} ${m.aliases||''}`;
+  if(m.category==='クランプ・金物'||/クランプ|キャッチ/.test(n)) return 'クランプ類';
+  if(m.category==='ジャッキ・ベース'||/ジャッキ|固定ベース|ベース/.test(n)) return 'ジャッキ・ベース';
+  if(m.category==='壁つなぎ'||/壁つなぎ|壁繋/.test(n)) return '壁つなぎ';
+  if(m.category==='防音パネル'||/防音パネル|透過パネル|フラットパネル/.test(n)) return '防音パネル';
+  if(m.category==='養生・ネット'||/シート|ネット|メッシュ|養生/.test(n)) return 'シート・養生類';
+  if(m.category==='階段・昇降'||/階段|タラップ|梯子|はしご/.test(n)) return '階段・昇降';
+  if(m.category==='単管'||/単管|ブラケット|くい丸|杭/.test(n)) return '単管足場用';
+  if(['枠','枠組','アンチ','ハーフアンチ','ブレス','手摺・下さん','布板・足場板','梁・補強'].includes(m.category)||/建枠|調整枠|アンチ|ブレス|筋違|手摺|下さん|布板|足場板|幅木|連結ピン/.test(n)) return '枠足場用';
+  return 'その他';
+}
+function renderCategories(){const cats=['すべて',...GROUP_ORDER];$('#categoryChips').innerHTML=cats.map(c=>`<button class="chip ${state.category===c?'active':''}" data-category="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');$$('#categoryChips .chip').forEach(b=>b.onclick=()=>{state.category=b.dataset.category;renderCategories();renderMaterials()})}
 function preferredLengthRank(name,category){
   const n=String(name).replace(/０/g,'0').replace(/１/g,'1').replace(/２/g,'2').replace(/３/g,'3').replace(/４/g,'4').replace(/５/g,'5').replace(/６/g,'6').replace(/７/g,'7').replace(/８/g,'8').replace(/９/g,'9').replace(/．/g,'.');
   if(category==='枠'){
@@ -67,7 +80,16 @@ function materialSort(a,b){
 }
 function materialCard(m){const q=state.cart[m.id]||0,f=state.favorites.has(m.id);const spec=(m.aliases||'').trim();return `<article class="material"><button class="fav-btn ${f?'active':''}" data-fav="${m.id}" aria-label="お気に入り">★</button><div class="material-info"><b>${escapeHtml(m.name)}</b>${spec?`<small class="material-spec">規格 ${escapeHtml(spec)}</small>`:''}<small>${escapeHtml(m.category)}・単重 ${Number(m.weight).toFixed(2)}kg/${escapeHtml(m.unit)}</small></div><div class="qty-control"><button data-action="minus" data-id="${m.id}">−</button><input data-qty="${m.id}" inputmode="numeric" value="${q}" aria-label="${escapeHtml(m.name)}数量"><button data-action="plus" data-id="${m.id}">＋</button></div></article>`}
 function bindMaterialControls(root=document){root.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>changeQty(b.dataset.id,b.dataset.action==='plus'?1:-1));root.querySelectorAll('[data-qty]').forEach(i=>i.onchange=()=>setQty(i.dataset.qty,Number(i.value)));root.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.fav))}
-function renderMaterials(){const q=state.search.trim().toLowerCase();const list=MATERIALS.filter(m=>(state.category==='すべて'||m.category===state.category)&&`${m.name} ${m.aliases||''}`.toLowerCase().includes(q)).sort(materialSort);$('#materialList').innerHTML=list.length?list.map(materialCard).join(''):'<div class="card empty">該当する資材がありません</div>';bindMaterialControls($('#materialList'));renderOrderTotals();renderSiteBanner()}
+function renderMaterials(){
+  const q=state.search.trim().toLowerCase();
+  const list=MATERIALS.filter(m=>(state.category==='すべて'||materialGroup(m)===state.category)&&`${m.name} ${m.aliases||''}`.toLowerCase().includes(q)).sort((a,b)=>{const ga=GROUP_ORDER.indexOf(materialGroup(a)),gb=GROUP_ORDER.indexOf(materialGroup(b));if(ga!==gb)return ga-gb;return materialSort(a,b)});
+  const root=$('#materialList');
+  if(!list.length){root.innerHTML='<div class="card empty">該当する資材がありません</div>';}else{
+    const groups={};list.forEach(m=>{const g=materialGroup(m);(groups[g]||(groups[g]=[])).push(m)});
+    root.innerHTML=GROUP_ORDER.filter(g=>groups[g]?.length).map(g=>`<section class="material-group"><div class="material-group-title"><b>${escapeHtml(g)}</b><span>${groups[g].length}種類</span></div><div class="material-group-list">${groups[g].map(materialCard).join('')}</div></section>`).join('');
+  }
+  bindMaterialControls(root);renderOrderTotals();renderSiteBanner();
+}
 function renderFavorites(){const list=MATERIALS.filter(m=>state.favorites.has(m.id));$('#favoriteList').innerHTML=list.length?list.map(materialCard).join(''):'<div class="card empty">★を押した資材がここに表示されます</div>';bindMaterialControls($('#favoriteList'))}
 function changeQty(id,d){state.cart[id]=Math.max(0,(state.cart[id]||0)+d);renderMaterials();if($('#favorites').classList.contains('active'))renderFavorites()}
 function setQty(id,v){state.cart[id]=Math.max(0,Math.floor(Number.isFinite(v)?v:0));renderMaterials();if($('#favorites').classList.contains('active'))renderFavorites()}
@@ -89,7 +111,7 @@ function renderConfirm(){const o=currentDraft();$('#confirmItems').innerHTML=o.i
 }
 function getHistory(){try{return JSON.parse(localStorage.getItem('vertx_core_orders')||'[]')}catch{return []}}
 function saveHistory(v){localStorage.setItem('vertx_core_orders',JSON.stringify(v));updateDashboard()}
-function submitOrder(){const order=currentDraft();if(!order.items.length){toast('資材を選択してください');go('order');return}order.id=Date.now();const history=getHistory();history.unshift(order);saveHistory(history);const sites=getSites();if(order.site!=='現場名未入力'&&!sites.includes(order.site)){sites.unshift(order.site);saveSites(sites)}state.cart={};state.selectedSite='';state.selectedDrawingId=null;$('#siteName').value='';$('#orderMemo').value='';renderMaterials();go('success')}
+function submitOrder(){const order=currentDraft();if(!order.items.length){toast('資材を選択してください');go('order');return}order.id=Date.now();order.status='発注済';const history=getHistory();history.unshift(order);saveHistory(history);const sites=getSites();if(order.site!=='現場名未入力'&&!sites.includes(order.site)){sites.unshift(order.site);saveSites(sites)}state.cart={};state.selectedSite='';state.selectedDrawingId=null;$('#siteName').value='';$('#orderMemo').value='';renderMaterials();go('success')}
 function renderHistory(){const h=getHistory();$('#historyList').innerHTML=h.length?h.map(o=>`<article class="card history-card"><header><div><h3>${escapeHtml(o.site)}</h3><div class="history-meta">${formatDate(o.createdAt)}${o.date?`・希望 ${escapeHtml(o.date)}`:''}</div></div><span class="badge">${o.qty}点</span></header><div class="history-item-row"><span>推定重量</span><strong>${formatWeight(Number(o.weight))}</strong></div><div class="history-item-row"><span>乗る車</span><strong>${escapeHtml(o.truck||truckFor(Number(o.weight)))}</strong></div>${o.drawingId?`<div class="history-item-row"><span>図面</span><button class="inline-link" data-open-drawing="${o.drawingId}">${escapeHtml(o.drawingName||'開く')}</button></div>`:''}<div class="history-actions"><button data-reorder="${o.id}">前回コピー</button><button data-pdf="${o.id}">PDF</button><button data-line="${o.id}">LINE</button><button data-delete="${o.id}">削除</button></div></article>`).join(''):'<div class="card empty">まだ注文履歴がありません</div>';$$('[data-reorder]').forEach(b=>b.onclick=()=>reorder(Number(b.dataset.reorder)));$$('[data-delete]').forEach(b=>b.onclick=()=>deleteOrder(Number(b.dataset.delete)));$$('[data-pdf]').forEach(b=>b.onclick=()=>printOrderById(Number(b.dataset.pdf)));$$('[data-line]').forEach(b=>b.onclick=()=>shareOrderById(Number(b.dataset.line)));$$('[data-open-drawing]').forEach(b=>b.onclick=()=>openDrawing(Number(b.dataset.openDrawing)))}
 function reorder(id){const o=getHistory().find(x=>x.id===id);if(!o)return;state.cart={};o.items.forEach(i=>{if(MATERIALS.some(m=>m.id===i.id))state.cart[i.id]=i.qty});state.selectedSite=o.site;renderMaterials();go('order');toast('前回注文をコピーしました')}
 function deleteOrder(id){if(!confirm('この履歴を削除しますか？'))return;saveHistory(getHistory().filter(x=>x.id!==id));renderHistory()}
@@ -190,20 +212,23 @@ function matchMaterialByAiName(name){
 }
 function blobToBase64(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]||'');r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
 function setAiStatus(msg,type=''){const el=$('#aiStatus');if(!el)return;el.textContent=msg;el.className='ai-status'+(type?' '+type:'');el.classList.toggle('hidden',!msg)}
+function compressImageBlob(blob,maxSide=1800,quality=.78){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(blob);img.onload=()=>{try{const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(b=>{URL.revokeObjectURL(url);b?resolve(b):reject(new Error('画像圧縮に失敗しました'))},'image/jpeg',quality)}catch(e){URL.revokeObjectURL(url);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('画像を読み込めませんでした'))};img.src=url})}
 async function runAiAnalysis(){
   const drawingId=Number($('#assistDrawing').value||0);if(!drawingId)return toast('解析する図面を選んでください');
   const d=await drawingGet(drawingId);if(!d)return toast('図面が見つかりません');
-  if(Number(d.size)>4*1024*1024){setAiStatus('この図面は4MBを超えています。必要ページを画像保存してアップロードしてください。','error');return}
+  if(Number(d.size)>2.8*1024*1024){setAiStatus('このPDFはAI送信用には大きすぎます。Vercelの送信上限対策のため、必要な立面・断面ページをスクショ/JPG/PNGでアップロードしてください。画像は自動圧縮して解析します。','error');return}
   $('#runAiBtn').disabled=true;$('#applyAiBtn').classList.add('hidden');setAiStatus('AIが図面を解析中です。寸法・凡例・資材を確認しています…');
   try{
-    const dataBase64=await blobToBase64(d.blob);
+    let aiBlob=d.blob;
+    if((d.type||'').startsWith('image/') && Number(d.size)>1.8*1024*1024){aiBlob=await compressImageBlob(d.blob,1800,.78)}
+    const dataBase64=await blobToBase64(aiBlob);
     const materialNames=MATERIALS.map(m=>m.name);
     const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:d.name,mimeType:d.type,dataBase64,mode:$('#aiMode').value,context:$('#aiContext').value.trim(),materialNames})});
     const data=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(data.error||`AI解析エラー (${r.status})`);
     renderAiResult(data.analysis,d);
     setAiStatus('解析完了。候補を確認してから注文へ反映してください。');
-  }catch(e){setAiStatus(e.message||'AI解析に失敗しました','error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。VercelのAPIキー設定と図面サイズを確認してください。'}
+  }catch(e){const msg=e?.message||'AI解析に失敗しました';const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。PDFが大きい場合は必要ページをスクショ/JPG/PNGでアップロードして再試行してください。':msg;setAiStatus(friendly,'error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
   finally{$('#runAiBtn').disabled=false}
 }
 function renderAiResult(a,d){
@@ -268,10 +293,52 @@ async function openDrawing(id){
   const url=URL.createObjectURL(d.blob);window.open(url,'_blank');setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 
+
+function optionMaterials(){return MATERIALS.slice().sort(materialSort).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('')}
+function optionSites(){const a=getSites();return a.length?a.map(x=>`<option>${escapeHtml(x)}</option>`).join(''):'<option>現場未登録</option>'}
+function getStock(){try{return JSON.parse(localStorage.getItem('vertx_core_stock')||'[]')}catch{return []}}
+function saveStockRows(v){localStorage.setItem('vertx_core_stock',JSON.stringify(v))}
+function applyOrderToStock(order){
+  if(!order||order.inventoryApplied||!Array.isArray(order.items)||!order.items.length)return false;
+  const rows=getStock();
+  order.items.forEach(item=>{
+    const i=rows.findIndex(r=>r.site===order.site&&r.materialId===item.id);
+    if(i>=0){
+      rows[i].qty=(Number(rows[i].qty)||0)+(Number(item.qty)||0);
+      rows[i].updatedAt=new Date().toISOString();
+      rows[i].memo=rows[i].memo||'注文から自動反映';
+    }else{
+      rows.unshift({site:order.site,materialId:item.id,materialName:item.name,qty:Number(item.qty)||0,memo:'注文から自動反映',updatedAt:new Date().toISOString()});
+    }
+  });
+  saveStockRows(rows);
+  order.inventoryApplied=true;
+  order.inventoryAppliedAt=new Date().toISOString();
+  return true;
+}
+function renderSiteStock(){
+  $('#stockSite').innerHTML=optionSites(); $('#stockMaterial').innerHTML=optionMaterials();
+  const rows=getStock(); $('#stockList').innerHTML=rows.length?rows.map((r,i)=>{const m=MATERIALS.find(x=>x.id===r.materialId);return `<article class="card stock-row"><div class="stock-grid"><div><b>${escapeHtml(r.site)}</b><small>${escapeHtml(m?.name||r.materialName)}</small></div><strong>${r.qty}${escapeHtml(m?.unit||'')}</strong></div>${r.memo?`<small>${escapeHtml(r.memo)}</small>`:''}<div class="quick-actions"><button data-stock-order="${i}">この資材を注文</button><button data-stock-delete="${i}">削除</button></div></article>`}).join(''):'<div class="card empty">現場資材はまだ登録されていません</div>';
+  $$('[data-stock-delete]').forEach(b=>b.onclick=()=>{const a=getStock();a.splice(Number(b.dataset.stockDelete),1);saveStockRows(a);renderSiteStock()});
+  $$('[data-stock-order]').forEach(b=>b.onclick=()=>{const r=getStock()[Number(b.dataset.stockOrder)];if(!r)return;state.selectedSite=r.site;state.cart[r.materialId]=(state.cart[r.materialId]||0)+1;renderMaterials();go('order');toast('注文に追加しました')});
+}
+function saveStockEntry(){const site=$('#stockSite').value,id=$('#stockMaterial').value,qty=Math.max(0,Number($('#stockQty').value)||0),memo=$('#stockMemo').value.trim();const m=MATERIALS.find(x=>x.id===id);if(!site||!m)return;const a=getStock();const i=a.findIndex(x=>x.site===site&&x.materialId===id);const row={site,materialId:id,materialName:m.name,qty,memo,updatedAt:new Date().toISOString()};if(i>=0)a[i]=row;else a.unshift(row);saveStockRows(a);renderSiteStock();toast('現場資材を保存しました')}
+function renderShortage(){$('#shortageSite').innerHTML=optionSites();$('#shortageMaterial').innerHTML=optionMaterials()}
+function addShortage(){const site=$('#shortageSite').value,id=$('#shortageMaterial').value,q=Math.max(1,Number($('#shortageQty').value)||1);state.selectedSite=site;state.cart[id]=(state.cart[id]||0)+q;renderMaterials();go('order');toast(`不足分 ${q} を注文に追加しました`)}
+function getSets(){try{return JSON.parse(localStorage.getItem('vertx_core_sets')||'[]')}catch{return []}}
+function saveSets(v){localStorage.setItem('vertx_core_sets',JSON.stringify(v))}
+function saveCurrentSet(){const name=$('#setName').value.trim(),items=selectedItems();if(!name)return toast('セット名を入力してください');if(!items.length)return toast('先に注文画面で資材を選んでください');const a=getSets();a.unshift({id:Date.now(),name,items:items.map(x=>({id:x.id,qty:x.qty}))});saveSets(a);$('#setName').value='';renderSets();toast('セットを保存しました')}
+function renderSets(){const a=getSets();$('#setList').innerHTML=a.length?a.map((x,i)=>`<article class="card set-row"><b>${escapeHtml(x.name)}</b><small>${x.items.length}種類</small><div class="quick-actions"><button data-set-apply="${i}">注文に入れる</button><button data-set-del="${i}">削除</button></div></article>`).join(''):'<div class="card empty">よく使う組み合わせを保存できます</div>';$$('[data-set-apply]').forEach(b=>b.onclick=()=>{const x=getSets()[Number(b.dataset.setApply)];if(!x)return;x.items.forEach(i=>state.cart[i.id]=(state.cart[i.id]||0)+i.qty);renderMaterials();go('order');toast('セットを注文に追加しました')});$$('[data-set-del]').forEach(b=>b.onclick=()=>{const a=getSets();a.splice(Number(b.dataset.setDel),1);saveSets(a);renderSets()})}
+const ORDER_STATUSES=['発注済','準備中','配送中','納品済'];
+function nextStatus(v){const i=ORDER_STATUSES.indexOf(v);return ORDER_STATUSES[(i<0?0:i+1)%ORDER_STATUSES.length]}
+function renderDispatch(){const a=getHistory().slice().sort((x,y)=>String(x.date||'9999').localeCompare(String(y.date||'9999')));$('#dispatchList').innerHTML=a.length?a.map(o=>`<article class="card dispatch-row"><div class="stock-grid"><div><b>${escapeHtml(o.site)}</b><small>${escapeHtml(o.date||'日付未設定')}</small></div><span class="status-pill">${escapeHtml(o.status||'発注済')}</span></div><div class="history-item-row"><span>車両</span><strong>${escapeHtml(o.truck||truckFor(o.weight))}</strong></div><div class="history-item-row"><span>重量</span><strong>${formatWeight(o.weight)}</strong></div>${o.inventoryApplied?'<div class="history-item-row"><span>在庫</span><strong>✓ 自動反映済み</strong></div>':''}<button data-status="${o.id}" class="secondary-btn full">ステータスを進める</button></article>`).join(''):'<div class="card empty">注文を保存すると配車予定に表示されます</div>';$$('[data-status]').forEach(b=>b.onclick=()=>{const a=getHistory(),o=a.find(x=>x.id===Number(b.dataset.status));if(o){const before=o.status||'発注済';o.status=nextStatus(before);let applied=false;if(o.status==='納品済')applied=applyOrderToStock(o);saveHistory(a);renderDispatch();if(applied){renderSiteStock();toast('納品済み：現場在庫へ自動反映しました')}}})}
+async function loadCompareDrawings(){const a=await drawingList();const opts='<option value="">図面を選択</option>'+a.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');$('#compareOld').innerHTML=opts;$('#compareNew').innerHTML=opts}
+async function runCompare(){const oldId=Number($('#compareOld').value),newId=Number($('#compareNew').value);if(!oldId||!newId||oldId===newId)return toast('旧図面と新図面を別々に選んでください');const oldD=await drawingGet(oldId),newD=await drawingGet(newId);if(!oldD||!newD)return toast('図面が見つかりません');const st=$('#compareStatus');st.classList.remove('hidden');st.textContent='AIが新旧図面を比較しています…';$('#compareResult').innerHTML='';try{let oldBlob=oldD.blob,newBlob=newD.blob;if(!String(oldD.type).includes('pdf'))oldBlob=await compressImageForAi(oldBlob,oldD.type);if(!String(newD.type).includes('pdf'))newBlob=await compressImageForAi(newBlob,newD.type);const body={old:{filename:oldD.name,mimeType:oldD.type,dataBase64:await blobToBase64(oldBlob)},newer:{filename:newD.name,mimeType:newD.type,dataBase64:await blobToBase64(newBlob)},context:$('#compareContext').value.trim()};const r=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.error||'比較に失敗しました');const a=data.analysis;$('#compareResult').innerHTML=`<h3>${escapeHtml(a.summary||'比較結果')}</h3>${(a.changes||[]).map(x=>`<div class="compare-change"><b>${escapeHtml(x.area||'変更')}</b><p>${escapeHtml(x.change||'')}</p><small>${escapeHtml(x.impact||'')}</small></div>`).join('')}${(a.warnings||[]).length?`<div class="ai-warning"><b>注意</b>${a.warnings.map(x=>`<p>${escapeHtml(x)}</p>`).join('')}</div>`:''}`;st.textContent='比較完了'}catch(e){st.textContent=e.message;$('#compareResult').textContent='AI比較に失敗しました'} }
+
 function formatDate(v){return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(v))}
 function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),1800)}
 
-$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#searchInput').oninput=e=>{state.search=e.target.value;renderMaterials()};$('#toConfirmBtn').onclick=()=>go('confirm');$('#submitOrderBtn').onclick=submitOrder;$('#addSiteBtn').onclick=addSite;$('#newSiteName').onkeydown=e=>{if(e.key==='Enter')addSite()};$('#printDraftBtn').onclick=printDraft;$('#lineDraftBtn').onclick=shareDraft;$('#addCustomMaterialBtn').onclick=addCustomMaterial;$('#resetMaterialsBtn').onclick=resetMaterialMaster;$('#drawingInput').onchange=e=>uploadDrawings(e.target.files);$('#assistType').onchange=toggleAssistOptions;$('#runAssistBtn').onclick=runAssist;$('#applyAssistBtn').onclick=applyAssist;$('#runAiBtn').onclick=runAiAnalysis;$('#applyAiBtn').onclick=applyAiCandidate;
+$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#saveStockBtn').onclick=saveStockEntry;$('#addShortageBtn').onclick=addShortage;$('#saveSetBtn').onclick=saveCurrentSet;$('#runCompareBtn').onclick=runCompare;$('#searchInput').oninput=e=>{state.search=e.target.value;renderMaterials()};$('#toConfirmBtn').onclick=()=>go('confirm');$('#submitOrderBtn').onclick=submitOrder;$('#addSiteBtn').onclick=addSite;$('#newSiteName').onkeydown=e=>{if(e.key==='Enter')addSite()};$('#printDraftBtn').onclick=printDraft;$('#lineDraftBtn').onclick=shareDraft;$('#addCustomMaterialBtn').onclick=addCustomMaterial;$('#resetMaterialsBtn').onclick=resetMaterialMaster;$('#drawingInput').onchange=e=>uploadDrawings(e.target.files);$('#assistType').onchange=toggleAssistOptions;$('#runAssistBtn').onclick=runAssist;$('#applyAssistBtn').onclick=applyAssist;$('#runAiBtn').onclick=runAiAnalysis;$('#applyAiBtn').onclick=applyAiCandidate;
 $('#resetBtn').onclick=()=>{if(confirm('注文履歴・現場・お気に入り・選択中数量を初期化しますか？（資材マスタは残ります）')){['vertx_core_orders','vertx_core_sites','vertx_core_favorites'].forEach(k=>localStorage.removeItem(k));state.cart={};state.favorites=new Set();state.selectedSite='';renderMaterials();updateDashboard();toast('初期化しました')}};
 (function init(){const d=new Date();d.setDate(d.getDate()+1);$('#deliveryDate').value=d.toISOString().slice(0,10);renderCategories();renderMaterials();updateDashboard();toggleAssistOptions();go('home')})();

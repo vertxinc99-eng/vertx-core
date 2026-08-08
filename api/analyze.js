@@ -1,4 +1,4 @@
-const MAX_BYTES = 4 * 1024 * 1024;
+const MAX_BYTES = 2.9 * 1024 * 1024;
 
 function send(res, status, body) {
   res.statusCode = status;
@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
     if (!filename || !dataBase64) return send(res, 400, { error: '図面データがありません' });
 
     const estimatedBytes = Math.floor((dataBase64.length * 3) / 4);
-    if (estimatedBytes > MAX_BYTES) return send(res, 413, { error: 'AI解析は4MB以下の図面にしてください。大きいPDFは必要ページを画像で保存して解析してください。' });
+    if (estimatedBytes > MAX_BYTES) return send(res, 413, { error: 'この図面は送信サイズ上限を超えています。必要な立面・断面ページをJPG/PNGでアップロードしてください。' });
 
     const mime = mimeType || (String(filename).toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
     const isPdf = mime === 'application/pdf' || String(filename).toLowerCase().endsWith('.pdf');

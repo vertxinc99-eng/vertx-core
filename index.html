@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v1.1 AI</title>
+  <title>VERTX CORE v2.0 AI</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v1.1 AI</span></h1>
+        <h1>CORE <span>v2.0 AI</span></h1>
       </div>
       <button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button>
     </header>
@@ -39,6 +39,11 @@
           <button class="menu-card" data-go="materialsMaster"><span>⚙</span><b>資材マスタ</b><small>名前・単重を後から変更</small></button>
           <button class="menu-card" data-go="drawings"><span>▧</span><b>図面アップロード</b><small>PDF・写真を保存して注文に添付</small></button>
           <button class="menu-card featured" data-go="assist"><span>✦</span><b>AI図面解析</b><small>PDF・写真をAIが読んで資材候補を作成</small></button>
+          <button class="menu-card" data-go="siteStock"><span>▤</span><b>現場在庫</b><small>納品済み注文を自動反映</small></button>
+          <button class="menu-card" data-go="shortage"><span>＋</span><b>不足材</b><small>不足分だけすぐ追加注文</small></button>
+          <button class="menu-card" data-go="sets"><span>▦</span><b>よく使うセット</b><small>セットを保存して一発入力</small></button>
+          <button class="menu-card" data-go="dispatch"><span>🚚</span><b>配車予定</b><small>搬入日・車両・進捗を確認</small></button>
+          <button class="menu-card featured" data-go="compare"><span>⇄</span><b>AI図面比較</b><small>新旧図面の変更点をAI確認</small></button>
         </div>
       </section>
 
@@ -162,6 +167,37 @@
             <button id="applyAssistBtn" class="secondary-btn full hidden">この候補を注文へ入れる</button>
           </div>
         </details>
+      </section>
+
+
+      <section id="siteStock" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE STOCK</p><h2>現場在庫</h2></div></div>
+        <div class="card form-card"><label>現場<select id="stockSite"></select></label><label>資材<select id="stockMaterial"></select></label><div class="master-grid"><label>現在数<input id="stockQty" type="number" min="0" value="0"></label><label>メモ<input id="stockMemo" placeholder="例：東面残し"></label></div><button id="saveStockBtn" class="primary-btn full">在庫数を手動補正</button><small class="muted">※ 注文ステータスを「納品済」にすると、その注文資材はこの現場在庫へ自動加算されます。</small></div>
+        <div class="section-head"><h3>登録済み</h3></div><div id="stockList" class="history-list"></div>
+      </section>
+
+      <section id="shortage" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SHORTAGE</p><h2>不足材を追加</h2></div></div>
+        <div class="card form-card"><label>現場<select id="shortageSite"></select></label><label>不足資材<select id="shortageMaterial"></select></label><label>数量<input id="shortageQty" type="number" min="1" value="1"></label><button id="addShortageBtn" class="primary-btn full">不足分を注文へ追加</button></div>
+        <div class="card assist-note"><b>現場から最短で追加注文</b><p>資材と数量を選ぶだけで注文カートに追加します。</p></div>
+      </section>
+
+      <section id="sets" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">QUICK SET</p><h2>よく使うセット</h2></div></div>
+        <div class="card form-card"><label>セット名<input id="setName" placeholder="例：枠600 基本セット"></label><button id="saveSetBtn" class="secondary-btn full">今の注文内容をセット保存</button></div>
+        <div id="setList" class="history-list"></div>
+      </section>
+
+      <section id="dispatch" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">DISPATCH</p><h2>配車予定</h2></div></div>
+        <div class="card assist-note"><b>注文から自動作成</b><p>希望日・推奨車両・注文ステータスを一覧で確認できます。</p></div>
+        <div id="dispatchList" class="history-list"></div>
+      </section>
+
+      <section id="compare" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">AI DRAWING COMPARE</p><h2>AI図面比較</h2></div></div>
+        <div class="card form-card"><label>旧図面<select id="compareOld"></select></label><label>新図面<select id="compareNew"></select></label><label>確認メモ<textarea id="compareContext" rows="3" placeholder="例：変更された足場面・スパン・段数・養生を確認"></textarea></label><button id="runCompareBtn" class="primary-btn full">✦ 2枚の図面を比較</button><div id="compareStatus" class="ai-status hidden"></div></div>
+        <div class="section-head"><h3>比較結果</h3></div><div id="compareResult" class="card assist-result empty">旧図面と新図面を選択してください</div>
       </section>
 
       <section id="success" class="screen success-screen">
