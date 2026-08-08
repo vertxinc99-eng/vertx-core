@@ -50,3 +50,8 @@
 .group-title{font-size:12px;letter-spacing:.08em;color:#8aa5bb;margin:18px 4px 8px;text-transform:uppercase}
 .quick-actions{display:flex;gap:8px;flex-wrap:wrap}.quick-actions button{flex:1;min-width:92px}
 .compare-change{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+
+.stock-summary{display:grid;gap:10px;margin:10px 0 18px}.stock-summary-card{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:14px 16px;border:1px solid var(--line,#263447);border-radius:16px;background:rgba(255,255,255,.035)}.stock-summary-card b{display:block;font-size:15px}.stock-summary-card small{display:block;opacity:.72;margin-top:4px}.stock-summary-weight{text-align:right}.stock-summary-weight strong{display:block;font-size:20px}.stock-summary-weight span{display:block;font-size:12px;opacity:.72;margin-top:2px}
+
+/* v2.3 複数図面AI */
+.drawing-pick-wrap{display:grid;gap:10px}.drawing-pick-head{display:flex;align-items:center;justify-content:space-between}.drawing-pick-head span{font-size:12px;color:var(--blue);font-weight:700}.drawing-check-list{display:grid;gap:8px;max-height:300px;overflow:auto;padding:2px}.drawing-check{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:11px 12px;background:var(--card2)}.drawing-check input{width:20px;height:20px;accent-color:#198cff}.drawing-check span{display:grid;gap:2px;min-width:0}.drawing-check b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.drawing-check small{font-size:11px;color:var(--muted)}.drawing-pick-actions{display:flex;gap:8px}.mini-btn{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:10px;padding:8px 12px;font-weight:700}

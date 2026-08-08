@@ -124,7 +124,7 @@
           <h3>図面を追加</h3>
           <p class="muted">PDF / JPG / PNG を端末内に保存します。アップロードした図面は注文に添付できます。</p>
           <label class="primary-btn upload-btn">＋ 図面を選択<input id="drawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label>
-          <small class="local-note">v1.0ではこの端末のブラウザ内に保存します。別端末同期はクラウド版で対応予定です。</small>
+          <small class="local-note">複数ファイルをまとめて選択できます。端末のブラウザ内に保存します。</small>
         </div>
         <div class="section-head"><h3>保存済み図面</h3></div>
         <div id="drawingList" class="history-list"></div>
@@ -136,7 +136,7 @@
         <div class="card assist-note ai-note"><b>図面をAIが読んで資材候補を作る</b><p>保存済みのPDF・JPG・PNGをAIへ送信し、枠組・単管を中心に図面上で確認できる情報から資材候補を作ります。AI結果は発注確定ではありません。数量・納まりは必ず人が確認してください。</p></div>
 
         <div class="card form-card">
-          <label>解析する図面<select id="assistDrawing"><option value="">図面を選択してください</option></select></label>
+          <div class="drawing-pick-wrap"><div class="drawing-pick-head"><b>解析する図面</b><span>複数選択OK</span></div><div id="assistDrawingList" class="drawing-check-list"><div class="muted">図面を読み込み中…</div></div><div class="drawing-pick-actions"><button type="button" id="selectAllDrawings" class="mini-btn">すべて選択</button><button type="button" id="clearAllDrawings" class="mini-btn">選択解除</button></div><small class="muted">平面・立面・断面・詳細図をまとめて選ぶと、AIが相互に見比べて資材候補を作ります。</small></div>
           <label>解析モード<select id="aiMode"><option value="auto">自動判定</option><option value="frame">枠組足場を優先</option><option value="pipe">単管足場を優先</option></select></label>
           <label>現場メモ（任意）<textarea id="aiContext" rows="3" placeholder="例：解体足場、防音パネル養生、道路面に朝顔あり"></textarea></label>
           <button id="runAiBtn" class="primary-btn full">✦ AIで図面を解析</button>
@@ -173,7 +173,7 @@
       <section id="siteStock" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE STOCK</p><h2>現場在庫</h2></div></div>
         <div class="card form-card"><label>現場<select id="stockSite"></select></label><label>資材<select id="stockMaterial"></select></label><div class="master-grid"><label>現在数<input id="stockQty" type="number" min="0" value="0"></label><label>メモ<input id="stockMemo" placeholder="例：東面残し"></label></div><button id="saveStockBtn" class="primary-btn full">在庫数を手動補正</button><small class="muted">※ 注文ステータスを「納品済」にすると、その注文資材はこの現場在庫へ自動加算されます。</small></div>
-        <div class="section-head"><h3>登録済み</h3></div><div id="stockList" class="history-list"></div>
+        <div class="section-head"><h3>現場別 在庫重量</h3></div><div id="stockSummary" class="stock-summary"></div><div class="section-head"><h3>登録済み</h3></div><div id="stockList" class="history-list"></div>
       </section>
 
       <section id="shortage" class="screen">

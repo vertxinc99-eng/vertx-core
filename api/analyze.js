@@ -22,24 +22,26 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { filename, mimeType, dataBase64, mode = 'auto', context = '', materialNames = [] } = body;
-    if (!filename || !dataBase64) return send(res, 400, { error: '図面データがありません' });
-
-    const estimatedBytes = Math.floor((dataBase64.length * 3) / 4);
-    if (estimatedBytes > MAX_BYTES) return send(res, 413, { error: 'この図面は送信サイズ上限を超えています。必要な立面・断面ページをJPG/PNGでアップロードしてください。' });
-
-    const mime = mimeType || (String(filename).toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
-    const isPdf = mime === 'application/pdf' || String(filename).toLowerCase().endsWith('.pdf');
-    const dataUrl = `data:${mime};base64,${dataBase64}`;
+    const { mode = 'auto', context = '', materialNames = [] } = body;
+    const files = Array.isArray(body.files) && body.files.length ? body.files.slice(0, 8) : (body.filename && body.dataBase64 ? [{ filename: body.filename, mimeType: body.mimeType, dataBase64: body.dataBase64 }] : []);
+    if (!files.length) return send(res, 400, { error: '図面データがありません' });
+    const estimatedBytes = files.reduce((s,f)=>s+Math.floor((String(f.dataBase64||'').length*3)/4),0);
+    if (estimatedBytes > MAX_BYTES) return send(res, 413, { error: '選択した図面の合計サイズが送信上限を超えています。必要な立面・断面に絞ってください。' });
     const catalog = Array.isArray(materialNames) ? materialNames.slice(0, 450).join(' / ') : '';
 
     const instructions = `あなたは日本の仮設足場、とくに解体現場の枠組足場・単管足場の資材拾いを補助する専門アシスタントです。\n図面に明示された寸法、凡例、注記、立面・断面を読み、確認できる範囲だけから資材候補を出してください。\n数量が図面から確定できないものは無理に断定せず confidence を下げ、reason に根拠と不確実性を書いてください。\n優先対象: 建枠、調整枠、筋違/ブレス、鋼製布板/アンチ、手摺/下さん、ジャッキベース、固定ベース、単管パイプ、直交/自在クランプ、ブラケット、壁つなぎ、防音パネル、透過パネル、メッシュシート、朝顔、階段/タラップ、かんざしパイプ。\n安全上、AI結果は候補であり発注確定ではありません。\n可能なら material_name はユーザーの資材マスタ名に近い表記を使ってください。`;
 
     const content = [
-      { type: 'input_text', text: `解析モード: ${mode}\n現場メモ: ${context || 'なし'}\n利用中の資材マスタ候補: ${catalog || '未指定'}\nこの図面から、足場タイプ・読み取れた寸法・資材候補と数量・根拠・注意点を抽出してください。` }
+      { type: 'input_text', text: `解析モード: ${mode}\n現場メモ: ${context || 'なし'}\n利用中の資材マスタ候補: ${catalog || '未指定'}\n添付された複数の平面図・立面図・断面図・詳細図を相互に照合し、同じ現場の一式として解析してください。重複カウントを避け、図面間で矛盾がある場合はwarningsに書いてください。足場タイプ・読み取れた寸法・資材候補と数量・根拠・注意点を抽出してください。` }
     ];
-    if (isPdf) content.push({ type: 'input_file', filename, file_data: dataUrl });
-    else content.push({ type: 'input_image', image_url: dataUrl, detail: 'high' });
+    for (const f of files) {
+      const filename=String(f.filename||'drawing');
+      const mime=f.mimeType || (filename.toLowerCase().endsWith('.pdf')?'application/pdf':'image/jpeg');
+      const dataUrl=`data:${mime};base64,${f.dataBase64}`;
+      const isPdf=mime==='application/pdf'||filename.toLowerCase().endsWith('.pdf');
+      if(isPdf) content.push({type:'input_file',filename,file_data:dataUrl});
+      else content.push({type:'input_image',image_url:dataUrl,detail:'high'});
+    }
 
     const payload = {
       model: process.env.OPENAI_MODEL || 'gpt-5',
