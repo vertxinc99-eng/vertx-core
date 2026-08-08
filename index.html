@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE β0.6</title>
+  <title>VERTX CORE v1.1 AI</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>β0.6</span></h1>
+        <h1>CORE <span>v1.1 AI</span></h1>
       </div>
       <button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button>
     </header>
@@ -37,6 +37,8 @@
           <button class="menu-card" data-go="history"><span>📋</span><b>注文履歴</b><small>再注文にも対応</small></button>
           <button class="menu-card" data-go="favorites"><span>★</span><b>お気に入り</b><small>よく使う資材だけ表示</small></button>
           <button class="menu-card" data-go="materialsMaster"><span>⚙</span><b>資材マスタ</b><small>名前・単重を後から変更</small></button>
+          <button class="menu-card" data-go="drawings"><span>▧</span><b>図面アップロード</b><small>PDF・写真を保存して注文に添付</small></button>
+          <button class="menu-card featured" data-go="assist"><span>✦</span><b>AI図面解析</b><small>PDF・写真をAIが読んで資材候補を作成</small></button>
         </div>
       </section>
 
@@ -81,7 +83,12 @@
           <div><span>合計数量</span><strong id="confirmQty">0点</strong></div>
           <div><span>推定重量</span><strong id="confirmWeight">0.0kg</strong></div>
           <div><span>乗る車</span><strong id="truckRecommendation">軽トラ</strong></div>
+          <div id="confirmDrawing"><span>添付図面</span><strong>なし</strong></div>
         </div>
+        <div class="section-head mini"><h3>不足チェック</h3></div>
+        <div id="missingCheck" class="card missing-check"></div>
+        <button class="secondary-btn full" data-go="drawings">＋ 図面を選ぶ / アップロード</button>
+        <span id="selectedDrawingName" class="selected-drawing-name"></span>
         <div class="action-grid"><button id="printDraftBtn" class="secondary-btn full">PDF / 印刷</button><button id="lineDraftBtn" class="secondary-btn full">LINEで共有</button></div>
         <button id="submitOrderBtn" class="primary-btn full">この内容で注文を保存</button>
       </section>
@@ -103,6 +110,60 @@
         <div class="section-head"><h3>登録資材</h3><button id="resetMaterialsBtn" class="text-btn">初期値に戻す</button></div>
         <div id="masterList" class="history-list"></div>
       </section>
+
+
+      <section id="drawings" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">DRAWING</p><h2>図面アップロード</h2></div></div>
+        <div class="card upload-card">
+          <div class="upload-icon">▧</div>
+          <h3>図面を追加</h3>
+          <p class="muted">PDF / JPG / PNG を端末内に保存します。アップロードした図面は注文に添付できます。</p>
+          <label class="primary-btn upload-btn">＋ 図面を選択<input id="drawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label>
+          <small class="local-note">v1.0ではこの端末のブラウザ内に保存します。別端末同期はクラウド版で対応予定です。</small>
+        </div>
+        <div class="section-head"><h3>保存済み図面</h3></div>
+        <div id="drawingList" class="history-list"></div>
+      </section>
+
+
+      <section id="assist" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">AI DRAWING ANALYSIS</p><h2>AI図面解析</h2></div></div>
+        <div class="card assist-note ai-note"><b>図面をAIが読んで資材候補を作る</b><p>保存済みのPDF・JPG・PNGをAIへ送信し、枠組・単管を中心に図面上で確認できる情報から資材候補を作ります。AI結果は発注確定ではありません。数量・納まりは必ず人が確認してください。</p></div>
+
+        <div class="card form-card">
+          <label>解析する図面<select id="assistDrawing"><option value="">図面を選択してください</option></select></label>
+          <label>解析モード<select id="aiMode"><option value="auto">自動判定</option><option value="frame">枠組足場を優先</option><option value="pipe">単管足場を優先</option></select></label>
+          <label>現場メモ（任意）<textarea id="aiContext" rows="3" placeholder="例：解体足場、防音パネル養生、道路面に朝顔あり"></textarea></label>
+          <button id="runAiBtn" class="primary-btn full">✦ AIで図面を解析</button>
+          <div id="aiStatus" class="ai-status hidden"></div>
+        </div>
+
+        <div class="section-head"><h3>AI解析結果</h3></div>
+        <div id="aiResult" class="card assist-result empty">図面を選んで「AIで図面を解析」を押してください</div>
+        <button id="applyAiBtn" class="primary-btn full hidden">AI候補を注文へ入れる</button>
+
+        <details class="card manual-assist">
+          <summary>AIを使わず寸法から候補を作る</summary>
+          <div class="manual-inner">
+            <label>足場タイプ<select id="assistType"><option value="frame">枠組足場</option><option value="pipeBracket">単管ブラケット足場</option><option value="pipeSingle">単管シングル足場</option></select></label>
+            <div class="assist-grid">
+              <label>スパン数<input id="assistSpans" type="number" min="1" value="10"></label>
+              <label>段数<input id="assistLevels" type="number" min="1" value="5"></label>
+            </div>
+            <div id="frameAssistOptions">
+              <div class="assist-grid">
+                <label>枠幅<select id="assistFrameWidth"><option value="610">610枠</option><option value="914">914枠</option><option value="1219">1219枠</option></select></label>
+                <label>スパン長<select id="assistSpanLength"><option value="1829">1829</option><option value="1524">1524</option><option value="1219">1219</option><option value="914">914</option><option value="610">610</option></select></label>
+              </div>
+              <label class="check-row"><input id="assistPanels" type="checkbox"> 防音パネル養生あり</label>
+            </div>
+            <button id="runAssistBtn" class="secondary-btn full">寸法から資材候補を作る</button>
+            <div id="assistResult" class="assist-result empty manual-result">条件を入力して候補を作成できます</div>
+            <button id="applyAssistBtn" class="secondary-btn full hidden">この候補を注文へ入れる</button>
+          </div>
+        </details>
+      </section>
+
       <section id="success" class="screen success-screen">
         <div class="success-mark">✓</div><p class="eyebrow">COMPLETE</p><h2>注文を保存しました</h2>
         <p class="muted center">履歴からいつでも確認・再注文できます。</p>

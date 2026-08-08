@@ -1,121 +1,26 @@
-const DEFAULT_MATERIALS = [
-  // 枠組足場（主に解体で使う610枠系）
-  {id:'frame610_1700',name:'610枠 1700',category:'枠組',weight:12.3,unit:'枚',aliases:'建枠 610 AC-617'},
-  {id:'adjustFrame610x490',name:'調整枠 610×490',category:'枠組',weight:7.0,unit:'枚',aliases:'調整枠490 490枠'},
-  {id:'jointPin',name:'連結ピン（建枠用）',category:'枠組',weight:0.6,unit:'本',aliases:'枠ピン KJ-80'},
-  {id:'brace610',name:'筋交（ブレス）610',category:'枠組',weight:2.0,unit:'本',aliases:'ブレス610 筋交610'},
-  {id:'brace914',name:'筋交（ブレス）914',category:'枠組',weight:2.4,unit:'本',aliases:'ブレス914 筋交914'},
-  {id:'brace1219',name:'筋交（ブレス）1219',category:'枠組',weight:2.7,unit:'本',aliases:'ブレス1219 筋交1219'},
-  {id:'brace1524',name:'筋交（ブレス）1524',category:'枠組',weight:3.5,unit:'本',aliases:'ブレス1524 筋交1524'},
-  {id:'brace1829',name:'筋交（ブレス）1829',category:'枠組',weight:4.0,unit:'本',aliases:'ブレス1829 筋交1829 A-14'},
-  {id:'frameHandrail',name:'枠用手摺 1829',category:'枠組',weight:1.9,unit:'本',aliases:'手摺 羽根手摺 ライト手摺'},
-  {id:'endHandrail',name:'末端手摺',category:'枠組',weight:1.9,unit:'本',aliases:'端部手摺'},
-  {id:'lowerRail',name:'下さん',category:'枠組',weight:2.5,unit:'本',aliases:'下桟'},
-
-  // アンチ・鋼製布板
-  {id:'anti610',name:'アンチ 610',category:'アンチ・布板',weight:4.0,unit:'枚'},
-  {id:'anti914',name:'アンチ 914',category:'アンチ・布板',weight:5.5,unit:'枚'},
-  {id:'anti1219',name:'アンチ 1219',category:'アンチ・布板',weight:6.8,unit:'枚'},
-  {id:'anti1524',name:'アンチ 1524',category:'アンチ・布板',weight:7.3,unit:'枚'},
-  {id:'anti1829',name:'アンチ 1829',category:'アンチ・布板',weight:9.7,unit:'枚'},
-  {id:'steel240_2m',name:'2板（鋼製足場板 2m）',category:'アンチ・布板',weight:7.2,unit:'枚',aliases:'2板 2m板'},
-  {id:'steel240_4m',name:'4板（鋼製足場板 4m）',category:'アンチ・布板',weight:14.4,unit:'枚',aliases:'4板 4m板'},
-
-  // 単管 φ48.6（メーカー公表値ベース）
-  {id:'pipe0_5m',name:'単管パイプ 0.5m',category:'単管',weight:1.37,unit:'本',aliases:'500 かんざし'},
-  {id:'pipe1m',name:'単管パイプ 1.0m',category:'単管',weight:2.73,unit:'本'},
-  {id:'pipe1_5m',name:'単管パイプ 1.5m',category:'単管',weight:4.10,unit:'本'},
-  {id:'pipe2m',name:'単管パイプ 2.0m',category:'単管',weight:5.46,unit:'本',aliases:'2mパイプ'},
-  {id:'pipe2_5m',name:'単管パイプ 2.5m',category:'単管',weight:6.83,unit:'本'},
-  {id:'pipe3m',name:'単管パイプ 3.0m',category:'単管',weight:8.19,unit:'本'},
-  {id:'pipe4m',name:'単管パイプ 4.0m',category:'単管',weight:10.92,unit:'本',aliases:'4mパイプ'},
-  {id:'pipe5m',name:'単管パイプ 5.0m',category:'単管',weight:13.65,unit:'本'},
-  {id:'pipe6m',name:'単管パイプ 6.0m',category:'単管',weight:16.38,unit:'本'},
-  {id:'kanzashiPipe',name:'かんざしパイプ 0.5m',category:'単管',weight:1.37,unit:'本',aliases:'かんざし 500mm'},
-  {id:'negaramiPipe',name:'根がらみ単管 2.0m',category:'単管',weight:5.46,unit:'本'},
-  {id:'topPipe',name:'頭つなぎパイプ 2.0m',category:'単管',weight:5.46,unit:'本'},
-
-  // クランプ・ジョイント・金物
-  {id:'fixedClamp',name:'直交クランプ',category:'クランプ・金物',weight:0.74,unit:'個'},
-  {id:'swivelClamp',name:'自在クランプ',category:'クランプ・金物',weight:0.74,unit:'個'},
-  {id:'tripleFixedClamp',name:'三連クランプ 直交',category:'クランプ・金物',weight:1.10,unit:'個',aliases:'三つ爪クランプ'},
-  {id:'tripleSwivelClamp',name:'三連クランプ 自在',category:'クランプ・金物',weight:1.10,unit:'個'},
-  {id:'singleClamp',name:'単クランプ',category:'クランプ・金物',weight:0.40,unit:'個'},
-  {id:'straightJoint',name:'直線ジョイント',category:'クランプ・金物',weight:0.60,unit:'個',aliases:'単管ジョイント'},
-  {id:'bonJoint',name:'ボンジョイント',category:'クランプ・金物',weight:0.60,unit:'個'},
-  {id:'stopper',name:'ストッパー',category:'クランプ・金物',weight:2.70,unit:'本',aliases:'エンドストッパー'},
-  {id:'hagoita',name:'羽子板',category:'クランプ・金物',weight:2.0,unit:'個'},
-  {id:'oniClamp',name:'鬼クラ',category:'クランプ・金物',weight:0.9,unit:'個',aliases:'鬼クランプ'},
-
-  // ジャッキ・ベース
-  {id:'jackBase380',name:'ジャッキベース 380',category:'ジャッキ・ベース',weight:3.3,unit:'個'},
-  {id:'jackBase600',name:'ジャッキベース 600',category:'ジャッキ・ベース',weight:4.6,unit:'個'},
-  {id:'fixedBase486',name:'固定ベース φ48.6',category:'ジャッキ・ベース',weight:0.75,unit:'個'},
-  {id:'flexBase486',name:'自在ベース φ48.6',category:'ジャッキ・ベース',weight:1.54,unit:'個'},
-  {id:'uJack400',name:'Uヘッドジャッキ 400',category:'ジャッキ・ベース',weight:4.8,unit:'個'},
-  {id:'uJack600',name:'Uヘッドジャッキ 600',category:'ジャッキ・ベース',weight:6.0,unit:'個'},
-
-  // 壁つなぎ
-  {id:'wallTie14_17',name:'壁つなぎ 140〜165mm',category:'壁つなぎ',weight:0.8,unit:'本'},
-  {id:'wallTie16_20',name:'壁つなぎ 160〜200mm',category:'壁つなぎ',weight:0.9,unit:'本'},
-  {id:'wallTie19_25',name:'壁つなぎ 190〜250mm',category:'壁つなぎ',weight:0.95,unit:'本'},
-  {id:'wallTie24_34',name:'壁つなぎ 240〜340mm',category:'壁つなぎ',weight:1.14,unit:'本'},
-  {id:'wallTie33_52',name:'壁つなぎ 330〜520mm',category:'壁つなぎ',weight:1.51,unit:'本'},
-  {id:'wallTie50_72',name:'壁つなぎ 500〜720mm',category:'壁つなぎ',weight:2.05,unit:'本'},
-  {id:'wallTie70_92',name:'壁つなぎ 700〜920mm',category:'壁つなぎ',weight:2.53,unit:'本'},
-  {id:'wallTie90_112',name:'壁つなぎ 900〜1120mm',category:'壁つなぎ',weight:2.94,unit:'本'},
-
-  // ブラケット
-  {id:'bracket500',name:'伸縮ブラケット 500',category:'ブラケット',weight:3.4,unit:'個',aliases:'ブラケット500'},
-  {id:'bracket750',name:'伸縮ブラケット 750',category:'ブラケット',weight:4.4,unit:'個',aliases:'ブラケット750'},
-  {id:'bracket1000',name:'伸縮ブラケット 1000',category:'ブラケット',weight:6.5,unit:'個',aliases:'ブラケット1000'},
-
-  // 階段・昇降
-  {id:'stair1800',name:'昇降階段 1800',category:'階段・昇降',weight:17.4,unit:'台'},
-  {id:'alStair1800',name:'アルミ昇降階段 1800',category:'階段・昇降',weight:12.3,unit:'台'},
-  {id:'hatchStair600',name:'600枠 ハッチ式昇降階段',category:'階段・昇降',weight:22.0,unit:'台'},
-  {id:'stairHandrail',name:'階段手摺',category:'階段・昇降',weight:7.1,unit:'本'},
-  {id:'ladder1800',name:'昇降タラップ 1.8m',category:'階段・昇降',weight:11.6,unit:'本'},
-  {id:'ladder2700',name:'昇降タラップ 2.7m',category:'階段・昇降',weight:17.1,unit:'本'},
-  {id:'ladder3600',name:'昇降タラップ 3.6m',category:'階段・昇降',weight:22.8,unit:'本'},
-
-  // 養生
-  {id:'soundPanel1800',name:'防音パネル 1.8m',category:'養生',weight:13.0,unit:'枚',aliases:'1.8パネル 1800'},
-  {id:'soundPanel1500',name:'防音パネル 1.5m',category:'養生',weight:11.0,unit:'枚',aliases:'1.5パネル 1500'},
-  {id:'soundPanel1200',name:'防音パネル 1.2m',category:'養生',weight:9.0,unit:'枚',aliases:'1.2パネル 1200'},
-  {id:'soundPanel900',name:'防音パネル 0.9m',category:'養生',weight:7.0,unit:'枚',aliases:'0.9パネル 900'},
-  {id:'soundPanel600',name:'防音パネル 0.6m',category:'養生',weight:5.0,unit:'枚',aliases:'0.6パネル 600パネル'},
-  {id:'cornerPanel',name:'コーナーパネル',category:'養生',weight:6.5,unit:'枚'},
-  {id:'clearPanel',name:'透過パネル',category:'養生',weight:10.0,unit:'枚'},
-  {id:'soundSheet18',name:'防音シート 1.8',category:'養生',weight:5.0,unit:'枚'},
-  {id:'verticalNet',name:'垂直ネット',category:'養生',weight:4.0,unit:'枚'},
-  {id:'meshSheet',name:'メッシュシート',category:'養生',weight:3.5,unit:'枚'},
-  {id:'rope',name:'シート紐',category:'養生',weight:0.03,unit:'本',aliases:'紐'},
-
-  // 朝顔・その他
-  {id:'asagaoPanel',name:'朝顔パネル',category:'朝顔',weight:14.0,unit:'枚'},
-  {id:'asagaoArm',name:'朝顔アーム',category:'朝顔',weight:11.0,unit:'本'},
-  {id:'asagaoClamp',name:'朝顔クランプ',category:'朝顔',weight:1.1,unit:'個'},
-  {id:'oyazuna',name:'親綱 10m',category:'その他',weight:2.0,unit:'本'},
-  {id:'flatPanel3m',name:'フラットパネル H=3m',category:'その他',weight:18.0,unit:'枚'},
-  {id:'plywood',name:'合板 12mm',category:'その他',weight:12.0,unit:'枚'}
-];
+const DEFAULT_MATERIALS = [{"id":"sanwa_frame1219_1700","name":"建枠 W1219×H1700（A-4055B）","category":"枠組","weight":15.8,"unit":"枚","aliases":"1219枠 A-4055B"},{"id":"sanwa_frame914_1700","name":"建枠 W914×H1700（A-3055A）","category":"枠組","weight":14.0,"unit":"枚","aliases":"914枠 A-3055A"},{"id":"sanwa_frame610_1700","name":"建枠 W610×H1700（A-6117M）","category":"枠組","weight":13.0,"unit":"枚","aliases":"610枠 A-6117M"},{"id":"kanzashi05","name":"かんざしパイプ 0.5m","category":"単管","weight":1.64,"unit":"本","aliases":"かんざし 500"},{"id":"soundPanel1800","name":"防音パネル 1.8m","category":"養生・ネット","weight":13.0,"unit":"枚","aliases":"1.8パネル 1800"},{"id":"soundPanel1500","name":"防音パネル 1.5m","category":"養生・ネット","weight":11.0,"unit":"枚","aliases":"1.5パネル 1500"},{"id":"soundPanel1200","name":"防音パネル 1.2m","category":"養生・ネット","weight":9.0,"unit":"枚","aliases":"1.2パネル 1200"},{"id":"soundPanel900","name":"防音パネル 0.9m","category":"養生・ネット","weight":7.0,"unit":"枚","aliases":"0.9パネル 900"},{"id":"soundPanel600","name":"防音パネル 0.6m","category":"養生・ネット","weight":5.0,"unit":"枚","aliases":"0.6パネル 600"},{"id":"cornerPanel","name":"コーナーパネル","category":"養生・ネット","weight":6.5,"unit":"枚","aliases":"コーナー"},{"id":"nk_001","name":"梯子型建枠１２１５(W1219H1524)","category":"枠組","weight":15.8,"unit":"台","aliases":""},{"id":"nk_002","name":"筋違 Ａ－０７(H1.2×L0.91)","category":"筋違・手摺・幅木","weight":2.4,"unit":"本","aliases":""},{"id":"nk_003","name":"ロング大引受パイプジャッキ","category":"ジャッキ・ベース","weight":6.5,"unit":"個","aliases":""},{"id":"nk_004","name":"梯子型建枠１２１２(W1219H1219)","category":"枠組","weight":14.0,"unit":"台","aliases":""},{"id":"nk_005","name":"筋違 Ａ－０９(H1.2×L0.61)","category":"筋違・手摺・幅木","weight":2.1,"unit":"本","aliases":""},{"id":"nk_006","name":"ジャッキサポート","category":"ジャッキ・ベース","weight":10.4,"unit":"個","aliases":""},{"id":"nk_007","name":"梯子型建枠１２０９(W1219H914)","category":"枠組","weight":11.0,"unit":"台","aliases":""},{"id":"nk_008","name":"筋違 Ａ－０８(H0.9×L1.82)","category":"筋違・手摺・幅木","weight":3.7,"unit":"本","aliases":""},{"id":"nk_009","name":"棒ジャッキ","category":"ジャッキ・ベース","weight":4.5,"unit":"個","aliases":""},{"id":"nk_010","name":"梯子型建枠０９１５(W914H1524)","category":"枠組","weight":13.0,"unit":"台","aliases":""},{"id":"nk_011","name":"筋違 Ａ－９ (H0.9×L1.52)","category":"筋違・手摺・幅木","weight":3.1,"unit":"本","aliases":""},{"id":"nk_012","name":"ピポットジャッキ","category":"ジャッキ・ベース","weight":4.1,"unit":"個","aliases":""},{"id":"nk_013","name":"梯子型建枠０９１２(W914H1219)","category":"枠組","weight":11.9,"unit":"台","aliases":""},{"id":"nk_014","name":"筋違 Ａ－０６(H0.9×L0.61)","category":"筋違・手摺・幅木","weight":1.7,"unit":"本","aliases":""},{"id":"nk_015","name":"枠用ベース","category":"ジャッキ・ベース","weight":1.0,"unit":"個","aliases":""},{"id":"nk_016","name":"梯子型建枠０９０９(W914H914)","category":"枠組","weight":9.2,"unit":"台","aliases":""},{"id":"nk_017","name":"筋違 Ａ－１６Ｓ(H0.5×L1.82)","category":"筋違・手摺・幅木","weight":3.5,"unit":"本","aliases":""},{"id":"nk_018","name":"Ｕ字ベース","category":"ジャッキ・ベース","weight":0.7,"unit":"個","aliases":""},{"id":"nk_019","name":"梯子型建枠６１７(W614Ｈ1700)","category":"枠組","weight":13.0,"unit":"台","aliases":""},{"id":"nk_020","name":"筋違 Ａ－１６(H0.5×L1.52)","category":"筋違・手摺・幅木","weight":3.0,"unit":"本","aliases":""},{"id":"nk_021","name":"梯子型建枠１５１５(W1524H1524)","category":"枠組","weight":19.0,"unit":"台","aliases":""},{"id":"nk_022","name":"筋違 Ａ－０５(H0.5×L1.22)","category":"筋違・手摺・幅木","weight":2.6,"unit":"本","aliases":""},{"id":"nk_023","name":"杉足場板（２４０巾）１．４ｍ","category":"布板・足場板","weight":7.0,"unit":"枚","aliases":""},{"id":"nk_024","name":"調整枠 ０６１２(W614H1219)","category":"枠組","weight":11.7,"unit":"本","aliases":""},{"id":"nk_025","name":"筋違 Ａ－０４(H0.5×L0.91)","category":"筋違・手摺・幅木","weight":2.0,"unit":"本","aliases":""},{"id":"nk_026","name":"杉足場板（２４０巾）２ｍ","category":"布板・足場板","weight":7.0,"unit":"枚","aliases":""},{"id":"nk_027","name":"調整枠 ０６０９(W614H914)","category":"枠組","weight":9.0,"unit":"本","aliases":""},{"id":"nk_028","name":"筋違 Ａ－０３(H0.5×L0.61)","category":"筋違・手摺・幅木","weight":1.4,"unit":"本","aliases":""},{"id":"nk_029","name":"杉足場板（２４０巾）４ｍ","category":"布板・足場板","weight":14.0,"unit":"枚","aliases":""},{"id":"nk_030","name":"調整枠 Ａ－４１７(W1219H490)","category":"枠組","weight":9.1,"unit":"本","aliases":""},{"id":"nk_031","name":"軽量足場板 １ｍ (250巾)","category":"布板・足場板","weight":4.0,"unit":"枚","aliases":""},{"id":"nk_032","name":"調整枠 Ａ－３１７(W914H490)","category":"枠組","weight":8.5,"unit":"本","aliases":""},{"id":"nk_033","name":"先行手摺 ライフガード ＢＲＡ１８ＡＧ","category":"筋違・手摺・幅木","weight":13.1,"unit":"本","aliases":""},{"id":"nk_034","name":"軽量足場板 ２ｍ (250巾)","category":"布板・足場板","weight":7.0,"unit":"枚","aliases":""},{"id":"nk_035","name":"調整枠 Ｎ－２１７(W610H490)","category":"枠組","weight":7.5,"unit":"本","aliases":""},{"id":"nk_036","name":"先行手摺 ライフガード ＢＲＡ１５ＡＧ","category":"筋違・手摺・幅木","weight":12.2,"unit":"本","aliases":""},{"id":"nk_037","name":"軽量足場板 ３ｍ (250巾)","category":"布板・足場板","weight":10.0,"unit":"枚","aliases":""},{"id":"nk_038","name":"ブラケット枠6117(W610→W914)","category":"枠組","weight":17.0,"unit":"個","aliases":""},{"id":"nk_039","name":"先行手摺 ライフガード ＢＲＡ１２ＡＧ","category":"筋違・手摺・幅木","weight":11.3,"unit":"本","aliases":""},{"id":"nk_040","name":"軽量足場板 ４ｍ (250巾)","category":"布板・足場板","weight":13.0,"unit":"枚","aliases":""},{"id":"nk_041","name":"ブラケット枠9117(W914→W1219)","category":"枠組","weight":18.2,"unit":"個","aliases":""},{"id":"nk_042","name":"先行手摺 ライフガード ＢＲＡ０９ＡＧ","category":"筋違・手摺・幅木","weight":10.4,"unit":"本","aliases":""},{"id":"nk_043","name":"ロック付連結ピン","category":"枠組","weight":0.5,"unit":"本","aliases":""},{"id":"nk_044","name":"先行手摺 ライフガード ＢＲＡ０６ＡＧ","category":"筋違・手摺・幅木","weight":9.6,"unit":"本","aliases":""},{"id":"nk_045","name":"クイック幅木 １８","category":"筋違・手摺・幅木","weight":4.6,"unit":"枚","aliases":""},{"id":"nk_046","name":"下さん手摺１８２９","category":"筋違・手摺・幅木","weight":2.2,"unit":"本","aliases":""},{"id":"nk_047","name":"クイック幅木 １５","category":"筋違・手摺・幅木","weight":4.1,"unit":"枚","aliases":""},{"id":"nk_048","name":"鋼製布板 SKN-6(L1829)500巾","category":"布板・足場板","weight":15.6,"unit":"枚","aliases":""},{"id":"nk_049","name":"下さん手摺１５２４","category":"筋違・手摺・幅木","weight":1.9,"unit":"本","aliases":""},{"id":"nk_050","name":"クイック幅木 １２","category":"筋違・手摺・幅木","weight":3.5,"unit":"枚","aliases":""},{"id":"nk_051","name":"鋼製布板 SKN-5(L1524)500巾","category":"布板・足場板","weight":13.0,"unit":"枚","aliases":""},{"id":"nk_052","name":"下さん手摺１２１９","category":"筋違・手摺・幅木","weight":1.6,"unit":"本","aliases":""},{"id":"nk_053","name":"クイック幅木 ０９","category":"筋違・手摺・幅木","weight":3.0,"unit":"枚","aliases":""},{"id":"nk_054","name":"鋼製布板 SKN-4(L1219)500巾","category":"布板・足場板","weight":11.0,"unit":"枚","aliases":""},{"id":"nk_055","name":"下さん手摺 ９１４","category":"筋違・手摺・幅木","weight":1.2,"unit":"本","aliases":""},{"id":"nk_056","name":"クイック幅木 ０６","category":"筋違・手摺・幅木","weight":2.5,"unit":"枚","aliases":""},{"id":"nk_057","name":"鋼製布板 SKN-3(L914)500巾","category":"布板・足場板","weight":8.5,"unit":"枚","aliases":""},{"id":"nk_058","name":"下さん手摺 ６１０","category":"筋違・手摺・幅木","weight":0.9,"unit":"本","aliases":""},{"id":"nk_059","name":"妻側幅木 １２１９","category":"筋違・手摺・幅木","weight":2.5,"unit":"枚","aliases":""},{"id":"nk_060","name":"鋼製布板 SKN-2(L610)500巾","category":"布板・足場板","weight":7.2,"unit":"枚","aliases":""},{"id":"nk_061","name":"妻側幅木 ９１４","category":"筋違・手摺・幅木","weight":2.0,"unit":"枚","aliases":""},{"id":"nk_062","name":"鋼製布板 BKN-624(L1829)240巾","category":"布板・足場板","weight":8.5,"unit":"枚","aliases":""},{"id":"nk_063","name":"手摺柱１２１９","category":"筋違・手摺・幅木","weight":2.48,"unit":"本","aliases":""},{"id":"nk_064","name":"鋼製布板 BKN-524(L1524)240巾","category":"布板・足場板","weight":7.0,"unit":"枚","aliases":""},{"id":"nk_065","name":"手摺 １８２９","category":"筋違・手摺・幅木","weight":2.2,"unit":"本","aliases":""},{"id":"nk_066","name":"アルスピーダー4ｍ","category":"その他","weight":3.5,"unit":"本","aliases":""},{"id":"nk_067","name":"鋼製布板 BKN-424(L1219)240巾","category":"布板・足場板","weight":6.0,"unit":"枚","aliases":""},{"id":"nk_068","name":"手摺 １５２４","category":"筋違・手摺・幅木","weight":1.4,"unit":"本","aliases":""},{"id":"nk_069","name":"アルスピーダー2ｍ","category":"その他","weight":1.8,"unit":"本","aliases":""},{"id":"nk_070","name":"鋼製布板 BKN-324(L914)240巾","category":"布板・足場板","weight":5.0,"unit":"枚","aliases":""},{"id":"nk_071","name":"手摺 １２１９","category":"筋違・手摺・幅木","weight":1.2,"unit":"本","aliases":""},{"id":"nk_072","name":"アルスピーダー用ホルダー","category":"その他","weight":0.6,"unit":"個","aliases":""},{"id":"nk_073","name":"鋼製布板 BKN-224(L610)240巾","category":"布板・足場板","weight":3.4,"unit":"枚","aliases":""},{"id":"nk_074","name":"手摺 ９１４","category":"筋違・手摺・幅木","weight":0.9,"unit":"本","aliases":""},{"id":"nk_075","name":"手摺 ６１０","category":"筋違・手摺・幅木","weight":0.5,"unit":"本","aliases":""},{"id":"nk_076","name":"杉足場板 幅木用４.０ｍ(販売)","category":"筋違・手摺・幅木","weight":8.0,"unit":"枚","aliases":""},{"id":"nk_077","name":"階段（アルミ製）","category":"階段・昇降","weight":11.9,"unit":"台","aliases":""},{"id":"nk_078","name":"敷板 ２ｍ","category":"布板・足場板","weight":6.0,"unit":"枚","aliases":""},{"id":"nk_079","name":"杉足場板 幅木用２.０ｍ(販売)","category":"筋違・手摺・幅木","weight":4.0,"unit":"枚","aliases":""},{"id":"nk_080","name":"階段手摺","category":"筋違・手摺・幅木","weight":3.0,"unit":"台","aliases":""},{"id":"nk_081","name":"敷板 ４ｍ","category":"布板・足場板","weight":12.0,"unit":"枚","aliases":""},{"id":"nk_082","name":"セフティーガード","category":"その他","weight":13.0,"unit":"本","aliases":""},{"id":"nk_083","name":"カット足場板(販売)","category":"布板・足場板","weight":1.0,"unit":"枚","aliases":""},{"id":"nk_084","name":"単管パイプ ０.６～０.７ｍ","category":"単管","weight":2.0,"unit":"本","aliases":""},{"id":"nk_085","name":"垂直梯子 H1700","category":"階段・昇降","weight":9.7,"unit":"台","aliases":""},{"id":"nk_086","name":"吊りメッシュパレット","category":"養生・ネット","weight":110.0,"unit":"本","aliases":""},{"id":"nk_087","name":"単管パイプ １.０ｍ","category":"単管","weight":2.73,"unit":"本","aliases":""},{"id":"nk_088","name":"モンキーヘッド","category":"その他","weight":2.0,"unit":"本","aliases":""},{"id":"nk_089","name":"単管パイプ １.５ｍ","category":"単管","weight":4.1,"unit":"本","aliases":""},{"id":"nk_090","name":"一連ハシゴ ３ｍ","category":"階段・昇降","weight":7.2,"unit":"台","aliases":""},{"id":"nk_091","name":"単管パイプ ２.０ｍ","category":"単管","weight":5.46,"unit":"本","aliases":""},{"id":"nk_092","name":"一連ハシゴ ４ｍ","category":"階段・昇降","weight":8.4,"unit":"台","aliases":""},{"id":"nk_093","name":"タラップボード １８Ａ","category":"階段・昇降","weight":13.5,"unit":"台","aliases":""},{"id":"nk_094","name":"単管パイプ ２.５ｍ","category":"単管","weight":6.83,"unit":"本","aliases":""},{"id":"nk_095","name":"一連ハシゴ ５ｍ","category":"階段・昇降","weight":11.1,"unit":"台","aliases":""},{"id":"nk_096","name":"タラップボード １５Ａ","category":"階段・昇降","weight":11.4,"unit":"台","aliases":""},{"id":"nk_097","name":"単管パイプ ３.０ｍ","category":"単管","weight":8.19,"unit":"本","aliases":""},{"id":"nk_098","name":"一連ハシゴ ６ｍ","category":"階段・昇降","weight":12.0,"unit":"台","aliases":""},{"id":"nk_099","name":"タラップボード １２Ａ","category":"階段・昇降","weight":9.7,"unit":"台","aliases":""},{"id":"nk_100","name":"単管パイプ ３.５ｍ","category":"単管","weight":9.56,"unit":"本","aliases":""},{"id":"nk_101","name":"二連ハシゴ ８ｍ","category":"階段・昇降","weight":20.8,"unit":"台","aliases":""},{"id":"nk_102","name":"タラップボード ０９Ａ","category":"階段・昇降","weight":8.0,"unit":"台","aliases":""},{"id":"nk_103","name":"単管パイプ ４.０ｍ","category":"単管","weight":10.92,"unit":"本","aliases":""},{"id":"nk_104","name":"ラダーブラケット","category":"ブラケット","weight":4.4,"unit":"個","aliases":""},{"id":"nk_105","name":"タラップ","category":"階段・昇降","weight":4.0,"unit":"台","aliases":""},{"id":"nk_106","name":"単管パイプ ４.５ｍ","category":"単管","weight":12.29,"unit":"本","aliases":""},{"id":"nk_107","name":"キャタツ ３尺","category":"その他","weight":7.0,"unit":"本","aliases":""},{"id":"nk_108","name":"単管パイプ ５.０ｍ","category":"単管","weight":13.65,"unit":"本","aliases":""},{"id":"nk_109","name":"キャタツ ４尺","category":"その他","weight":11.0,"unit":"本","aliases":""},{"id":"nk_110","name":"クリフステアー（３８）","category":"階段・昇降","weight":30.0,"unit":"台","aliases":""},{"id":"nk_111","name":"単管パイプ ５.５ｍ","category":"単管","weight":15.02,"unit":"本","aliases":""},{"id":"nk_112","name":"キャタツ ６尺","category":"その他","weight":15.0,"unit":"本","aliases":""},{"id":"nk_113","name":"クリフステアー（２４）","category":"階段・昇降","weight":20.0,"unit":"台","aliases":""},{"id":"nk_114","name":"単管パイプ ６.０ｍ","category":"単管","weight":16.38,"unit":"本","aliases":""},{"id":"nk_115","name":"ﾏｲﾃｨｰﾍﾞｰｽ 180TD（1417～1777）","category":"その他","weight":24.4,"unit":"本","aliases":""},{"id":"nk_116","name":"クリフステアー（１４）","category":"階段・昇降","weight":13.0,"unit":"台","aliases":""},{"id":"nk_117","name":"直交クランプ（兼用）","category":"クランプ・金物","weight":0.7,"unit":"個","aliases":""},{"id":"nk_118","name":"ﾏｲﾃｨｰﾍﾞｰｽ 160TD（1204～1565）","category":"その他","weight":18.3,"unit":"本","aliases":""},{"id":"nk_119","name":"クリフステアー手摺（２４）","category":"筋違・手摺・幅木","weight":4.0,"unit":"台","aliases":""},{"id":"nk_120","name":"自在クランプ（兼用）","category":"クランプ・金物","weight":0.7,"unit":"個","aliases":""},{"id":"nk_121","name":"ﾏｲﾃｨｰﾍﾞｰｽ 130D（925～1238）","category":"その他","weight":13.2,"unit":"本","aliases":""},{"id":"nk_122","name":"クリフステアー手摺（１４）","category":"筋違・手摺・幅木","weight":3.0,"unit":"台","aliases":""},{"id":"nk_123","name":"直線ジョイント","category":"クランプ・金物","weight":0.6,"unit":"個","aliases":""},{"id":"nk_124","name":"ﾏｲﾃｨｰﾍﾞｰｽ 100D（646～959）","category":"その他","weight":11.5,"unit":"本","aliases":""},{"id":"nk_125","name":"スキマステップ（５００巾）","category":"布板・足場板","weight":7.4,"unit":"本","aliases":""},{"id":"nk_126","name":"ゴムバンド（販売）","category":"その他","weight":0.0,"unit":"本","aliases":""},{"id":"nk_127","name":"スキマステップ（２４０巾）","category":"布板・足場板","weight":4.1,"unit":"本","aliases":""},{"id":"nk_128","name":"メッシュグレー １.８２ｘ５.１","category":"養生・ネット","weight":5.0,"unit":"本","aliases":""},{"id":"nk_129","name":"キャッチクランプ（固定）","category":"クランプ・金物","weight":1.0,"unit":"個","aliases":""},{"id":"nk_130","name":"ベランダステップ本体","category":"その他","weight":19.0,"unit":"本","aliases":""},{"id":"nk_131","name":"メッシュグレー １.５２ｘ５.１","category":"養生・ネット","weight":4.5,"unit":"本","aliases":""},{"id":"nk_132","name":"キャッチクランプ（自在）","category":"クランプ・金物","weight":1.0,"unit":"個","aliases":""},{"id":"nk_133","name":"ベランダステップ手摺","category":"筋違・手摺・幅木","weight":5.5,"unit":"本","aliases":""},{"id":"nk_134","name":"メッシュグレー １.２１ｘ５.１","category":"養生・ネット","weight":4.0,"unit":"本","aliases":""},{"id":"nk_135","name":"自在ステップ（メッシュ）","category":"養生・ネット","weight":5.6,"unit":"本","aliases":""},{"id":"nk_136","name":"ベランダステップ水平材","category":"その他","weight":6.5,"unit":"本","aliases":""},{"id":"nk_137","name":"メッシュグレー ０.９１ｘ５.１","category":"養生・ネット","weight":3.0,"unit":"本","aliases":""},{"id":"nk_138","name":"鋼製スライドストッパー 0612","category":"クランプ・金物","weight":2.7,"unit":"本","aliases":""},{"id":"nk_139","name":"ベランダステップ手摺枠","category":"筋違・手摺・幅木","weight":12.0,"unit":"本","aliases":""},{"id":"nk_140","name":"メッシュグレー ０.６１ｘ５.１","category":"養生・ネット","weight":2.0,"unit":"本","aliases":""},{"id":"nk_141","name":"シートクランプ","category":"クランプ・金物","weight":0.4,"unit":"枚","aliases":""},{"id":"nk_142","name":"ベランダステップ補助梯子","category":"階段・昇降","weight":11.0,"unit":"台","aliases":""},{"id":"nk_143","name":"メッシュグレー ０.３０ｘ５.１","category":"養生・ネット","weight":0.9,"unit":"本","aliases":""},{"id":"nk_144","name":"ネットハンガー","category":"クランプ・金物","weight":1.0,"unit":"枚","aliases":""},{"id":"nk_145","name":"防炎シート１.８２ｘ５.１(販売)","category":"養生・ネット","weight":3.6,"unit":"枚","aliases":""},{"id":"nk_146","name":"三連クランプ","category":"クランプ・金物","weight":1.2,"unit":"個","aliases":""},{"id":"nk_147","name":"かべつなぎ L-130（130～160）","category":"壁つなぎ","weight":0.7,"unit":"本","aliases":""},{"id":"nk_148","name":"防炎シート１.５２ｘ５.１(販売)","category":"養生・ネット","weight":3.0,"unit":"枚","aliases":""},{"id":"nk_149","name":"足場チェーン ２ｍ","category":"クランプ・金物","weight":1.4,"unit":"本","aliases":""},{"id":"nk_150","name":"かべつなぎ L-160（160～200）","category":"壁つなぎ","weight":0.75,"unit":"本","aliases":""},{"id":"nk_151","name":"防炎シート１.２１ｘ５.１(販売)","category":"養生・ネット","weight":2.4,"unit":"枚","aliases":""},{"id":"nk_152","name":"足場チェーン ３ｍ","category":"クランプ・金物","weight":2.0,"unit":"本","aliases":""},{"id":"nk_153","name":"かべつなぎ L-200（200～240）","category":"壁つなぎ","weight":0.85,"unit":"本","aliases":""},{"id":"nk_154","name":"防炎シート０.９１ｘ５.１(販売)","category":"養生・ネット","weight":1.8,"unit":"枚","aliases":""},{"id":"nk_155","name":"足場チェーン ４ｍ","category":"クランプ・金物","weight":2.8,"unit":"本","aliases":""},{"id":"nk_156","name":"かべつなぎ L-300（240～320）","category":"壁つなぎ","weight":0.95,"unit":"本","aliases":""},{"id":"nk_157","name":"防炎シート０.６１ｘ５.１(販売)","category":"養生・ネット","weight":1.2,"unit":"枚","aliases":""},{"id":"nk_158","name":"足場チェーン ５ｍ","category":"クランプ・金物","weight":3.6,"unit":"本","aliases":""},{"id":"nk_159","name":"かべつなぎ L-350（280～400）","category":"壁つなぎ","weight":1.0,"unit":"本","aliases":""},{"id":"nk_160","name":"防音シート グレー 1.8×3.4","category":"養生・ネット","weight":10.0,"unit":"枚","aliases":""},{"id":"nk_161","name":"チェーンクランプ","category":"クランプ・金物","weight":0.85,"unit":"個","aliases":""},{"id":"nk_162","name":"かべつなぎ L-400（320～480）","category":"壁つなぎ","weight":1.15,"unit":"本","aliases":""},{"id":"nk_163","name":"防音シート グレー 1.5×3.4","category":"養生・ネット","weight":8.3,"unit":"枚","aliases":""},{"id":"nk_164","name":"アウトリガー","category":"その他","weight":10.5,"unit":"台","aliases":""},{"id":"nk_165","name":"かべつなぎ L-600（480～670）","category":"壁つなぎ","weight":1.5,"unit":"本","aliases":""},{"id":"nk_166","name":"防音シート グレー 1.2×3.4","category":"養生・ネット","weight":6.7,"unit":"枚","aliases":""},{"id":"nk_167","name":"アウトリガーロングジャッキ","category":"ジャッキ・ベース","weight":6.0,"unit":"台","aliases":""},{"id":"nk_168","name":"かべつなぎ L-800（670～860）","category":"壁つなぎ","weight":1.7,"unit":"本","aliases":""},{"id":"nk_169","name":"防音シート グレー 0.9×3.4","category":"養生・ネット","weight":5.0,"unit":"枚","aliases":""},{"id":"nk_170","name":"アウトリガー用自在クランプ","category":"クランプ・金物","weight":0.75,"unit":"台","aliases":""},{"id":"nk_171","name":"かべつなぎ L-1000（860～1050）","category":"壁つなぎ","weight":2.0,"unit":"本","aliases":""},{"id":"nk_172","name":"防音シート グレー 0.6×3.4","category":"養生・ネット","weight":3.3,"unit":"枚","aliases":""},{"id":"nk_173","name":"ブラケット 500型（300～500）","category":"ブラケット","weight":3.6,"unit":"個","aliases":""},{"id":"nk_174","name":"ラッセルネット０.５ｍｘ６ｍ","category":"養生・ネット","weight":2.0,"unit":"枚","aliases":""},{"id":"nk_175","name":"ブラケット 750型（500～750）","category":"ブラケット","weight":4.8,"unit":"個","aliases":""},{"id":"nk_176","name":"Ｐ．Ｐ．ロープ （グレー）販売","category":"その他","weight":0.0,"unit":"本","aliases":""},{"id":"nk_177","name":"ブラケット1000型（750～1000）","category":"ブラケット","weight":6.7,"unit":"個","aliases":""},{"id":"nk_178","name":"Ｐ．Ｐ．ロープ （白） 販売","category":"その他","weight":0.0,"unit":"本","aliases":""},{"id":"nk_179","name":"ブラケット先端クランプ","category":"クランプ・金物","weight":0.4,"unit":"個","aliases":""},{"id":"nk_180","name":"Ｐ．Ｐ．ロープ （青） 販売","category":"その他","weight":0.0,"unit":"本","aliases":""},{"id":"nk_181","name":"クイックブラケット","category":"ブラケット","weight":2.5,"unit":"個","aliases":""},{"id":"nk_182","name":"結束ロープ 販売","category":"その他","weight":0.0,"unit":"本","aliases":""},{"id":"nk_183","name":"水平ネット","category":"養生・ネット","weight":0.0,"unit":"枚","aliases":""},{"id":"nk_184","name":"６０角鋼管 １.０ｍ","category":"梁・補強","weight":4.06,"unit":"本","aliases":""},{"id":"nk_185","name":"梁枠４２００（２スパン）","category":"梁・補強","weight":22.2,"unit":"本","aliases":""},{"id":"nk_186","name":"ラッセルネット１ｍｘ６ｍ","category":"養生・ネット","weight":3.3,"unit":"枚","aliases":""},{"id":"nk_187","name":"６０角鋼管 １.５ｍ","category":"梁・補強","weight":6.09,"unit":"本","aliases":""},{"id":"nk_188","name":"梁枠６０００（３スパン）","category":"梁・補強","weight":40.0,"unit":"本","aliases":""},{"id":"nk_189","name":"ラッセルネット２ｍｘ６ｍ","category":"養生・ネット","weight":5.0,"unit":"枚","aliases":""},{"id":"nk_190","name":"６０角鋼管 ２.０ｍ","category":"梁・補強","weight":8.12,"unit":"本","aliases":""},{"id":"nk_191","name":"梁枠８５００（４スパン）","category":"梁・補強","weight":55.7,"unit":"本","aliases":""},{"id":"nk_192","name":"ラッセルネット３ｍｘ６ｍ","category":"養生・ネット","weight":7.0,"unit":"枚","aliases":""},{"id":"nk_193","name":"６０角鋼管 ２.５ｍ","category":"梁・補強","weight":10.15,"unit":"本","aliases":""},{"id":"nk_194","name":"隅梁受け","category":"その他","weight":2.5,"unit":"本","aliases":""},{"id":"nk_195","name":"ラッセルネット４ｍｘ６ｍ","category":"養生・ネット","weight":8.6,"unit":"枚","aliases":""},{"id":"nk_196","name":"６０角鋼管 ３.０ｍ","category":"梁・補強","weight":12.18,"unit":"本","aliases":""},{"id":"nk_197","name":"梁渡し ６１０","category":"梁・補強","weight":5.6,"unit":"本","aliases":""},{"id":"nk_198","name":"ラッセルネット５ｍｘ５ｍ","category":"養生・ネット","weight":9.2,"unit":"枚","aliases":""},{"id":"nk_199","name":"６０角鋼管 ３.５ｍ","category":"梁・補強","weight":14.21,"unit":"本","aliases":""},{"id":"nk_200","name":"梁渡し ９１４","category":"梁・補強","weight":6.5,"unit":"本","aliases":""},{"id":"nk_201","name":"ラッセルネット５ｍｘ１０ｍ","category":"養生・ネット","weight":17.7,"unit":"枚","aliases":""},{"id":"nk_202","name":"６０角鋼管 ４.０ｍ","category":"梁・補強","weight":16.24,"unit":"本","aliases":""},{"id":"nk_203","name":"梁渡し１２１９","category":"梁・補強","weight":10.2,"unit":"本","aliases":""},{"id":"nk_204","name":"ラッセルネット６ｍｘ６ｍ","category":"養生・ネット","weight":12.5,"unit":"枚","aliases":""},{"id":"nk_205","name":"１００角鋼管 １.０ｍ","category":"梁・補強","weight":9.52,"unit":"本","aliases":""},{"id":"nk_206","name":"方杖（短）","category":"梁・補強","weight":4.8,"unit":"本","aliases":""},{"id":"nk_207","name":"ラッセルネット７ｍｘ７ｍ","category":"養生・ネット","weight":18.3,"unit":"枚","aliases":""},{"id":"nk_208","name":"１００角鋼管 １.５ｍ","category":"梁・補強","weight":14.28,"unit":"本","aliases":""},{"id":"nk_209","name":"方杖（長）","category":"梁・補強","weight":6.2,"unit":"本","aliases":""},{"id":"nk_210","name":"ラッセルネット７ｍｘ１０ｍ","category":"養生・ネット","weight":25.2,"unit":"枚","aliases":""},{"id":"nk_211","name":"１００角鋼管 ２.０ｍ","category":"梁・補強","weight":19.04,"unit":"本","aliases":""},{"id":"nk_212","name":"ラッセルネット８ｍｘ８ｍ","category":"養生・ネット","weight":23.0,"unit":"枚","aliases":""},{"id":"nk_213","name":"１００角鋼管 ２.５ｍ","category":"梁・補強","weight":23.8,"unit":"本","aliases":""},{"id":"nk_214","name":"ラッセルネット１０ｍｘ１０ｍ","category":"養生・ネット","weight":35.0,"unit":"枚","aliases":""},{"id":"nk_215","name":"１００角鋼管 ３.０ｍ","category":"梁・補強","weight":28.56,"unit":"本","aliases":""},{"id":"nk_216","name":"スカイフェンス １.８","category":"養生・ネット","weight":8.4,"unit":"枚","aliases":""},{"id":"nk_217","name":"１００角鋼管 ３.５ｍ","category":"梁・補強","weight":33.32,"unit":"本","aliases":""},{"id":"nk_218","name":"スカイフェンス １.５","category":"養生・ネット","weight":7.2,"unit":"枚","aliases":""},{"id":"nk_219","name":"垂直ネット","category":"養生・ネット","weight":0.0,"unit":"枚","aliases":""},{"id":"nk_220","name":"１００角鋼管 ４.０ｍ","category":"梁・補強","weight":38.08,"unit":"本","aliases":""},{"id":"nk_221","name":"スカイフェンス １.２","category":"養生・ネット","weight":6.0,"unit":"枚","aliases":""},{"id":"nk_222","name":"グリーンネット１ｘ１０","category":"養生・ネット","weight":3.3,"unit":"枚","aliases":""},{"id":"nk_223","name":"スカイフェンス ０.９","category":"養生・ネット","weight":4.8,"unit":"枚","aliases":""},{"id":"nk_224","name":"グリーンネット４ｘ１２","category":"養生・ネット","weight":10.8,"unit":"枚","aliases":""},{"id":"nk_225","name":"サポート １尺（320～440）","category":"ジャッキ・ベース","weight":4.0,"unit":"本","aliases":""},{"id":"nk_226","name":"スカイフェンス ０.６","category":"養生・ネット","weight":3.4,"unit":"枚","aliases":""},{"id":"nk_227","name":"グリーンネット６ｘ６","category":"養生・ネット","weight":8.0,"unit":"枚","aliases":""},{"id":"nk_228","name":"サポート ２尺（620～940）","category":"ジャッキ・ベース","weight":5.5,"unit":"本","aliases":""},{"id":"nk_229","name":"養生クランプ","category":"クランプ・金物","weight":0.5,"unit":"個","aliases":""},{"id":"nk_230","name":"グリーンネット６ｘ１０","category":"養生・ネット","weight":12.7,"unit":"枚","aliases":""},{"id":"nk_231","name":"サポート ３尺（920～1415）","category":"ジャッキ・ベース","weight":8.0,"unit":"本","aliases":""},{"id":"nk_232","name":"養生クランプ コーナー","category":"クランプ・金物","weight":0.45,"unit":"個","aliases":""},{"id":"nk_233","name":"グリーンネット６ｘ１２","category":"養生・ネット","weight":15.7,"unit":"枚","aliases":""},{"id":"nk_234","name":"サポート ４尺（1220～1995）","category":"ジャッキ・ベース","weight":10.0,"unit":"本","aliases":""},{"id":"nk_235","name":"サポート ５尺（1520～2590）","category":"ジャッキ・ベース","weight":11.0,"unit":"本","aliases":""},{"id":"nk_236","name":"ＡＫフェンス1.2（青）","category":"養生・ネット","weight":44.0,"unit":"枚","aliases":""},{"id":"nk_237","name":"グレーネット１ｘ１０","category":"養生・ネット","weight":3.3,"unit":"枚","aliases":""},{"id":"nk_238","name":"サポート ６尺（1720～3040）","category":"ジャッキ・ベース","weight":12.0,"unit":"本","aliases":""},{"id":"nk_239","name":"ＡＫジョイント","category":"クランプ・金物","weight":0.5,"unit":"個","aliases":""},{"id":"nk_240","name":"グレーネット４ｘ１２","category":"養生・ネット","weight":10.8,"unit":"枚","aliases":""},{"id":"nk_241","name":"サポート ７尺（2120～3440）","category":"ジャッキ・ベース","weight":14.0,"unit":"本","aliases":""},{"id":"nk_242","name":"ガードフェンス1.2（トラ）","category":"養生・ネット","weight":14.5,"unit":"枚","aliases":""},{"id":"nk_243","name":"グレーネット６ｘ６","category":"養生・ネット","weight":8.0,"unit":"枚","aliases":""},{"id":"nk_244","name":"サポート ９尺（2620～3940）","category":"ジャッキ・ベース","weight":14.5,"unit":"本","aliases":""},{"id":"nk_245","name":"ガードフェンス1.8（トラ）","category":"養生・ネット","weight":16.5,"unit":"枚","aliases":""},{"id":"nk_246","name":"グレーネット６ｘ１０","category":"養生・ネット","weight":12.7,"unit":"枚","aliases":""},{"id":"nk_247","name":"補助サポート ４尺","category":"ジャッキ・ベース","weight":5.0,"unit":"本","aliases":""},{"id":"nk_248","name":"ガードフェンス1.8 全網","category":"養生・ネット","weight":15.0,"unit":"枚","aliases":""},{"id":"nk_249","name":"グレーネット６ｘ１２","category":"養生・ネット","weight":15.7,"unit":"枚","aliases":""},{"id":"nk_250","name":"扉付ガードフェンス1.8 全網","category":"養生・ネット","weight":17.0,"unit":"枚","aliases":""},{"id":"nk_251","name":"扉付ガードフェンス0.9 全網","category":"養生・ネット","weight":16.0,"unit":"枚","aliases":""},{"id":"nk_252","name":"緊張器","category":"その他","weight":1.8,"unit":"個","aliases":""},{"id":"nk_253","name":"引戸型扉フェンス1.8","category":"養生・ネット","weight":17.0,"unit":"枚","aliases":""},{"id":"nk_254","name":"親綱 ６ｍ","category":"安全設備","weight":1.2,"unit":"本","aliases":""},{"id":"nk_255","name":"スタンション ＮＲＥ型","category":"安全設備","weight":7.5,"unit":"本","aliases":""},{"id":"nk_256","name":"ガードフェンス全網用デザインシート","category":"養生・ネット","weight":0.0,"unit":"枚","aliases":""},{"id":"nk_257","name":"親綱 ８ｍ","category":"安全設備","weight":1.2,"unit":"本","aliases":""},{"id":"nk_258","name":"親綱支柱","category":"安全設備","weight":8.7,"unit":"本","aliases":""},{"id":"nk_259","name":"ガードフェンス用シート(販売)","category":"養生・ネット","weight":0.0,"unit":"枚","aliases":""},{"id":"nk_260","name":"親綱 １０ｍ","category":"安全設備","weight":1.5,"unit":"本","aliases":""},{"id":"nk_261","name":"ブロック（鉄）","category":"その他","weight":13.0,"unit":"個","aliases":""},{"id":"nk_262","name":"親綱 １５ｍ","category":"安全設備","weight":2.5,"unit":"本","aliases":""},{"id":"nk_263","name":"ブロック台","category":"その他","weight":18.0,"unit":"個","aliases":""},{"id":"nk_264","name":"親綱 ２０ｍ","category":"安全設備","weight":3.0,"unit":"本","aliases":""},{"id":"nk_265","name":"キャットウォークＫＳ傾斜足場","category":"その他","weight":7.0,"unit":"本","aliases":""},{"id":"nk_266","name":"ＡＶコーンＩ型 赤白","category":"その他","weight":3.0,"unit":"本","aliases":""},{"id":"nk_267","name":"親綱 ３０ｍ","category":"安全設備","weight":5.0,"unit":"本","aliases":""},{"id":"nk_268","name":"開口スライドバー","category":"その他","weight":9.5,"unit":"本","aliases":""},{"id":"nk_269","name":"アルミコーンバー 赤白","category":"その他","weight":0.0,"unit":"本","aliases":""},{"id":"nk_270","name":"セルフロック １５ｍ","category":"安全設備","weight":4.4,"unit":"本","aliases":""},{"id":"nk_271","name":"メッシュロード","category":"布板・足場板","weight":6.0,"unit":"本","aliases":""},{"id":"nk_272","name":"セルフロック用ヒモ １５ｍ(販売)","category":"安全設備","weight":0.0,"unit":"本","aliases":""}];
 
 function loadMaterialMaster(){
   try{
     const saved=JSON.parse(localStorage.getItem('vertx_core_materials')||'null');
-    if(Array.isArray(saved)&&saved.length)return saved;
+    if(Array.isArray(saved)&&saved.length){
+      const byId=new Map(saved.map(x=>[x.id,x]));
+      const merged=DEFAULT_MATERIALS.map(d=>byId.has(d.id)?{...d,...byId.get(d.id)}:{...d});
+      saved.forEach(s=>{if(!DEFAULT_MATERIALS.some(d=>d.id===s.id))merged.push(s)});
+      localStorage.setItem('vertx_core_materials',JSON.stringify(merged));
+      return merged;
+    }
   }catch(e){}
   return DEFAULT_MATERIALS.map(x=>({...x}));
 }
 let MATERIALS=loadMaterialMaster();
-const state={cart:{},category:'すべて',search:'',selectedSite:'',favorites:new Set(JSON.parse(localStorage.getItem('vertx_core_favorites')||'[]'))};
+const state={cart:{},category:'すべて',search:'',selectedSite:'',selectedDrawingId:null,favorites:new Set(JSON.parse(localStorage.getItem('vertx_core_favorites')||'[]'))};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 
 function go(screenId){
   $$('.screen').forEach(el=>el.classList.toggle('active',el.id===screenId));
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.go===screenId || (screenId==='confirm'&&el.dataset.go==='order')));
-  if(screenId==='history')renderHistory(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster();
+  if(screenId==='history')renderHistory(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();
   window.scrollTo({top:0,behavior:'instant'});
 }
 function totals(){return MATERIALS.reduce((a,m)=>{const q=state.cart[m.id]||0;a.qty+=q;a.weight+=q*Number(m.weight||0);return a},{qty:0,weight:0})}
@@ -139,23 +44,142 @@ function saveSites(v){localStorage.setItem('vertx_core_sites',JSON.stringify(v))
 function renderSites(){const sites=getSites();$('#siteList').innerHTML=sites.length?sites.map((s,i)=>`<article class="card site-card"><button class="site-select" data-site="${escapeHtml(s)}"><span>📍</span><b>${escapeHtml(s)}</b><small>この現場で注文を作る</small></button><button class="site-delete" data-site-index="${i}">×</button></article>`).join(''):'<div class="card empty">現場を追加すると、ここからすぐ注文できます</div>';$$('[data-site]').forEach(b=>b.onclick=()=>{state.selectedSite=b.dataset.site;$('#siteName').value=state.selectedSite;go('order')});$$('[data-site-index]').forEach(b=>b.onclick=()=>{const a=getSites();a.splice(Number(b.dataset.siteIndex),1);saveSites(a);renderSites()})}
 function addSite(){const name=$('#newSiteName').value.trim();if(!name)return toast('現場名を入力してください');const sites=getSites();if(!sites.includes(name))sites.unshift(name);saveSites(sites);$('#newSiteName').value='';renderSites();toast('現場を追加しました')}
 
-function currentDraft(){const items=selectedItems(),t=totals();return {id:'draft',site:$('#siteName')?.value.trim()||state.selectedSite||'現場名未入力',date:$('#deliveryDate')?.value||'',memo:$('#orderMemo')?.value.trim()||'',createdAt:new Date().toISOString(),items,qty:t.qty,weight:t.weight,truck:truckFor(t.weight)}}
-function renderConfirm(){const o=currentDraft();$('#confirmItems').innerHTML=o.items.map(i=>`<div class="confirm-row"><span>${escapeHtml(i.name)}</span><strong>${i.qty}${escapeHtml(i.unit)} <small>(${(i.qty*i.weight).toFixed(1)}kg)</small></strong></div>`).join('')||'<div class="empty">資材が選択されていません</div>';$('#confirmQty').textContent=`${o.qty}点`;$('#confirmWeight').textContent=formatWeight(o.weight);$('#truckRecommendation').textContent=o.truck}
+function currentDraft(){const items=selectedItems(),t=totals();return {id:'draft',site:$('#siteName')?.value.trim()||state.selectedSite||'現場名未入力',date:$('#deliveryDate')?.value||'',memo:$('#orderMemo')?.value.trim()||'',createdAt:new Date().toISOString(),items,qty:t.qty,weight:t.weight,truck:truckFor(t.weight),drawingId:state.selectedDrawingId,drawingName:$('#selectedDrawingName')?.textContent||''}}
+function renderConfirm(){const o=currentDraft();$('#confirmItems').innerHTML=o.items.map(i=>`<div class="confirm-row"><span>${escapeHtml(i.name)}</span><strong>${i.qty}${escapeHtml(i.unit)} <small>(${(i.qty*i.weight).toFixed(1)}kg)</small></strong></div>`).join('')||'<div class="empty">資材が選択されていません</div>';$('#confirmQty').textContent=`${o.qty}点`;$('#confirmWeight').textContent=formatWeight(o.weight);$('#truckRecommendation').textContent=o.truck;renderMissingCheck(o.items);
+  const drawBox=$('#confirmDrawing');
+  if(drawBox){
+    drawBox.innerHTML=o.drawingId?`<span>添付図面</span><strong>${escapeHtml(o.drawingName||'図面')}</strong>`:'<span>添付図面</span><strong>なし</strong>';
+  }
+}
 function getHistory(){try{return JSON.parse(localStorage.getItem('vertx_core_orders')||'[]')}catch{return []}}
 function saveHistory(v){localStorage.setItem('vertx_core_orders',JSON.stringify(v));updateDashboard()}
-function submitOrder(){const order=currentDraft();if(!order.items.length){toast('資材を選択してください');go('order');return}order.id=Date.now();const history=getHistory();history.unshift(order);saveHistory(history);const sites=getSites();if(order.site!=='現場名未入力'&&!sites.includes(order.site)){sites.unshift(order.site);saveSites(sites)}state.cart={};state.selectedSite='';$('#siteName').value='';$('#orderMemo').value='';renderMaterials();go('success')}
-function renderHistory(){const h=getHistory();$('#historyList').innerHTML=h.length?h.map(o=>`<article class="card history-card"><header><div><h3>${escapeHtml(o.site)}</h3><div class="history-meta">${formatDate(o.createdAt)}${o.date?`・希望 ${escapeHtml(o.date)}`:''}</div></div><span class="badge">${o.qty}点</span></header><div class="history-item-row"><span>推定重量</span><strong>${formatWeight(Number(o.weight))}</strong></div><div class="history-item-row"><span>乗る車</span><strong>${escapeHtml(o.truck||truckFor(Number(o.weight)))}</strong></div><div class="history-actions"><button data-reorder="${o.id}">前回コピー</button><button data-pdf="${o.id}">PDF</button><button data-line="${o.id}">LINE</button><button data-delete="${o.id}">削除</button></div></article>`).join(''):'<div class="card empty">まだ注文履歴がありません</div>';$$('[data-reorder]').forEach(b=>b.onclick=()=>reorder(Number(b.dataset.reorder)));$$('[data-delete]').forEach(b=>b.onclick=()=>deleteOrder(Number(b.dataset.delete)));$$('[data-pdf]').forEach(b=>b.onclick=()=>printOrderById(Number(b.dataset.pdf)));$$('[data-line]').forEach(b=>b.onclick=()=>shareOrderById(Number(b.dataset.line)))}
+function submitOrder(){const order=currentDraft();if(!order.items.length){toast('資材を選択してください');go('order');return}order.id=Date.now();const history=getHistory();history.unshift(order);saveHistory(history);const sites=getSites();if(order.site!=='現場名未入力'&&!sites.includes(order.site)){sites.unshift(order.site);saveSites(sites)}state.cart={};state.selectedSite='';state.selectedDrawingId=null;$('#siteName').value='';$('#orderMemo').value='';renderMaterials();go('success')}
+function renderHistory(){const h=getHistory();$('#historyList').innerHTML=h.length?h.map(o=>`<article class="card history-card"><header><div><h3>${escapeHtml(o.site)}</h3><div class="history-meta">${formatDate(o.createdAt)}${o.date?`・希望 ${escapeHtml(o.date)}`:''}</div></div><span class="badge">${o.qty}点</span></header><div class="history-item-row"><span>推定重量</span><strong>${formatWeight(Number(o.weight))}</strong></div><div class="history-item-row"><span>乗る車</span><strong>${escapeHtml(o.truck||truckFor(Number(o.weight)))}</strong></div>${o.drawingId?`<div class="history-item-row"><span>図面</span><button class="inline-link" data-open-drawing="${o.drawingId}">${escapeHtml(o.drawingName||'開く')}</button></div>`:''}<div class="history-actions"><button data-reorder="${o.id}">前回コピー</button><button data-pdf="${o.id}">PDF</button><button data-line="${o.id}">LINE</button><button data-delete="${o.id}">削除</button></div></article>`).join(''):'<div class="card empty">まだ注文履歴がありません</div>';$$('[data-reorder]').forEach(b=>b.onclick=()=>reorder(Number(b.dataset.reorder)));$$('[data-delete]').forEach(b=>b.onclick=()=>deleteOrder(Number(b.dataset.delete)));$$('[data-pdf]').forEach(b=>b.onclick=()=>printOrderById(Number(b.dataset.pdf)));$$('[data-line]').forEach(b=>b.onclick=()=>shareOrderById(Number(b.dataset.line)));$$('[data-open-drawing]').forEach(b=>b.onclick=()=>openDrawing(Number(b.dataset.openDrawing)))}
 function reorder(id){const o=getHistory().find(x=>x.id===id);if(!o)return;state.cart={};o.items.forEach(i=>{if(MATERIALS.some(m=>m.id===i.id))state.cart[i.id]=i.qty});state.selectedSite=o.site;renderMaterials();go('order');toast('前回注文をコピーしました')}
 function deleteOrder(id){if(!confirm('この履歴を削除しますか？'))return;saveHistory(getHistory().filter(x=>x.id!==id));renderHistory()}
 function updateDashboard(){const h=getHistory(),today=new Date().toDateString();$('#historyCount').textContent=h.length;$('#todayCount').textContent=h.filter(o=>new Date(o.createdAt).toDateString()===today).length}
 
-function orderText(o){const lines=[`VERTX CORE 資材注文`,`現場：${o.site}`,o.date?`希望日：${o.date}`:'',`合計：${o.qty}点`,`重量：${formatWeight(o.weight)}`,`乗る車：${o.truck||truckFor(o.weight)}`,'','【資材】',...o.items.map(i=>`${i.name} ${i.qty}${i.unit}`),o.memo?`\nメモ：${o.memo}`:''];return lines.filter(Boolean).join('\n')}
+function orderText(o){const lines=[`VERTX CORE 資材注文`,`現場：${o.site}`,o.date?`希望日：${o.date}`:'',`合計：${o.qty}点`,`重量：${formatWeight(o.weight)}`,`乗る車：${o.truck||truckFor(o.weight)}`,o.drawingId?`図面：${o.drawingName||'添付あり'}`:'','','【資材】',...o.items.map(i=>`${i.name} ${i.qty}${i.unit}`),o.memo?`\nメモ：${o.memo}`:''];return lines.filter(Boolean).join('\n')}
 function shareOrderById(id){const o=getHistory().find(x=>x.id===id);if(o)shareToLine(o)}
 function shareDraft(){const o=currentDraft();if(!o.items.length)return toast('資材を選択してください');shareToLine(o)}
 function shareToLine(o){window.open(`https://line.me/R/share?text=${encodeURIComponent(orderText(o))}`,'_blank')}
 function printOrderById(id){const o=getHistory().find(x=>x.id===id);if(o)printOrder(o)}
 function printDraft(){const o=currentDraft();if(!o.items.length)return toast('資材を選択してください');printOrder(o)}
-function printOrder(o){const area=$('#printArea');area.innerHTML=`<div class="print-sheet"><h1>VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計重量：<b>${formatWeight(o.weight)}</b>　乗る車：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p><table><thead><tr><th>資材名</th><th>数量</th><th>単重</th><th>重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${escapeHtml(i.name)}</td><td>${i.qty}${escapeHtml(i.unit)}</td><td>${Number(i.weight).toFixed(2)}kg</td><td>${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p>メモ：${escapeHtml(o.memo)}</p>`:''}<p class="print-note">VERTX CORE β0.6</p></div>`;window.print()}
+function printOrder(o){const area=$('#printArea');area.innerHTML=`<div class="print-sheet"><h1>VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計重量：<b>${formatWeight(o.weight)}</b>　乗る車：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table><thead><tr><th>資材名</th><th>数量</th><th>単重</th><th>重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${escapeHtml(i.name)}</td><td>${i.qty}${escapeHtml(i.unit)}</td><td>${Number(i.weight).toFixed(2)}kg</td><td>${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p>メモ：${escapeHtml(o.memo)}</p>`:''}<p class="print-note">VERTX CORE v1.1 AI</p></div>`;window.print()}
+
+
+// v1.0 不足チェック
+function hasAny(items, terms){return items.some(i=>i.qty>0&&terms.some(t=>String(i.name).includes(t)))}
+function renderMissingCheck(items){
+  const root=$('#missingCheck'); if(!root)return;
+  if(!items.length){root.innerHTML='<span class="muted">資材を選ぶと自動チェックします</span>';return}
+  const warnings=[];
+  const frame=hasAny(items,['建枠','調整枠']);
+  const pipe=hasAny(items,['単管パイプ','かんざしパイプ']);
+  const panel=hasAny(items,['防音パネル']);
+  if(frame){
+    if(!hasAny(items,['筋違','筋交']))warnings.push('枠組：筋違が注文に入っていません');
+    if(!hasAny(items,['鋼製布板','足場板']))warnings.push('枠組：布板・足場板が注文に入っていません');
+    if(!hasAny(items,['ジャッキ','ベース']))warnings.push('枠組：ジャッキ／ベース類が注文に入っていません');
+    if(!hasAny(items,['壁つなぎ','壁繋']))warnings.push('枠組：壁つなぎが注文に入っていません');
+  }
+  if(pipe){
+    if(!hasAny(items,['クランプ']))warnings.push('単管：クランプ類が注文に入っていません');
+    if(!hasAny(items,['固定ベース','ジャッキベース','ベース']))warnings.push('単管：ベース類が注文に入っていません');
+  }
+  if(panel){
+    if(!hasAny(items,['クランプ','キャッチ']))warnings.push('防音パネル：固定用クランプ／キャッチ類を確認してください');
+    if(!hasAny(items,['下さん','下さん手摺']))warnings.push('防音パネル：下さんの要否を確認してください');
+  }
+  root.innerHTML=warnings.length?`<div class="missing-list">${warnings.map(w=>`<div class="missing-item"><span>!</span><span>${escapeHtml(w)}</span></div>`).join('')}</div><small class="assist-warning">※これは注文漏れ防止の簡易チェックです。施工計画・現場条件を優先してください。</small>`:'<div class="missing-ok">✓ 基本項目に大きな抜けは見つかりません</div><small class="muted">施工計画・現場条件による追加材は別途確認してください。</small>';
+}
+
+// v1.0 図面アシスト（端末内の寸法入力から候補算出）
+let assistCandidate=[];
+function findMat(terms){return MATERIALS.find(m=>terms.every(t=>String(m.name).includes(t)))||MATERIALS.find(m=>terms.some(t=>String(m.name).includes(t)))}
+function addCandidate(arr, mat, qty){if(!mat||qty<=0)return;const ex=arr.find(x=>x.id===mat.id);if(ex)ex.qty+=Math.ceil(qty);else arr.push({...mat,qty:Math.ceil(qty)})}
+async function loadAssistDrawings(){
+  const sel=$('#assistDrawing');if(!sel)return;
+  try{const list=await drawingList();sel.innerHTML='<option value="">図面を選択してください</option>'+list.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');if(state.selectedDrawingId)sel.value=String(state.selectedDrawingId)}catch(e){}
+}
+function toggleAssistOptions(){const box=$('#frameAssistOptions');if(box)box.classList.toggle('hidden',$('#assistType').value!=='frame')}
+function runAssist(){
+  const type=$('#assistType').value,spans=Math.max(1,Number($('#assistSpans').value)||1),levels=Math.max(1,Number($('#assistLevels').value)||1);const out=[];
+  if(type==='frame'){
+    const width=$('#assistFrameWidth').value,len=$('#assistSpanLength').value;
+    const frame=findMat([`W${width}`, 'H1700'])||findMat([`${width}`, '建枠']);
+    const brace=findMat(['筋違',len])||findMat(['筋違']);
+    const deck=findMat(['鋼製布板',`L${len}`,'500'])||findMat(['鋼製布板',len]);
+    const rail=findMat(['手摺',len])||findMat(['下さん手摺',len]);
+    const jack=findMat(['ジャッキベース'])||findMat(['ジャッキ','ベース']);
+    const tie=findMat(['壁つなぎ','330'])||findMat(['壁つなぎ']);
+    addCandidate(out,frame,(spans+1)*levels);
+    addCandidate(out,brace,spans*levels);
+    addCandidate(out,deck,spans*levels);
+    addCandidate(out,rail,spans*2);
+    addCandidate(out,jack,spans+1);
+    addCandidate(out,tie,Math.ceil(spans/3)*Math.ceil(levels/2));
+    if($('#assistPanels').checked){const panel=findMat(['防音パネル','1.8'])||findMat(['防音パネル']);addCandidate(out,panel,spans*levels)}
+  }else{
+    const pipe2=findMat(['単管パイプ','２.０'])||findMat(['単管パイプ','2.0']);
+    const pipe4=findMat(['単管パイプ','４.０'])||findMat(['単管パイプ','4.0']);
+    const clamp=findMat(['直交','クランプ'])||findMat(['クランプ']);
+    const base=findMat(['固定ベース'])||findMat(['ジャッキベース'])||findMat(['ベース']);
+    const bracket=findMat(['ブラケット','500'])||findMat(['ブラケット']);
+    addCandidate(out,pipe4,(spans+1)*levels);
+    addCandidate(out,pipe2,spans*(levels+1));
+    addCandidate(out,clamp,spans*levels*4);
+    addCandidate(out,base,spans+1);
+    if(type==='pipeBracket')addCandidate(out,bracket,spans*levels);
+  }
+  assistCandidate=out;
+  const w=out.reduce((s,i)=>s+i.qty*Number(i.weight||0),0),q=out.reduce((s,i)=>s+i.qty,0);
+  const root=$('#assistResult');root.classList.remove('empty');root.innerHTML=`<div class="assist-summary"><div><span>候補数量</span><b>${q}点</b></div><div><span>推定重量</span><b>${formatWeight(w)}</b></div><div><span>乗る車</span><b>${truckFor(w)}</b></div><div><span>スパン×段</span><b>${spans}×${levels}</b></div></div><div class="assist-items">${out.map(i=>`<div class="assist-item"><span>${escapeHtml(i.name)}</span><b>${i.qty}${escapeHtml(i.unit)}</b></div>`).join('')}</div><div class="assist-warning">候補値です。図面の納まり・開口・階段・朝顔・壁つなぎ・養生条件などで数量は変わります。</div>`;
+  $('#applyAssistBtn').classList.toggle('hidden',!out.length);
+}
+function applyAssist(){if(!assistCandidate.length)return;state.cart={};assistCandidate.forEach(i=>state.cart[i.id]=i.qty);const d=$('#assistDrawing').value;if(d){state.selectedDrawingId=Number(d);drawingGet(state.selectedDrawingId).then(x=>{if(x&&$('#selectedDrawingName'))$('#selectedDrawingName').textContent=x.name})}renderMaterials();go('order');toast('資材候補を注文に入れました')}
+
+
+// AI図面解析（Vercel Serverless Function + OpenAI Responses API）
+let aiCandidate=[];
+function normalizeMatName(v=''){return String(v).toLowerCase().replace(/[\s　・･()（）\-_/]/g,'').replace(/ｍ/g,'m').replace(/㎜/g,'mm')}
+function matchMaterialByAiName(name){
+  const n=normalizeMatName(name);if(!n)return null;
+  let exact=MATERIALS.find(m=>normalizeMatName(m.name)===n);if(exact)return exact;
+  let includes=MATERIALS.filter(m=>{const x=normalizeMatName(m.name);return x.includes(n)||n.includes(x)}).sort((a,b)=>Math.abs(normalizeMatName(a.name).length-n.length)-Math.abs(normalizeMatName(b.name).length-n.length));
+  if(includes.length)return includes[0];
+  const tokens=String(name).toLowerCase().split(/[\s　・･()（）\-_/]+/).filter(x=>x.length>1);
+  let scored=MATERIALS.map(m=>({m,score:tokens.reduce((s,t)=>s+(String(m.name).toLowerCase().includes(t)?1:0),0)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+  return scored[0]?.m||null;
+}
+function blobToBase64(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]||'');r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
+function setAiStatus(msg,type=''){const el=$('#aiStatus');if(!el)return;el.textContent=msg;el.className='ai-status'+(type?' '+type:'');el.classList.toggle('hidden',!msg)}
+async function runAiAnalysis(){
+  const drawingId=Number($('#assistDrawing').value||0);if(!drawingId)return toast('解析する図面を選んでください');
+  const d=await drawingGet(drawingId);if(!d)return toast('図面が見つかりません');
+  if(Number(d.size)>4*1024*1024){setAiStatus('この図面は4MBを超えています。必要ページを画像保存してアップロードしてください。','error');return}
+  $('#runAiBtn').disabled=true;$('#applyAiBtn').classList.add('hidden');setAiStatus('AIが図面を解析中です。寸法・凡例・資材を確認しています…');
+  try{
+    const dataBase64=await blobToBase64(d.blob);
+    const materialNames=MATERIALS.map(m=>m.name);
+    const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:d.name,mimeType:d.type,dataBase64,mode:$('#aiMode').value,context:$('#aiContext').value.trim(),materialNames})});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(data.error||`AI解析エラー (${r.status})`);
+    renderAiResult(data.analysis,d);
+    setAiStatus('解析完了。候補を確認してから注文へ反映してください。');
+  }catch(e){setAiStatus(e.message||'AI解析に失敗しました','error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。VercelのAPIキー設定と図面サイズを確認してください。'}
+  finally{$('#runAiBtn').disabled=false}
+}
+function renderAiResult(a,d){
+  const rows=(a.materials||[]).filter(x=>Number(x.quantity)>0).map(x=>{const matched=matchMaterialByAiName(x.material_name);return {...x,matched}});
+  aiCandidate=rows.filter(x=>x.matched).map(x=>({id:x.matched.id,name:x.matched.name,unit:x.matched.unit,weight:Number(x.matched.weight||0),qty:Math.max(0,Math.round(Number(x.quantity)||0)),confidence:Number(x.confidence||0),sourceName:x.material_name}));
+  const w=aiCandidate.reduce((sum,x)=>sum+x.qty*x.weight,0),q=aiCandidate.reduce((sum,x)=>sum+x.qty,0),unmatched=rows.filter(x=>!x.matched);
+  const root=$('#aiResult');root.classList.remove('empty');
+  root.innerHTML=`<div class="ai-result-head"><div><span>判定</span><b>${escapeHtml(a.scaffold_type||'不明')}</b></div><div><span>図面</span><b>${escapeHtml(d.name)}</b></div></div><p>${escapeHtml(a.summary||'')}</p>${(a.dimensions||[]).length?`<div class="ai-dimensions"><b>読み取った寸法・条件</b><br>${a.dimensions.map(x=>`・${escapeHtml(x)}`).join('<br>')}</div>`:''}<div class="assist-summary"><div><span>マッチ済み</span><b>${aiCandidate.length}種類</b></div><div><span>候補数量</span><b>${q}点</b></div><div><span>推定重量</span><b>${formatWeight(w)}</b></div><div><span>乗る車</span><b>${truckFor(w)}</b></div></div><div class="ai-materials">${rows.map(x=>`<div class="ai-material"><div class="ai-material-top"><div><b>${escapeHtml(x.matched?.name||x.material_name)}</b><small>${x.matched&&x.matched.name!==x.material_name?`AI読取: ${escapeHtml(x.material_name)}`:''}</small></div><b>${Number(x.quantity)||0}${escapeHtml(x.matched?.unit||x.unit||'')}</b></div><span class="confidence">確信度 ${Math.round((Number(x.confidence)||0)*100)}%</span><small>${escapeHtml(x.reason||'')}</small>${!x.matched?'<div class="ai-unmatched">資材マスタに一致する項目がないため注文へは自動反映しません</div>':''}</div>`).join('')}</div>${unmatched.length?`<div class="ai-unmatched">未一致 ${unmatched.length}種類：資材マスタで名称を確認してください。</div>`:''}${(a.warnings||[]).length?`<ul class="ai-warning-list">${a.warnings.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`:''}`;
+  $('#applyAiBtn').classList.toggle('hidden',!aiCandidate.length);
+  state.selectedDrawingId=d.id;if($('#selectedDrawingName'))$('#selectedDrawingName').textContent=d.name;
+}
+function applyAiCandidate(){if(!aiCandidate.length)return toast('注文へ入れられるAI候補がありません');state.cart={};aiCandidate.forEach(x=>state.cart[x.id]=(state.cart[x.id]||0)+x.qty);renderMaterials();go('order');toast('AI候補を注文へ入れました。数量を確認してください')}
 
 // 資材マスタ編集（後から名前・カテゴリー・単重・単位を変更可能）
 function renderMaterialMaster(){const root=$('#masterList');if(!root)return;root.innerHTML=MATERIALS.map((m,i)=>`<article class="card master-row"><input class="master-name" data-mi="${i}" data-mf="name" value="${escapeHtml(m.name)}"><div class="master-grid"><input data-mi="${i}" data-mf="category" value="${escapeHtml(m.category)}" aria-label="カテゴリー"><input type="number" step="0.01" min="0" data-mi="${i}" data-mf="weight" value="${Number(m.weight)}" aria-label="単重"><input data-mi="${i}" data-mf="unit" value="${escapeHtml(m.unit)}" aria-label="単位"></div><small>カテゴリー / 単重kg / 単位</small><button class="danger-link" data-master-delete="${i}">この資材を削除</button></article>`).join('');root.querySelectorAll('[data-mf]').forEach(inp=>inp.onchange=()=>{const i=Number(inp.dataset.mi),f=inp.dataset.mf;MATERIALS[i][f]=f==='weight'?Math.max(0,Number(inp.value)||0):inp.value.trim();saveMaterialMaster()});root.querySelectorAll('[data-master-delete]').forEach(b=>b.onclick=()=>{if(confirm('この資材を削除しますか？')){MATERIALS.splice(Number(b.dataset.masterDelete),1);saveMaterialMaster();renderMaterialMaster()}})}
@@ -163,10 +187,55 @@ function saveMaterialMaster(){localStorage.setItem('vertx_core_materials',JSON.s
 function addCustomMaterial(){const n=$('#customName').value.trim(),c=$('#customCategory').value.trim()||'その他',w=Math.max(0,Number($('#customWeight').value)||0),u=$('#customUnit').value.trim()||'個';if(!n)return toast('資材名を入力してください');MATERIALS.push({id:`custom_${Date.now()}`,name:n,category:c,weight:w,unit:u,aliases:''});saveMaterialMaster();['#customName','#customWeight'].forEach(s=>$(s).value='');renderMaterialMaster()}
 function resetMaterialMaster(){if(!confirm('資材マスタを初期状態に戻しますか？'))return;MATERIALS=DEFAULT_MATERIALS.map(x=>({...x}));localStorage.removeItem('vertx_core_materials');renderMaterialMaster();renderCategories();renderMaterials();toast('初期状態に戻しました')}
 
+
+// 図面アップロード（端末内IndexedDBに保存）
+const DRAW_DB='vertx_core_drawings_db', DRAW_STORE='drawings';
+function openDrawDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DRAW_DB,1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(DRAW_STORE))db.createObjectStore(DRAW_STORE,{keyPath:'id',autoIncrement:true})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function drawingPut(file){
+  const db=await openDrawDb(); return new Promise((resolve,reject)=>{
+    const tx=db.transaction(DRAW_STORE,'readwrite'),st=tx.objectStore(DRAW_STORE);
+    const req=st.add({name:file.name,type:file.type||'application/octet-stream',size:file.size,createdAt:new Date().toISOString(),blob:file});
+    req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+  });
+}
+async function drawingList(){
+  const db=await openDrawDb(); return new Promise((resolve,reject)=>{
+    const tx=db.transaction(DRAW_STORE,'readonly'),req=tx.objectStore(DRAW_STORE).getAll();
+    req.onsuccess=()=>resolve((req.result||[]).sort((a,b)=>b.id-a.id));req.onerror=()=>reject(req.error);
+  });
+}
+async function drawingGet(id){const db=await openDrawDb();return new Promise((resolve,reject)=>{const req=db.transaction(DRAW_STORE,'readonly').objectStore(DRAW_STORE).get(Number(id));req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function drawingDelete(id){const db=await openDrawDb();return new Promise((resolve,reject)=>{const req=db.transaction(DRAW_STORE,'readwrite').objectStore(DRAW_STORE).delete(Number(id));req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error)})}
+async function uploadDrawings(files){
+  if(!files||!files.length)return;
+  const allowed=[...files].filter(f=>f.type.startsWith('image/')||f.type==='application/pdf');
+  if(!allowed.length)return toast('PDFまたは画像を選んでください');
+  for(const f of allowed){await drawingPut(f)}
+  $('#drawingInput').value=''; await renderDrawings(); toast(`${allowed.length}件の図面を保存しました`);
+}
+async function renderDrawings(){
+  const root=$('#drawingList'); if(!root)return;
+  try{
+    const list=await drawingList();
+    root.innerHTML=list.length?list.map(d=>`<article class="card drawing-card ${state.selectedDrawingId===d.id?'selected':''}">
+      <div class="drawing-icon">${String(d.type).includes('pdf')?'PDF':'IMG'}</div>
+      <div class="drawing-info"><b>${escapeHtml(d.name)}</b><small>${(Number(d.size)/1024/1024).toFixed(2)}MB・${formatDate(d.createdAt)}</small></div>
+      <div class="drawing-actions"><button data-use-drawing="${d.id}">${state.selectedDrawingId===d.id?'選択中':'注文に添付'}</button><button data-view-drawing="${d.id}">開く</button><button data-delete-drawing="${d.id}">削除</button></div>
+    </article>`).join(''):'<div class="card empty">PDFまたは現場図面の写真をアップロードできます</div>';
+    $$('[data-use-drawing]').forEach(b=>b.onclick=async()=>{state.selectedDrawingId=Number(b.dataset.useDrawing);const d=await drawingGet(state.selectedDrawingId);if($('#selectedDrawingName'))$('#selectedDrawingName').textContent=d?.name||'';renderDrawings();toast('注文に図面を添付しました')});
+    $$('[data-view-drawing]').forEach(b=>b.onclick=()=>openDrawing(Number(b.dataset.viewDrawing)));
+    $$('[data-delete-drawing]').forEach(b=>b.onclick=async()=>{const id=Number(b.dataset.deleteDrawing);if(!confirm('この図面を削除しますか？'))return;await drawingDelete(id);if(state.selectedDrawingId===id)state.selectedDrawingId=null;renderDrawings()});
+  }catch(e){root.innerHTML='<div class="card empty">このブラウザでは図面保存を利用できません</div>'}
+}
+async function openDrawing(id){
+  const d=await drawingGet(id);if(!d)return toast('図面が見つかりません');
+  const url=URL.createObjectURL(d.blob);window.open(url,'_blank');setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+
 function formatDate(v){return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(v))}
 function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),1800)}
 
-$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#searchInput').oninput=e=>{state.search=e.target.value;renderMaterials()};$('#toConfirmBtn').onclick=()=>go('confirm');$('#submitOrderBtn').onclick=submitOrder;$('#addSiteBtn').onclick=addSite;$('#newSiteName').onkeydown=e=>{if(e.key==='Enter')addSite()};$('#printDraftBtn').onclick=printDraft;$('#lineDraftBtn').onclick=shareDraft;$('#addCustomMaterialBtn').onclick=addCustomMaterial;$('#resetMaterialsBtn').onclick=resetMaterialMaster;
+$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#searchInput').oninput=e=>{state.search=e.target.value;renderMaterials()};$('#toConfirmBtn').onclick=()=>go('confirm');$('#submitOrderBtn').onclick=submitOrder;$('#addSiteBtn').onclick=addSite;$('#newSiteName').onkeydown=e=>{if(e.key==='Enter')addSite()};$('#printDraftBtn').onclick=printDraft;$('#lineDraftBtn').onclick=shareDraft;$('#addCustomMaterialBtn').onclick=addCustomMaterial;$('#resetMaterialsBtn').onclick=resetMaterialMaster;$('#drawingInput').onchange=e=>uploadDrawings(e.target.files);$('#assistType').onchange=toggleAssistOptions;$('#runAssistBtn').onclick=runAssist;$('#applyAssistBtn').onclick=applyAssist;$('#runAiBtn').onclick=runAiAnalysis;$('#applyAiBtn').onclick=applyAiCandidate;
 $('#resetBtn').onclick=()=>{if(confirm('注文履歴・現場・お気に入り・選択中数量を初期化しますか？（資材マスタは残ります）')){['vertx_core_orders','vertx_core_sites','vertx_core_favorites'].forEach(k=>localStorage.removeItem(k));state.cart={};state.favorites=new Set();state.selectedSite='';renderMaterials();updateDashboard();toast('初期化しました')}};
-(function init(){const d=new Date();d.setDate(d.getDate()+1);$('#deliveryDate').value=d.toISOString().slice(0,10);renderCategories();renderMaterials();updateDashboard();go('home')})();
+(function init(){const d=new Date();d.setDate(d.getDate()+1);$('#deliveryDate').value=d.toISOString().slice(0,10);renderCategories();renderMaterials();updateDashboard();toggleAssistOptions();go('home')})();
