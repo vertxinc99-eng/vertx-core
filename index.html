@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE β0.5.1</title>
+  <title>VERTX CORE β0.6</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>β0.5.1</span></h1>
+        <h1>CORE <span>β0.6</span></h1>
       </div>
       <button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button>
     </header>
@@ -36,6 +36,7 @@
           <button class="menu-card" data-go="order"><span>📦</span><b>資材注文</b><small>資材から直接作成</small></button>
           <button class="menu-card" data-go="history"><span>📋</span><b>注文履歴</b><small>再注文にも対応</small></button>
           <button class="menu-card" data-go="favorites"><span>★</span><b>お気に入り</b><small>よく使う資材だけ表示</small></button>
+          <button class="menu-card" data-go="materialsMaster"><span>⚙</span><b>資材マスタ</b><small>名前・単重を後から変更</small></button>
         </div>
       </section>
 
@@ -81,6 +82,7 @@
           <div><span>推定重量</span><strong id="confirmWeight">0.0kg</strong></div>
           <div><span>乗る車</span><strong id="truckRecommendation">軽トラ</strong></div>
         </div>
+        <div class="action-grid"><button id="printDraftBtn" class="secondary-btn full">PDF / 印刷</button><button id="lineDraftBtn" class="secondary-btn full">LINEで共有</button></div>
         <button id="submitOrderBtn" class="primary-btn full">この内容で注文を保存</button>
       </section>
 
@@ -89,6 +91,18 @@
         <div id="historyList" class="history-list"></div>
       </section>
 
+
+      <section id="materialsMaster" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MATERIAL MASTER</p><h2>資材マスタ</h2></div></div>
+        <div class="card form-card">
+          <h3>資材を追加</h3>
+          <label>資材名<input id="customName" type="text" placeholder="例：専用ブラケット"></label>
+          <div class="master-grid"><label>カテゴリー<input id="customCategory" value="その他"></label><label>単重kg<input id="customWeight" type="number" step="0.01" min="0" placeholder="0"></label><label>単位<input id="customUnit" value="個"></label></div>
+          <button id="addCustomMaterialBtn" class="secondary-btn full">＋ 資材を追加</button>
+        </div>
+        <div class="section-head"><h3>登録資材</h3><button id="resetMaterialsBtn" class="text-btn">初期値に戻す</button></div>
+        <div id="masterList" class="history-list"></div>
+      </section>
       <section id="success" class="screen success-screen">
         <div class="success-mark">✓</div><p class="eyebrow">COMPLETE</p><h2>注文を保存しました</h2>
         <p class="muted center">履歴からいつでも確認・再注文できます。</p>
@@ -105,6 +119,7 @@
     </nav>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="printArea" class="print-area"></div>
   <script src="app.js"></script>
 </body>
 </html>
