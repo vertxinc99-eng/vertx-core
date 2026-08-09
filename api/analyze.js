@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { mode = 'auto', context = '', materialNames = [], learningExamples = [], companyVocabulary = [] } = body;
+    const { mode = 'auto', context = '', materialNames = [], learningExamples = [], companyVocabulary = [], speedMode = 'fast' } = body;
     const files = Array.isArray(body.files) && body.files.length ? body.files.slice(0, 8) : (body.filename && body.dataBase64 ? [{ filename: body.filename, mimeType: body.mimeType, dataBase64: body.dataBase64 }] : []);
     if (!files.length) return send(res, 400, { error: '図面データがありません' });
     const estimatedBytes = files.reduce((s,f)=>s+Math.floor((String(f.dataBase64||'').length*3)/4),0);
@@ -44,11 +44,11 @@ module.exports = async function handler(req, res) {
       const dataUrl=`data:${mime};base64,${f.dataBase64}`;
       const isPdf=mime==='application/pdf'||filename.toLowerCase().endsWith('.pdf');
       if(isPdf) content.push({type:'input_file',filename,file_data:dataUrl});
-      else content.push({type:'input_image',image_url:dataUrl,detail:mode==='photo'?'auto':'high'});
+      else content.push({type:'input_image',image_url:dataUrl,detail:(mode==='photo'||speedMode==='fallback')?'auto':'high'});
     }
 
     const payload = {
-      model: process.env.OPENAI_MODEL || 'gpt-5',
+      model: process.env.OPENAI_MODEL || (speedMode==='fallback' ? 'gpt-4.1-mini' : 'gpt-5-mini'),
       store: false,
       instructions,
       input: [{ role: 'user', content }],

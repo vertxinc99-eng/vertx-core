@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.0.0';
+const VERTX_BUILD='7.1.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -150,7 +150,7 @@ function materialSort(a,b){
   if(ar!==br) return ar-br;
   return a.name.localeCompare(b.name,'ja',{numeric:true});
 }
-function materialCard(m){const q=state.cart[m.id]||0,f=state.favorites.has(m.id);const spec=(m.aliases||'').trim();return `<article class="material ${q?'selected':''}"><button class="fav-btn ${f?'active':''}" data-fav="${m.id}" aria-label="お気に入り" title="お気に入り">☆</button><button class="material-more" data-material-edit="${m.id}" aria-label="資材設定">•••</button><div class="material-info"><b>${escapeHtml(m.name)}</b>${spec?`<small class="material-spec">${escapeHtml(spec)}</small>`:''}<small>${escapeHtml(m.category)} · ${Number(m.weight).toFixed(2)}kg/${escapeHtml(m.unit)}</small></div><div class="qty-control"><button data-action="minus" data-id="${m.id}">−</button><input data-qty="${m.id}" inputmode="numeric" value="${q}" aria-label="${escapeHtml(m.name)}数量"><button data-action="plus" data-id="${m.id}">＋</button></div></article>`}
+function materialCard(m){const q=state.cart[m.id]||0,f=state.favorites.has(m.id);const spec=(m.aliases||'').trim();return `<article class="material ${q?'selected':''}"><div class="material-actions"><button class="fav-btn ${f?'active':''}" data-fav="${m.id}" aria-label="お気に入り" title="お気に入り">☆</button><button class="material-more" data-material-edit="${m.id}" aria-label="資材名・単重・カテゴリーを変更"><span>•••</span><small>編集</small></button></div><div class="material-info"><b>${escapeHtml(m.name)}</b>${spec?`<small class="material-spec">${escapeHtml(spec)}</small>`:''}<small>${escapeHtml(m.category)} · ${Number(m.weight).toFixed(2)}kg/${escapeHtml(m.unit)}</small></div><div class="qty-control"><button data-action="minus" data-id="${m.id}">−</button><input data-qty="${m.id}" inputmode="numeric" value="${q}" aria-label="${escapeHtml(m.name)}数量"><button data-action="plus" data-id="${m.id}">＋</button></div></article>`}
 function bindMaterialControls(root=document){root.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>changeQty(b.dataset.id,b.dataset.action==='plus'?1:-1));root.querySelectorAll('[data-qty]').forEach(i=>i.onchange=()=>setQty(i.dataset.qty,Number(i.value)));root.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.fav));root.querySelectorAll('[data-material-edit]').forEach(b=>b.onclick=()=>openMaterialQuickEdit(b.dataset.materialEdit))}
 function openMaterialQuickEdit(id){const m=MATERIALS.find(x=>String(x.id)===String(id));const modal=$('#materialQuickEdit');if(!m||!modal)return;modal.dataset.materialId=m.id;$('#quickMaterialOriginal').textContent=`標準名 / ${m.aliases?.split('/')[0]?.trim()||m.name}`;$('#quickMaterialName').value=m.name;$('#quickMaterialWeight').value=Number(m.weight||0);$('#quickMaterialCategory').value=m.category||'その他';$('#quickMaterialHidden').checked=!!m.hidden;modal.classList.remove('hidden');document.body.classList.add('modal-open')}
 function closeMaterialQuickEdit(){const modal=$('#materialQuickEdit');if(modal)modal.classList.add('hidden');document.body.classList.remove('modal-open')}
@@ -346,7 +346,7 @@ async function runAiAnalysis(){
   const drawings=(await Promise.all(ids.map(id=>drawingGet(id)))).filter(Boolean);if(!drawings.length)return toast('図面が見つかりません');
   const mode=$('#aiMode').value,context=$('#aiContext').value.trim(),cacheKey=aiCacheKey(drawings,mode,context),cached=getAiCache(cacheKey);
   $('#runAiBtn').disabled=true;$('#applyAiBtn').classList.add('hidden');
-  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),90000);
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),150000);
   try{
     if(cached){renderAiResult(cached,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});setAiStatus('学習済みキャッシュから即時表示しました。条件を変えた場合は再解析してください。');return}
     const maxSide=drawings.length>=5?1050:drawings.length>=3?1250:1450;
@@ -357,11 +357,13 @@ async function runAiAnalysis(){
     setAiStatus(`CORE AIが平面・立面・断面を照合中…`);
     const [files,learningExamples]=await Promise.all([Promise.all(prepared.map(async({d,aiBlob})=>({filename:d.name,mimeType:d.type,dataBase64:await blobToBase64(aiBlob)}))),getAiLearningContext()]);
     const materialNames=MATERIALS.map(m=>m.name);
-    const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files,mode,context,materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category}))})});
-    const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`AI解析エラー (${r.status})`);
+    let r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files,mode,context,materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),speedMode:'fast'})});
+    let data=await r.json().catch(()=>({}));
+    if(!r.ok&&r.status>=500){setAiStatus('AIを軽量モードで自動再試行しています…');const retryFiles=files.slice(0,Math.min(files.length,4));r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files:retryFiles,mode,context:context+'\n初回解析が失敗したため重要図面を優先して再解析。',materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),speedMode:'fallback'})});data=await r.json().catch(()=>({}));}
+    if(!r.ok)throw new Error(data.error||`AI解析エラー (${r.status})`);
     setAiCache(cacheKey,data.analysis);renderAiResult(data.analysis,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});
     setAiStatus(`解析完了。会社の確定例${learningExamples.length}件と資材呼称を参照しました。`);
-  }catch(e){const msg=e?.name==='AbortError'?'AI解析が90秒を超えたため停止しました。図面を絞って再試行してください。':(e?.message||'AI解析に失敗しました');const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。必要な断面・立面だけを選んで再試行してください。':msg;setAiStatus(friendly,'error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
+  }catch(e){const msg=e?.name==='AbortError'?'AI解析が150秒を超えたため停止しました。図面枚数を減らすか、必要な立面・断面に絞って再試行してください。':(e?.message||'AI解析に失敗しました');const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。必要な断面・立面だけを選んで再試行してください。':msg;setAiStatus(friendly,'error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
   finally{clearTimeout(timeout);$('#runAiBtn').disabled=false}
 }
 function renderAiResult(a,d){
