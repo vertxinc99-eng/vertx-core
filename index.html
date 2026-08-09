@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v7.9 FIELD MATERIALS</title>
-  <link rel="stylesheet" href="style.css?v=7.9.0">
+  <title>VERTX CORE v7.12 RETURN TRUCK</title>
+  <link rel="stylesheet" href="style.css?v=7.12.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate">
@@ -40,7 +40,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.9 FIELD MATERIALS</span></h1>
+        <h1>CORE <span>v7.12 RETURN TRUCK</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -78,6 +78,7 @@
           <button class="menu-card featured" data-go="photoAi"><span class="app-icon">📷</span><b>写真AI</b><small>現場写真から資材候補を抽出</small></button>
           <button class="menu-card" data-go="siteDashboard"><span class="app-icon">📊</span><b>現場ダッシュボード</b><small>在庫・重量・注文・搬入を集約</small></button>
           <button class="menu-card ops-new" data-go="returns"><span class="app-icon">↩</span><b>返却管理</b><small>返却数を記録して現場在庫を自動減算</small></button>
+          <button class="menu-card ops-new" data-go="returnLoad"><span class="app-icon">⚖</span><b>返却重量計算</b><small>返却材の総重量と3t・4t車の積載目安</small></button>
           <button class="menu-card ops-new" data-go="siteCosts"><span class="app-icon">¥</span><b>現場原価</b><small>売上・人件費・運搬・外注から粗利確認</small></button>
           <button class="menu-card ops-new" data-go="siteQr"><span class="app-icon">▦</span><b>現場QR</b><small>現場ページへ一発アクセス</small></button>
           <button class="menu-card ops-new" data-go="suppliers"><span class="app-icon">⇧</span><b>発注先管理</b><small>資材屋・リース会社と送信テンプレを登録</small></button>
@@ -312,6 +313,25 @@
         <div class="section-head"><h3>返却履歴</h3></div><div id="returnList" class="history-list"></div>
       </section>
 
+      <section id="returnLoad" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="returns">‹</button><div><p class="eyebrow">LOAD CHECK</p><h2>返却重量計算</h2></div></div>
+        <div class="load-hero card"><span>RETURN LOAD</span><h3>積む前に、重量を確認。</h3><p>返却する資材と数量を入れると総重量・選択した車両の残り積載目安を自動計算します。</p></div>
+        <div class="card load-builder">
+          <label>資材<select id="loadMaterial"></select></label>
+          <div class="load-input-grid"><label>数量<input id="loadQty" type="number" min="1" value="1"></label><button id="addLoadItemBtn" class="primary-btn">＋ 追加</button></div>
+          <label>確認する最大積載量<select id="loadTruckCapacity"><option value="2000">2t車（2,000kg）</option><option value="3000" selected>3t車（3,000kg）</option><option value="4000">4t車（4,000kg）</option><option value="8000">8t車（8,000kg）</option><option value="10000">10t車（10,000kg）</option></select></label>
+          <label>実車の最大積載量を使う場合<input id="loadCustomCapacity" type="number" min="1" placeholder="例：2850 kg"></label>
+          <div class="return-truck-grid"><label>返却現場<select id="returnTruckSite"></select></label><label>返却希望日<input id="returnTruckDate" type="date"></label></div>
+          <label>返却メモ<input id="returnTruckMemo" placeholder="例：午前中希望・長物あり"></label>
+        </div>
+        <div id="loadSummary" class="load-summary card"></div>
+        <button id="requestReturnTruckBtn" class="primary-btn full return-request-btn">🚚 この内容で返却車を手配</button>
+        <div id="returnTruckStatus" class="return-truck-status"></div>
+        <div class="section-head"><h3>積載リスト</h3><button id="clearLoadBtn" class="text-btn">クリア</button></div>
+        <div id="loadList" class="load-list"></div>
+        <div class="load-safety-note"><b>重要</b><p>ここで出るのは資材重量の計算目安です。実際に積めるかは車検証の最大積載量、荷台寸法、長物、荷重バランス、固定方法も必ず確認してください。</p></div>
+      </section>
+
       <section id="siteCosts" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE PROFIT</p><h2>現場原価</h2></div></div>
         <div class="card form-card">
@@ -348,22 +368,30 @@
 
       <section id="manual" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MANUAL</p><h2>使い方マニュアル</h2></div></div>
-        <div class="manual-hero card"><span>QUICK START</span><h3>迷ったらここだけ見ればOK。</h3><p>会社登録から注文、AI、在庫、メンバー招待まで順番にまとめています。</p></div>
-        <div class="manual-steps">
-          <details class="manual-step" open><summary><span>01</span><b>最初の設定</b></summary><div><p>会社を作成して、社長アカウントでログインします。会社設定で会社名・コードを確認してください。</p></div></details>
-          <details class="manual-step"><summary><span>02</span><b>現場を登録</b></summary><div><p>「現場」→「＋現場を追加」。注文・在庫・図面は現場ごとにまとめられます。</p></div></details>
-          <details class="manual-step"><summary><span>03</span><b>資材を注文・呼び方を変更</b></summary><div><p>「注文」で資材を選び、数量を＋－で入力します。資材カード右上の「•••」から、その会社だけの資材名・単重・カテゴリー・表示/非表示を変更できます。重量と必要トラックを確認して注文を保存します。</p></div></details>
-          <details class="manual-step"><summary><span>04</span><b>図面AI・写真AI</b></summary><div><p>複数の平面・立面・断面図をアップロードしてAI解析できます。写真AIは現場写真から資材候補を出します。AI結果は必ず人が確認してから注文へ反映してください。</p></div></details>
-          <details class="manual-step"><summary><span>05</span><b>音声オーダー</b></summary><div><p>「アンチ1.8を50枚、枠600を30枚」のように話して注文候補へ変換できます。マイク許可が必要です。</p></div></details>
-          <details class="manual-step"><summary><span>06</span><b>自動在庫</b></summary><div><p>注文を「納品済」にすると、その現場の在庫へ自動加算。現場在庫画面では数量と総重量を確認・補正できます。</p></div></details>
-          <details class="manual-step"><summary><span>07</span><b>返却管理</b></summary><div><p>「返却管理」で現場・資材・返却数を入力。記録した分だけ現場在庫から減算されます。</p></div></details>
-          <details class="manual-step"><summary><span>08</span><b>現場原価</b></summary><div><p>現場ごとに売上を保存し、人件費・運搬費・資材・外注などを追加。粗利と粗利率を自動計算します。</p></div></details>
-          <details class="manual-step"><summary><span>09</span><b>現場QR</b></summary><div><p>現場QRを作成して共有。読み込むと対象現場を選んだ状態でアプリが開きます。</p></div></details>
-          <details class="manual-step"><summary><span>10</span><b>発注先管理</b></summary><div><p>リース会社や資材屋と文面テンプレートを登録。注文確認から発注先用の文面をワンタップで作れます。</p></div></details>
-          <details class="manual-step"><summary><span>07</span><b>社員を招待</b></summary><div><p>「メンバー・権限」で、人事・管理者用／社員・職長用／閲覧専用のURLをコピーして送ります。URLごとに参加時の権限が自動で分かれます。</p></div></details>
-          <details class="manual-step"><summary><span>08</span><b>注文承認</b></summary><div><p>社員・職長が作った注文は「承認待ち」になります。社長・管理者は注文履歴から「承認して発注」を押して確定できます。</p></div></details><details class="manual-step"><summary><span>09</span><b>プラン変更</b></summary><div><p>社長アカウントからStandard（月額4,980円） / Pro（月額9,800円・14日無料）を申し込めます。決済はStripeで行い、契約状態はCOREへ自動反映されます。支払い方法変更や解約は「契約管理」から行います。</p></div></details>
+        <div class="manual-hero manual-light"><span>VERTX CORE GUIDE</span><h3>これを見れば全部わかる。</h3><p>最初の登録から、注文・AI・返却・権限・サブスクまで機能ごとにまとめています。</p></div>
+        <div class="manual-index">
+          <button data-manual-open="m01">初期設定</button><button data-manual-open="m03">注文</button><button data-manual-open="m06">AI</button><button data-manual-open="m10">返却</button><button data-manual-open="m14">メンバー</button>
         </div>
-        <div class="card support-note"><b>困ったとき</b><p>画面にエラー文が出たら、そのままスクリーンショットを残してください。設定・DB・AIのどこで止まったか切り分けやすくなります。</p></div>
+        <div class="manual-steps">
+          <details id="m01" class="manual-step" open><summary><span>01</span><b>会社登録・ログイン</b></summary><div><p>最初に会社名と担当者名を登録します。一度登録した情報は端末に保存され、次回から同じ会社で開けます。会社を変える時だけ「その他 → 会社設定 → 会社を切り替える」を使います。</p></div></details>
+          <details id="m02" class="manual-step"><summary><span>02</span><b>現場を登録・選択</b></summary><div><p>下メニューの「SITES」から現場名を追加します。現場を選ぶと、その現場を指定した状態で注文へ進めます。最後に選んだ現場は端末に保持されます。</p></div></details>
+          <details id="m03" class="manual-step"><summary><span>03</span><b>資材注文</b></summary><div><p>「ORDER」でカテゴリーまたは検索から資材を探し、− / ＋で数量を入力します。画面下に合計点数・重量・車両目安が出ます。「注文確認へ」で現場・希望日・メモを確認して保存します。</p></div></details>
+          <details id="m04" class="manual-step"><summary><span>04</span><b>資材名・単重を会社専用に変更</b></summary><div><p>資材カード右上の「••• 編集」を押します。表示名、単重、カテゴリー、表示/非表示をその会社だけ変更できます。別会社の資材マスタには影響しません。</p></div></details>
+          <details id="m05" class="manual-step"><summary><span>05</span><b>お気に入り・よく使うセット</b></summary><div><p>☆を押すとお気に入りに登録できます。「よく使うセット」では、定番の資材構成を保存して次回ワンタップで数量を入れられます。</p></div></details>
+          <details id="m06" class="manual-step"><summary><span>06</span><b>AI図面解析</b></summary><div><p>AI画面で平面・立面・断面・詳細図などを複数選び、解析します。AIが資材候補と数量を提示します。結果は候補なので必ず人が確認し、必要なら数量を修正してから注文へ反映してください。</p></div></details>
+          <details id="m07" class="manual-step"><summary><span>07</span><b>AI学習の使い方</b></summary><div><p>AI候補を人が修正して注文確定した内容を、その会社の過去例として次回解析の参考にします。会社ごとに分離され、他社の修正履歴は混ざりません。AIが勝手に確定発注することはありません。</p></div></details>
+          <details id="m08" class="manual-step"><summary><span>08</span><b>写真AI・音声オーダー・図面比較</b></summary><div><p>写真AIは現場写真から資材候補を抽出。音声オーダーは「枠610を30枚、ブレス1829を20本」のように話して候補へ変換します。AI図面比較では新旧図面の変更候補を確認できます。</p></div></details>
+          <details id="m09" class="manual-step"><summary><span>09</span><b>現場在庫・不足材</b></summary><div><p>注文ステータスを「納品済」にすると現場在庫へ自動加算されます。在庫画面では数量と総重量を確認できます。不足材から不足分だけ追加注文へ進めます。</p></div></details>
+          <details id="m10" class="manual-step"><summary><span>10</span><b>返却管理</b></summary><div><p>「返却管理」で現場・資材・数量・返却日を入力すると、その分だけ現場在庫から減ります。入力ミスは返却履歴の「記録を取り消す」で在庫を戻せます。</p></div></details>
+          <details id="m11" class="manual-step"><summary><span>11</span><b>返却重量計算</b></summary><div><p>「返却重量計算」で、返す資材を1種類ずつ選んで数量を追加します。総重量と3t・4tなどの積載目安、残り積載量を表示します。現場と返却日を選んで「この内容で返却車を手配」を押すと、返却依頼を保存して配車予定にも表示します。共有画面が開く端末では、そのままLINE等で返却依頼を送れます。実車の最大積載量が3,000kg未満なら、車検証の数値を「実車の最大積載量」に入力してください。</p></div></details>
+          <details id="m12" class="manual-step"><summary><span>12</span><b>配車・発注先・PDF/共有</b></summary><div><p>配車予定では搬入日・ステータス・重量・車両目安を確認します。発注先管理では資材屋やリース会社と送信用テンプレを保存できます。注文履歴からPDF・LINE共有・再注文もできます。</p></div></details>
+          <details id="m13" class="manual-step"><summary><span>13</span><b>現場原価・分析・QR</b></summary><div><p>現場原価で売上、人件費、運搬費、資材・リース、外注などを入力すると粗利・粗利率を計算します。分析では注文量や重量を集計。現場QRは対象現場を選んだ状態でCOREを開くQRを作れます。</p></div></details>
+          <details id="m14" class="manual-step"><summary><span>14</span><b>社員招待・権限</b></summary><div><p>「メンバー・権限」から、管理者用・社員/職長用・閲覧用の招待URLをコピーして本人へ送ります。社員本人は自分のアカウントでURLを開いて参加します。社長アカウントで社員URLを開いても社長権限は自動で下がりません。</p></div></details>
+          <details id="m15" class="manual-step"><summary><span>15</span><b>注文承認</b></summary><div><p>職長が作った注文は「承認待ち」。社長・管理者が注文履歴から承認して発注できます。閲覧権限は編集・発注できません。</p></div></details>
+          <details id="m16" class="manual-step"><summary><span>16</span><b>プラン・サブスク</b></summary><div><p>Freeは基本注文と重量計算。Standardはクラウド・在庫・複数ユーザー・配車など。ProはAI機能を含む上位プランです。Stripe本番設定完了後は、社長がプラン画面から申込・契約管理を行えます。</p></div></details>
+          <details id="m17" class="manual-step"><summary><span>17</span><b>エラーが出た時</b></summary><div><p>まず画面を再読み込みし、バージョン表示を確認します。AIだけ失敗する場合は図面枚数を減らして再試行。DBや招待でエラーが出た場合は、表示されたエラー文が読めるスクリーンショットを残してください。</p></div></details>
+        </div>
+        <div class="manual-note"><b>安全に使うために</b><p>重量・トラック判定やAI数量は作業判断の補助です。車両は実車の車検証、現場条件、施工計画、安全基準を優先してください。</p></div>
       </section>
       <section id="success" class="screen success-screen">
         <div class="success-mark">✓</div><p class="eyebrow">COMPLETE</p><h2>注文を保存しました</h2>
@@ -378,7 +406,7 @@
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">CONTROL CENTER</p><h2>その他</h2></div></div>
         <div class="control-stack">
           <div class="control-section"><span>TEAM</span><button data-go="members"><b>メンバー・権限</b><small>権限別の招待URL・承認権限</small><em>›</em></button><button data-go="companySettings"><b>会社設定</b><small>会社コード・招待・切替</small><em>›</em></button></div>
-          <div class="control-section"><span>OPERATIONS</span><button data-go="returns"><b>返却管理</b><small>返却履歴・現場在庫の自動減算</small><em>›</em></button><button data-go="siteCosts"><b>現場原価</b><small>売上・原価・粗利率</small><em>›</em></button><button data-go="siteQr"><b>現場QR</b><small>現場ページへ一発アクセス</small><em>›</em></button><button data-go="suppliers"><b>発注先管理</b><small>資材屋・リース会社・送信テンプレ</small><em>›</em></button><button data-go="materialsMaster"><b>資材マスタ</b><small>追加・単重・詳細設定</small><em>›</em></button><button data-go="sets"><b>よく使うセット</b><small>定番注文をワンタップ化</small><em>›</em></button><button data-go="dispatch"><b>配車予定</b><small>搬入・車両・進捗</small><em>›</em></button></div>
+          <div class="control-section"><span>OPERATIONS</span><button data-go="returns"><b>返却管理</b><small>返却履歴・現場在庫の自動減算</small><em>›</em></button><button data-go="returnLoad"><b>返却重量計算</b><small>返却材の総重量・積載目安</small><em>›</em></button><button data-go="siteCosts"><b>現場原価</b><small>売上・原価・粗利率</small><em>›</em></button><button data-go="siteQr"><b>現場QR</b><small>現場ページへ一発アクセス</small><em>›</em></button><button data-go="suppliers"><b>発注先管理</b><small>資材屋・リース会社・送信テンプレ</small><em>›</em></button><button data-go="materialsMaster"><b>資材マスタ</b><small>追加・単重・詳細設定</small><em>›</em></button><button data-go="sets"><b>よく使うセット</b><small>定番注文をワンタップ化</small><em>›</em></button><button data-go="dispatch"><b>配車予定</b><small>搬入・車両・進捗</small><em>›</em></button></div>
           <div class="control-section"><span>CORE</span><button data-go="analytics"><b>利用分析</b><small>注文量・重量・利用状況</small><em>›</em></button><button data-go="plans"><b>プラン</b><small>Free / Standard / Pro</small><em>›</em></button><button data-go="manual"><b>使い方マニュアル</b><small>初期設定から注文・AIまで</small><em>›</em></button></div>
         </div>
       </section>
@@ -408,6 +436,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.9.0"></script>
+  <script src="app.js?v=7.12.0"></script>
 </body>
 </html>

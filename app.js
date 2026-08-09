@@ -117,7 +117,7 @@ function go(screenId){
   document.body.dataset.screen=screenId;
   $$('.screen').forEach(el=>el.classList.toggle('active',el.id===screenId));
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.go===screenId || (screenId==='confirm'&&el.dataset.go==='order')));
-  if(screenId==='history')renderHistory(); if(screenId==='more')updateLearningCount(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();if(screenId==='siteStock')renderSiteStock();if(screenId==='shortage')renderShortage();if(screenId==='sets')renderSets();if(screenId==='dispatch')renderDispatch();if(screenId==='compare')loadCompareDrawings();if(screenId==='siteDashboard')renderSiteDashboard();if(screenId==='analytics')renderAnalytics();if(screenId==='members')renderMembers();if(screenId==='plans')renderPlans();if(screenId==='returns')renderReturns();if(screenId==='siteCosts')renderSiteCosts();if(screenId==='siteQr')renderSiteQr();if(screenId==='suppliers')renderSuppliers();
+  if(screenId==='history')renderHistory(); if(screenId==='more')updateLearningCount(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();if(screenId==='siteStock')renderSiteStock();if(screenId==='shortage')renderShortage();if(screenId==='sets')renderSets();if(screenId==='dispatch')renderDispatch();if(screenId==='compare')loadCompareDrawings();if(screenId==='siteDashboard')renderSiteDashboard();if(screenId==='analytics')renderAnalytics();if(screenId==='members')renderMembers();if(screenId==='plans')renderPlans();if(screenId==='returns')renderReturns();if(screenId==='returnLoad')renderReturnLoad();if(screenId==='siteCosts')renderSiteCosts();if(screenId==='siteQr')renderSiteQr();if(screenId==='suppliers')renderSuppliers();
   window.scrollTo({top:0,behavior:'instant'});
 }
 function totals(){return MATERIALS.reduce((a,m)=>{const q=state.cart[m.id]||0;a.qty+=q;a.weight+=q*Number(m.weight||0);return a},{qty:0,weight:0})}
@@ -548,6 +548,64 @@ function renderReturns(){
 function saveReturnEntry(){const site=$('#returnSite').value,id=$('#returnMaterial').value,qty=Math.max(1,Number($('#returnQty').value)||1),date=$('#returnDate').value||todayIso(),memo=$('#returnMemo').value.trim(),m=MATERIALS.find(x=>String(x.id)===String(id));if(!site||!m)return toast('現場と資材を選択してください');const rows=getStock(),i=rows.findIndex(r=>r.site===site&&String(r.materialId)===String(id)),available=i>=0?Number(rows[i].qty)||0:0;if(qty>available)return toast(`現在庫は ${available}${m.unit||''} です`);rows[i].qty=available-qty;rows[i].updatedAt=new Date().toISOString();saveStockRows(rows);const a=getReturns();a.unshift({id:Date.now(),site,materialId:id,materialName:m.name,unit:m.unit,qty,date,memo,createdAt:new Date().toISOString()});saveReturns(a);$('#returnQty').value=1;$('#returnMemo').value='';renderReturns();toast('返却を記録して在庫を減らしました')}
 function undoReturn(index){const a=getReturns(),r=a[index];if(!r)return;if(!confirm('この返却記録を取り消して在庫を戻しますか？'))return;const rows=getStock(),i=rows.findIndex(x=>x.site===r.site&&String(x.materialId)===String(r.materialId));if(i>=0)rows[i].qty=(Number(rows[i].qty)||0)+Number(r.qty||0);else rows.unshift({site:r.site,materialId:r.materialId,materialName:r.materialName,qty:Number(r.qty)||0,memo:'返却取消で復元',updatedAt:new Date().toISOString()});saveStockRows(rows);a.splice(index,1);saveReturns(a);renderReturns();toast('返却を取り消しました')}
 
+const RETURN_LOAD_KEY='vertx_return_load_v711';
+function getReturnLoad(){try{return JSON.parse(localStorage.getItem(RETURN_LOAD_KEY)||'[]')||[]}catch(e){return []}}
+function saveReturnLoad(a){localStorage.setItem(RETURN_LOAD_KEY,JSON.stringify(a))}
+function returnLoadCapacity(){const custom=Math.max(0,Number($('#loadCustomCapacity')?.value)||0);return custom||Math.max(1,Number($('#loadTruckCapacity')?.value)||3000)}
+function renderReturnLoad(){
+  if(!$('#loadMaterial'))return;
+  const truckSite=$('#returnTruckSite');if(truckSite){const sites=getSites();const prev=truckSite.value||state.selectedSite;truckSite.innerHTML=sites.length?sites.map(x=>`<option>${escapeHtml(x)}</option>`).join(''):'<option>現場未登録</option>';if(prev&&sites.includes(prev))truckSite.value=prev;}
+  if($('#returnTruckDate')&&!$('#returnTruckDate').value)$('#returnTruckDate').value=todayIso();
+  const visible=MATERIALS.filter(m=>!isMaterialHidden(m)).sort((a,b)=>String(a.category||'').localeCompare(String(b.category||''),'ja')||String(a.name).localeCompare(String(b.name),'ja'));
+  if(!$('#loadMaterial').options.length)$('#loadMaterial').innerHTML=visible.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}｜${Number(m.weight||0).toFixed(2)}kg/${escapeHtml(m.unit||'')}</option>`).join('');
+  const rows=getReturnLoad();
+  let total=0,qty=0;rows.forEach(r=>{total+=(Number(r.weight)||0)*(Number(r.qty)||0);qty+=Number(r.qty)||0});
+  const cap=returnLoadCapacity(),remaining=cap-total,ratio=cap?total/cap:0;
+  let cls='ok',msg=`積載目安内です。残り約 ${Math.max(0,remaining).toFixed(0)}kg`;
+  if(ratio>1){cls='over';msg=`最大積載量を約 ${Math.abs(remaining).toFixed(0)}kg 超えています`}
+  else if(ratio>=.9){cls='warn';msg=`最大積載量の90%以上です。実車・荷姿を必ず確認してください`}
+  $('#loadSummary').innerHTML=`<div class="load-kpis"><div class="load-kpi"><span>総数量</span><strong>${qty.toLocaleString()}点</strong></div><div class="load-kpi"><span>総重量</span><strong>${total.toFixed(1)}kg</strong></div><div class="load-kpi"><span>最大積載量</span><strong>${cap.toLocaleString()}kg</strong></div><div class="load-kpi"><span>使用率</span><strong>${Math.round(ratio*100)}%</strong></div></div><div class="load-status ${cls}">${msg}</div>`;
+  $('#loadList').innerHTML=rows.length?rows.map((r,i)=>`<article class="load-row"><div><b>${escapeHtml(r.name)}</b><small>${Number(r.weight).toFixed(2)}kg/${escapeHtml(r.unit||'')} × ${Number(r.qty).toLocaleString()}</small></div><strong>${((Number(r.weight)||0)*(Number(r.qty)||0)).toFixed(1)}kg</strong><button data-load-del="${i}" aria-label="削除">×</button></article>`).join(''):'<div class="card empty">返却する資材を追加してください</div>';
+  $$('[data-load-del]').forEach(b=>b.onclick=()=>{const a=getReturnLoad();a.splice(Number(b.dataset.loadDel),1);saveReturnLoad(a);renderReturnLoad()});
+}
+function addReturnLoadItem(){const m=MATERIALS.find(x=>String(x.id)===String($('#loadMaterial')?.value)),q=Math.max(1,Number($('#loadQty')?.value)||1);if(!m)return toast('資材を選択してください');const a=getReturnLoad(),same=a.find(x=>String(x.materialId)===String(m.id));if(same)same.qty=(Number(same.qty)||0)+q;else a.push({materialId:m.id,name:m.name,unit:m.unit,weight:Number(m.weight)||0,qty:q});saveReturnLoad(a);$('#loadQty').value=1;renderReturnLoad();toast('積載リストに追加しました')}
+function clearReturnLoad(){if(!getReturnLoad().length)return;if(confirm('返却重量計算のリストをクリアしますか？')){saveReturnLoad([]);renderReturnLoad()}}
+
+const RETURN_TRUCK_KEY='vertx_return_truck_requests_v712';
+function getReturnTruckRequests(){try{return JSON.parse(lsGet(RETURN_TRUCK_KEY)||'[]')||[]}catch{return []}}
+function saveReturnTruckRequests(v){lsSet(RETURN_TRUCK_KEY,JSON.stringify(v))}
+function returnTruckLabel(){
+  const custom=Math.max(0,Number($('#loadCustomCapacity')?.value)||0);
+  if(custom)return `最大積載量 ${custom.toLocaleString()}kg車`;
+  const sel=$('#loadTruckCapacity');
+  return sel?.options?.[sel.selectedIndex]?.textContent||`${returnLoadCapacity().toLocaleString()}kg車`;
+}
+function returnTruckRequestText(req){
+  const items=(req.items||[]).map(x=>`${x.name} ${Number(x.qty).toLocaleString()}${x.unit||''}`).join('\n');
+  return `【返却車 手配依頼】\n現場：${req.site}\n返却希望日：${req.date}\n車両：${req.truck}\n返却材重量：約${Number(req.weight).toFixed(1)}kg\n\n${items}${req.memo?`\n\nメモ：${req.memo}`:''}`;
+}
+async function requestReturnTruck(){
+  const items=getReturnLoad();
+  if(!items.length)return toast('先に返却する資材を追加してください');
+  const site=$('#returnTruckSite')?.value||state.selectedSite||'';
+  if(!site||site==='現場未登録')return toast('返却する現場を選択してください');
+  const date=$('#returnTruckDate')?.value||todayIso();
+  const memo=$('#returnTruckMemo')?.value.trim()||'';
+  const weight=items.reduce((a,x)=>a+(Number(x.weight)||0)*(Number(x.qty)||0),0);
+  const capacity=returnLoadCapacity();
+  if(weight>capacity&&!confirm(`計算上、最大積載量を約 ${(weight-capacity).toFixed(0)}kg 超えています。それでも返却車を手配しますか？`))return;
+  const req={id:Date.now(),type:'return',site,date,memo,weight,capacity,truck:returnTruckLabel(),status:'返却依頼',items:items.map(x=>({...x})),createdAt:new Date().toISOString()};
+  const a=getReturnTruckRequests();a.unshift(req);saveReturnTruckRequests(a);
+  const status=$('#returnTruckStatus');if(status)status.innerHTML=`<div class="card return-request-saved"><b>✓ 返却車を手配リストへ追加しました</b><small>${escapeHtml(site)} / ${escapeHtml(date)} / ${escapeHtml(req.truck)} / 約${weight.toFixed(1)}kg</small></div>`;
+  renderDispatch();
+  const text=returnTruckRequestText(req);
+  try{
+    if(navigator.share)await navigator.share({title:`${site} 返却車手配`,text});
+    else{await navigator.clipboard.writeText(text);toast('返却依頼を保存して文面をコピーしました')}
+  }catch(e){if(e?.name!=='AbortError'){try{await navigator.clipboard.writeText(text);toast('返却依頼を保存して文面をコピーしました')}catch{prompt('この返却依頼をコピーしてください',text)}}}
+}
+
+
 function getSiteCostData(){try{return JSON.parse(lsGet('vertx_core_site_costs')||'{"revenues":{},"entries":[]}')}catch{return {revenues:{},entries:[]}}}
 function saveSiteCostData(v){lsSet('vertx_core_site_costs',JSON.stringify(v))}
 function renderSiteCosts(){if(!$('#costSite'))return;const sites=getSites(),prev=$('#costSite').value;$('#costSite').innerHTML=sites.length?sites.map(s=>`<option>${escapeHtml(s)}</option>`).join(''):'<option>現場未登録</option>';if(prev&&sites.includes(prev))$('#costSite').value=prev;const site=$('#costSite').value,data=getSiteCostData(),revenue=Number(data.revenues?.[site]||0),entries=(data.entries||[]).filter(x=>x.site===site),cost=entries.reduce((a,x)=>a+Number(x.amount||0),0),profit=revenue-cost,margin=revenue?profit/revenue*100:0;$('#costRevenue').value=revenue||'';$('#costSummary').innerHTML=`<div class="profit-grid"><article><span>売上</span><strong>¥${revenue.toLocaleString()}</strong></article><article><span>原価</span><strong>¥${cost.toLocaleString()}</strong></article><article class="${profit<0?'loss':'gain'}"><span>粗利</span><strong>¥${profit.toLocaleString()}</strong></article><article><span>粗利率</span><strong>${margin.toFixed(1)}%</strong></article></div>`;$('#costList').innerHTML=entries.length?entries.map(x=>`<article class="card ops-row"><div class="ops-row-head"><div><b>${escapeHtml(x.category)}</b><small>${escapeHtml(x.memo||x.date||'')}</small></div><strong>¥${Number(x.amount).toLocaleString()}</strong></div><button class="danger-link" data-cost-delete="${x.id}">削除</button></article>`).join(''):'<div class="card empty">原価明細はまだありません</div>';$('#costSite').onchange=renderSiteCosts;$$('[data-cost-delete]').forEach(b=>b.onclick=()=>deleteCost(Number(b.dataset.costDelete)))}
@@ -575,7 +633,16 @@ function saveCurrentSet(){const name=$('#setName').value.trim(),items=selectedIt
 function renderSets(){const a=getSets();$('#setList').innerHTML=a.length?a.map((x,i)=>`<article class="card set-row"><b>${escapeHtml(x.name)}</b><small>${x.items.length}種類</small><div class="quick-actions"><button data-set-apply="${i}">注文に入れる</button><button data-set-del="${i}">削除</button></div></article>`).join(''):'<div class="card empty">よく使う組み合わせを保存できます</div>';$$('[data-set-apply]').forEach(b=>b.onclick=()=>{const x=getSets()[Number(b.dataset.setApply)];if(!x)return;x.items.forEach(i=>state.cart[i.id]=(state.cart[i.id]||0)+i.qty);persistDraftState();renderMaterials();go('order');toast('セットを注文に追加しました')});$$('[data-set-del]').forEach(b=>b.onclick=()=>{const a=getSets();a.splice(Number(b.dataset.setDel),1);saveSets(a);renderSets()})}
 const ORDER_STATUSES=['発注済','準備中','配送中','納品済'];
 function nextStatus(v){const i=ORDER_STATUSES.indexOf(v);return ORDER_STATUSES[(i<0?0:i+1)%ORDER_STATUSES.length]}
-function renderDispatch(){const a=getHistory().slice().sort((x,y)=>String(x.date||'9999').localeCompare(String(y.date||'9999')));$('#dispatchList').innerHTML=a.length?a.map(o=>`<article class="card dispatch-row"><div class="stock-grid"><div><b>${escapeHtml(o.site)}</b><small>${escapeHtml(o.date||'日付未設定')}</small></div><span class="status-pill">${escapeHtml(o.status||'発注済')}</span></div><div class="history-item-row"><span>車両</span><strong>${escapeHtml(o.truck||truckFor(o.weight))}</strong></div><div class="history-item-row"><span>重量</span><strong>${formatWeight(o.weight)}</strong></div>${o.inventoryApplied?'<div class="history-item-row"><span>在庫</span><strong>✓ 自動反映済み</strong></div>':''}<button data-status="${o.id}" class="secondary-btn full">ステータスを進める</button></article>`).join(''):'<div class="card empty">注文を保存すると配車予定に表示されます</div>';$$('[data-status]').forEach(b=>b.onclick=()=>{const a=getHistory(),o=a.find(x=>x.id===Number(b.dataset.status));if(o){const before=o.status||'発注済';o.status=nextStatus(before);let applied=false;if(o.status==='納品済')applied=applyOrderToStock(o);saveHistory(a);renderDispatch();if(applied){renderSiteStock();toast('納品済み：現場在庫へ自動反映しました')}}})}
+function renderDispatch(){
+  const returns=getReturnTruckRequests();
+  const orders=getHistory().slice().sort((x,y)=>String(x.date||'9999').localeCompare(String(y.date||'9999')));
+  const returnHtml=returns.map(r=>`<article class="card dispatch-row return-dispatch"><div class="stock-grid"><div><b>↩ ${escapeHtml(r.site)}</b><small>${escapeHtml(r.date||'日付未設定')}</small></div><span class="status-pill">${escapeHtml(r.status||'返却依頼')}</span></div><div class="history-item-row"><span>返却車</span><strong>${escapeHtml(r.truck||'')}</strong></div><div class="history-item-row"><span>返却重量</span><strong>${formatWeight(r.weight||0)}</strong></div><div class="history-item-row"><span>資材</span><strong>${Number((r.items||[]).length)}種類</strong></div>${r.memo?`<small class="dispatch-memo">${escapeHtml(r.memo)}</small>`:''}<button data-return-truck-share="${r.id}" class="secondary-btn full">返却依頼を共有</button><button data-return-truck-done="${r.id}" class="text-btn full">${r.status==='返却完了'?'返却完了済み':'返却完了にする'}</button></article>`).join('');
+  const orderHtml=orders.map(o=>`<article class="card dispatch-row"><div class="stock-grid"><div><b>${escapeHtml(o.site)}</b><small>${escapeHtml(o.date||'日付未設定')}</small></div><span class="status-pill">${escapeHtml(o.status||'発注済')}</span></div><div class="history-item-row"><span>車両</span><strong>${escapeHtml(o.truck||truckFor(o.weight))}</strong></div><div class="history-item-row"><span>重量</span><strong>${formatWeight(o.weight)}</strong></div>${o.inventoryApplied?'<div class="history-item-row"><span>在庫</span><strong>✓ 自動反映済み</strong></div>':''}<button data-status="${o.id}" class="secondary-btn full">ステータスを進める</button></article>`).join('');
+  $('#dispatchList').innerHTML=(returnHtml||orderHtml)?returnHtml+orderHtml:'<div class="card empty">注文または返却車の手配をすると配車予定に表示されます</div>';
+  $$('[data-status]').forEach(b=>b.onclick=()=>{const a=getHistory(),o=a.find(x=>x.id===Number(b.dataset.status));if(o){const before=o.status||'発注済';o.status=nextStatus(before);let applied=false;if(o.status==='納品済')applied=applyOrderToStock(o);saveHistory(a);renderDispatch();if(applied){renderSiteStock();toast('納品済み：現場在庫へ自動反映しました')}}});
+  $$('[data-return-truck-share]').forEach(b=>b.onclick=async()=>{const r=getReturnTruckRequests().find(x=>Number(x.id)===Number(b.dataset.returnTruckShare));if(!r)return;const text=returnTruckRequestText(r);try{if(navigator.share)await navigator.share({title:`${r.site} 返却車手配`,text});else{await navigator.clipboard.writeText(text);toast('返却依頼をコピーしました')}}catch(e){if(e?.name!=='AbortError')prompt('この返却依頼をコピーしてください',text)}});
+  $$('[data-return-truck-done]').forEach(b=>b.onclick=()=>{const a=getReturnTruckRequests(),r=a.find(x=>Number(x.id)===Number(b.dataset.returnTruckDone));if(!r)return;r.status='返却完了';saveReturnTruckRequests(a);renderDispatch();toast('返却完了にしました')});
+}
 async function loadCompareDrawings(){const a=await drawingList();const opts='<option value="">図面を選択</option>'+a.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');$('#compareOld').innerHTML=opts;$('#compareNew').innerHTML=opts}
 async function runCompare(){const oldId=Number($('#compareOld').value),newId=Number($('#compareNew').value);if(!oldId||!newId||oldId===newId)return toast('旧図面と新図面を別々に選んでください');const oldD=await drawingGet(oldId),newD=await drawingGet(newId);if(!oldD||!newD)return toast('図面が見つかりません');const st=$('#compareStatus');st.classList.remove('hidden');st.textContent='AIが新旧図面を比較しています…';$('#compareResult').innerHTML='';try{let oldBlob=oldD.blob,newBlob=newD.blob;if(!String(oldD.type).includes('pdf'))oldBlob=await compressImageForAi(oldBlob,oldD.type);if(!String(newD.type).includes('pdf'))newBlob=await compressImageForAi(newBlob,newD.type);const body={old:{filename:oldD.name,mimeType:oldD.type,dataBase64:await blobToBase64(oldBlob)},newer:{filename:newD.name,mimeType:newD.type,dataBase64:await blobToBase64(newBlob)},context:$('#compareContext').value.trim()};const r=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.error||'比較に失敗しました');const a=data.analysis;$('#compareResult').innerHTML=`<h3>${escapeHtml(a.summary||'比較結果')}</h3>${(a.changes||[]).map(x=>`<div class="compare-change"><b>${escapeHtml(x.area||'変更')}</b><p>${escapeHtml(x.change||'')}</p><small>${escapeHtml(x.impact||'')}</small></div>`).join('')}${(a.warnings||[]).length?`<div class="ai-warning"><b>注意</b>${a.warnings.map(x=>`<p>${escapeHtml(x)}</p>`).join('')}</div>`:''}`;st.textContent='比較完了'}catch(e){st.textContent=e.message;$('#compareResult').textContent='AI比較に失敗しました'} }
 
@@ -667,7 +734,7 @@ async function renderMembers(){
   root.querySelectorAll('[data-member-user]').forEach(sel=>sel.onchange=async()=>{const {error}=await supabaseClient.rpc('set_organization_member_role',{p_org:s.orgId,p_user:sel.dataset.memberUser,p_role:sel.value});if(error){toast('権限変更失敗：'+error.message);await renderMembers()}else toast('権限を変更しました')});
 }
 function roleLabel(r){return ({owner:'社長 / Owner',admin:'管理者 / Admin',member:'職長 / Member',viewer:'閲覧'})[r]||r||'職長 / Member'}
-function canOpenScreen(screenId){const r=getCompanySession()?.role||'member';if(r==='owner')return true;if(r==='admin')return !['plans'].includes(screenId);if(r==='member')return !['materialsMaster','members','plans','analytics','companySettings','siteCosts','suppliers'].includes(screenId);if(r==='viewer')return ['home','more','history','favorites','drawings','siteStock','siteDashboard','siteQr','companySettings','manual'].includes(screenId);return false}
+function canOpenScreen(screenId){const r=getCompanySession()?.role||'member';if(r==='owner')return true;if(r==='admin')return !['plans'].includes(screenId);if(r==='member')return !['materialsMaster','members','plans','analytics','companySettings','siteCosts','suppliers'].includes(screenId);if(r==='viewer')return ['home','more','history','favorites','drawings','siteStock','siteDashboard','siteQr','companySettings','manual','returnLoad'].includes(screenId);return false}
 function applyRoleUi(){document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(!target||target==='home')return;const allowed=canOpenScreen(target);if(el.classList.contains('menu-card'))el.style.display=allowed?'':'none';});const r=getCompanySession()?.role||'member';if($('#memberInviteBtn'))$('#memberInviteBtn').style.display=['owner','admin'].includes(r)?'':'none';}
 
 
@@ -772,6 +839,33 @@ function reloadTenantState(){
   state.category='すべて';state.search='';state.selectedSite=lsGet('vertx_core_last_site')||state.selectedSite||'';state.selectedDrawingId=null;
   try{state.favorites=new Set(JSON.parse(lsGet('vertx_core_favorites')||'[]'))}catch{state.favorites=new Set()}
 }
+async function resolveInviteRole(teamToken,urlRole=''){
+  if(['admin','member','viewer'].includes(urlRole))return urlRole;
+  if(!teamToken||!supabaseClient)return '';
+  try{const {data,error}=await supabaseClient.rpc('resolve_organization_role_invite',{p_token:teamToken});if(!error&&data)return String(data)}catch(e){console.warn('invite role resolve',e)}
+  return '';
+}
+function clearInviteParams(){const u=new URL(location.href);['team_invite','invite','invite_role'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.toString())}
+async function guardInviteAccount(){
+  const u=new URL(location.href),teamToken=u.searchParams.get('team_invite');
+  if(!teamToken||!cloudUser)return false;
+  const intended=await resolveInviteRole(teamToken,u.searchParams.get('invite_role')||'');
+  if(!intended)return false;
+  const memberships=await getMemberships();
+  const sameTokenOrg=Array.isArray(memberships)?memberships.find(m=>m?.organizations):null;
+  const currentRole=sameTokenOrg?.role||getCompanySession()?.role||'';
+  if(['owner','admin'].includes(currentRole)&&currentRole!==intended){
+    const label=intended==='admin'?'管理者':intended==='viewer'?'閲覧':'社員・職長';
+    const current=currentRole==='owner'?'社長':'管理者';
+    const switchAccount=confirm(`このURLは「${label}用」です。
+現在は${current}アカウントでログイン中です。
+
+社員本人のアカウントで参加するため、一度ログアウトしますか？`);
+    if(switchAccount){await supabaseClient.auth.signOut();nativeRemove(VERTX_SESSION_KEY);location.reload();return true}
+    clearInviteParams();toast(`${current}アカウントのまま開きました`);return true;
+  }
+  return false;
+}
 async function joinInviteIfPresent(){
   const u0=new URL(location.href);const teamToken=u0.searchParams.get('team_invite');const legacy=u0.searchParams.get('invite');
   if(!teamToken&&!legacy)return false;
@@ -779,7 +873,7 @@ async function joinInviteIfPresent(){
   if(teamToken){({error}=await supabaseClient.rpc('join_organization_by_role_invite',{p_token:teamToken}));}
   else{({error}=await supabaseClient.rpc('join_organization_by_invite',{p_token:legacy}));}
   if(error){const el=$('#companyGateStatus');if(el)el.textContent='招待参加に失敗しました：'+error.message;return false}
-  u0.searchParams.delete('team_invite');u0.searchParams.delete('invite');history.replaceState({},'',u0.toString());return true;
+  clearInviteParams();return true;
 }
 async function chooseOrganization(){
   $('#cloudAuthGate')?.classList.add('hidden');
@@ -867,7 +961,7 @@ async function companyLogin(){
 }
 async function switchCompany(){nativeRemove(VERTX_SESSION_KEY);location.reload()}
 function companyInviteUrl(){const s=getCompanySession();const u=new URL(location.origin+location.pathname);if(s?.inviteToken)u.searchParams.set('invite',s.inviteToken);return u.toString()}
-function companyRoleInviteUrl(role){const token=roleInviteTokens?.[role];if(!token)return '';const u=new URL(location.origin+location.pathname);u.searchParams.set('team_invite',token);return u.toString()}
+function companyRoleInviteUrl(role){const token=roleInviteTokens?.[role];if(!token)return '';const u=new URL(location.origin+location.pathname);u.searchParams.set('team_invite',token);u.searchParams.set('invite_role',role);return u.toString()}
 async function copyRoleInvite(role){const s=getCompanySession();if(!['owner','admin'].includes(s?.role||''))return toast('招待URLは社長・管理者のみ発行できます');if(role==='admin'&&s.role!=='owner')return toast('人事・管理者用URLは社長のみ発行できます');const url=companyRoleInviteUrl(role);if(!url)return toast('招待URLがまだ作成されていません。V5.3のSQLを実行してください');try{await navigator.clipboard.writeText(url);toast((role==='admin'?'人事・管理者用':role==='viewer'?'閲覧用':'社員・職長用')+'URLをコピーしました')}catch{prompt('このURLをコピーしてください',url)}}
 async function copyCompanyInvite(){const s=getCompanySession();if(!s?.inviteToken)return toast('招待URLを取得できません');try{await navigator.clipboard.writeText(companyInviteUrl());toast('招待URLをコピーしました')}catch{prompt('このURLをコピーしてください',companyInviteUrl())}}
 async function signOut(){if(supabaseClient)await supabaseClient.auth.signOut();nativeRemove(VERTX_SESSION_KEY);location.reload()}
@@ -890,12 +984,13 @@ async function cloudBoot(){
   const {data:{session}}=await supabaseClient.auth.getSession();
   if(!session){$('#cloudAuthGate')?.classList.remove('hidden');$('#companyGate')?.classList.add('hidden');return}
   cloudUser=session.user;$('#cloudAuthGate')?.classList.add('hidden');
+  if(await guardInviteAccount())return;
   await chooseOrganization();
 }
 
-$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));if($('#siteName'))$('#siteName').oninput=e=>{state.selectedSite=e.target.value.trim();persistDraftState()};$('#saveStockBtn').onclick=saveStockEntry;$('#addShortageBtn').onclick=addShortage;$('#saveSetBtn').onclick=saveCurrentSet;$('#runCompareBtn').onclick=runCompare;$('#searchInput').oninput=e=>{state.search=e.target.value;renderMaterials()};$('#toConfirmBtn').onclick=()=>go('confirm');$('#submitOrderBtn').onclick=submitOrder;$('#addSiteBtn').onclick=addSite;$('#newSiteName').onkeydown=e=>{if(e.key==='Enter')addSite()};$('#printDraftBtn').onclick=printDraft;$('#lineDraftBtn').onclick=shareDraft;$('#addCustomMaterialBtn').onclick=addCustomMaterial;$('#resetMaterialsBtn').onclick=resetMaterialMaster;$('#drawingInput').onchange=e=>uploadDrawings(e.target.files);if($('#aiDrawingInput'))$('#aiDrawingInput').onchange=e=>uploadAiDrawings(e.target.files);$('#assistType').onchange=toggleAssistOptions;$('#runAssistBtn').onclick=runAssist;$('#applyAssistBtn').onclick=applyAssist;$('#runAiBtn').onclick=runAiAnalysis;$('#applyAiBtn').onclick=applyAiCandidate;
+$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$$('[data-manual-open]').forEach(b=>b.onclick=()=>{const el=document.getElementById(b.dataset.manualOpen);if(el){el.open=true;el.scrollIntoView({behavior:'smooth',block:'start'})}});if($('#siteName'))$('#siteName').oninput=e=>{state.selectedSite=e.target.value.trim();persistDraftState()};$('#saveStockBtn').onclick=saveStockEntry;$('#addShortageBtn').onclick=addShortage;$('#saveSetBtn').onclick=saveCurrentSet;$('#runCompareBtn').onclick=runCompare;$('#searchInput').oninput=e=>{state.search=e.target.value;renderMaterials()};$('#toConfirmBtn').onclick=()=>go('confirm');$('#submitOrderBtn').onclick=submitOrder;$('#addSiteBtn').onclick=addSite;$('#newSiteName').onkeydown=e=>{if(e.key==='Enter')addSite()};$('#printDraftBtn').onclick=printDraft;$('#lineDraftBtn').onclick=shareDraft;$('#addCustomMaterialBtn').onclick=addCustomMaterial;$('#resetMaterialsBtn').onclick=resetMaterialMaster;$('#drawingInput').onchange=e=>uploadDrawings(e.target.files);if($('#aiDrawingInput'))$('#aiDrawingInput').onchange=e=>uploadAiDrawings(e.target.files);$('#assistType').onchange=toggleAssistOptions;$('#runAssistBtn').onclick=runAssist;$('#applyAssistBtn').onclick=applyAssist;$('#runAiBtn').onclick=runAiAnalysis;$('#applyAiBtn').onclick=applyAiCandidate;
 document.querySelectorAll('[data-invite-role]').forEach(btn=>btn.onclick=()=>copyRoleInvite(btn.dataset.inviteRole));if($('#voiceStartBtn'))$('#voiceStartBtn').onclick=startVoiceOrder;if($('#voiceParseBtn'))$('#voiceParseBtn').onclick=parseVoiceOrder;if($('#photoAiInput'))$('#photoAiInput').onchange=e=>{photoAiFiles=[...e.target.files];$('#photoAiFiles').textContent=photoAiFiles.map(x=>x.name).join(' / ')||'写真未選択'};if($('#runPhotoAiBtn'))$('#runPhotoAiBtn').onclick=runPhotoAi;if($('#applyPhotoAiBtn'))$('#applyPhotoAiBtn').onclick=applyPhotoAi;if($('#memberInviteBtn'))$('#memberInviteBtn').onclick=copyCompanyInvite;if($('#tenantLoginBtn'))$('#tenantLoginBtn').onclick=companyLogin;if($('#switchCompanyBtn'))$('#switchCompanyBtn').onclick=switchCompany;if($('#copyInviteBtn'))$('#copyInviteBtn').onclick=copyCompanyInvite;if($('#companyBadge'))$('#companyBadge').onclick=()=>go('companySettings');if($('#authLoginBtn'))$('#authLoginBtn').onclick=authLogin;if($('#authSignupBtn'))$('#authSignupBtn').onclick=authSignup;if($('#signOutBtn'))$('#signOutBtn').onclick=signOut;
 if($('#saveQuickMaterialBtn'))$('#saveQuickMaterialBtn').onclick=saveMaterialQuickEdit;if($('#closeQuickMaterialBtn'))$('#closeQuickMaterialBtn').onclick=closeMaterialQuickEdit;if($('#cancelQuickMaterialBtn'))$('#cancelQuickMaterialBtn').onclick=closeMaterialQuickEdit;if($('#materialQuickEdit'))$('#materialQuickEdit').onclick=e=>{if(e.target.id==='materialQuickEdit')closeMaterialQuickEdit()};
-if($('#saveReturnBtn'))$('#saveReturnBtn').onclick=saveReturnEntry;if($('#saveRevenueBtn'))$('#saveRevenueBtn').onclick=saveRevenue;if($('#addCostBtn'))$('#addCostBtn').onclick=addCost;if($('#makeQrBtn'))$('#makeQrBtn').onclick=makeSiteQr;if($('#addSupplierBtn'))$('#addSupplierBtn').onclick=addSupplier;if($('#copySupplierOrderBtn'))$('#copySupplierOrderBtn').onclick=copySupplierOrder;
+if($('#saveReturnBtn'))$('#saveReturnBtn').onclick=saveReturnEntry;if($('#addLoadItemBtn'))$('#addLoadItemBtn').onclick=addReturnLoadItem;if($('#requestReturnTruckBtn'))$('#requestReturnTruckBtn').onclick=requestReturnTruck;if($('#clearLoadBtn'))$('#clearLoadBtn').onclick=clearReturnLoad;if($('#loadTruckCapacity'))$('#loadTruckCapacity').onchange=renderReturnLoad;if($('#loadCustomCapacity'))$('#loadCustomCapacity').oninput=renderReturnLoad;if($('#saveRevenueBtn'))$('#saveRevenueBtn').onclick=saveRevenue;if($('#addCostBtn'))$('#addCostBtn').onclick=addCost;if($('#makeQrBtn'))$('#makeQrBtn').onclick=makeSiteQr;if($('#addSupplierBtn'))$('#addSupplierBtn').onclick=addSupplier;if($('#copySupplierOrderBtn'))$('#copySupplierOrderBtn').onclick=copySupplierOrder;
 $('#resetBtn').onclick=()=>{if(confirm('注文履歴・現場・お気に入り・選択中数量を初期化しますか？（資材マスタは残ります）')){['vertx_core_orders','vertx_core_sites','vertx_core_favorites'].forEach(k=>lsRemove(k));state.cart={};state.favorites=new Set();state.selectedSite='';renderMaterials();updateDashboard();toast('初期化しました')}};
 cloudBoot();
