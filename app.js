@@ -1,3 +1,4 @@
+const VERTX_BUILD='6.1.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -185,7 +186,8 @@ function approveOrder(id){if(!['owner','admin'].includes(getCompanySession()?.ro
 
 function reorder(id){const o=getHistory().find(x=>x.id===id);if(!o)return;state.cart={};o.items.forEach(i=>{if(MATERIALS.some(m=>m.id===i.id))state.cart[i.id]=i.qty});state.selectedSite=o.site;renderMaterials();go('order');toast('前回注文をコピーしました')}
 function deleteOrder(id){if(!confirm('この履歴を削除しますか？'))return;saveHistory(getHistory().filter(x=>x.id!==id));renderHistory()}
-function updateDashboard(){const h=getHistory(),today=new Date().toDateString();$('#historyCount').textContent=h.length;$('#todayCount').textContent=h.filter(o=>new Date(o.createdAt).toDateString()===today).length}
+function updateDashboard(){const h=getHistory(),today=new Date().toDateString();$('#historyCount').textContent=h.length;$('#todayCount').textContent=h.filter(o=>new Date(o.createdAt).toDateString()===today).length;updateRoleHome()}
+function updateRoleHome(){const role=getCompanySession()?.role||'member';const chip=$('#homeRoleChip'),headline=$('#homeHeadline'),lead=$('#homeRoleLead'),greet=$('#homeGreeting');if(!chip||!headline||!lead)return;const map={owner:{chip:'OWNER',headline:'会社全体を、ひと目で。',lead:'承認待ち・現場・原価・メンバー・契約をまとめて確認。'},admin:{chip:'ADMIN',headline:'今日の運営を、速く。',lead:'現場・注文承認・配車・メンバー運用をスムーズに。'},member:{chip:'FOREMAN',headline:'今日の現場を、迷わず。',lead:'現場・注文・搬入・在庫を最短で操作。'},viewer:{chip:'VIEW',headline:'必要な情報だけ、すぐ確認。',lead:'現場・履歴・在庫を閲覧できます。'}};const v=map[role]||map.member;chip.textContent=v.chip;headline.textContent=v.headline;lead.textContent=v.lead;if(greet)greet.textContent=role==='owner'?'お疲れさまです、社長。':role==='admin'?'お疲れさまです、管理者。':role==='viewer'?'VERTX CORE VIEW':'お疲れさまです、職長。';document.body.dataset.role=role}
 
 function orderText(o){const lines=[`VERTX CORE 資材注文`,`現場：${o.site}`,o.date?`希望日：${o.date}`:'',`合計：${o.qty}点`,`重量：${formatWeight(o.weight)}`,`乗る車：${o.truck||truckFor(o.weight)}`,o.drawingId?`図面：${o.drawingName||'添付あり'}`:'','','【資材】',...o.items.map(i=>`${i.name} ${i.qty}${i.unit}`),o.memo?`\nメモ：${o.memo}`:''];return lines.filter(Boolean).join('\n')}
 function shareOrderById(id){const o=getHistory().find(x=>x.id===id);if(o)shareToLine(o)}
@@ -764,11 +766,16 @@ async function companyLogin(){
       billingSubscriptionId:null,billingPeriodEnd:null,cancelAtPeriodEnd:false,loginAt:new Date().toISOString()
     };
     nativeSet(VERTX_SESSION_KEY,JSON.stringify(sess));
+    // 作成成功後はDB再読込を待たずに入口を確実に閉じてCOREへ進む。
+    document.querySelector('#companyGate')?.classList.add('hidden');
+    document.querySelector('#cloudAuthGate')?.classList.add('hidden');
     cloudReady=true;
     reloadTenantState();
     setGateStatus('作成完了。COREを起動します。','success');
     renderCompanyIdentity();
     startApp();
+    // クラウド保存済みデータの読込は画面遷移後に行い、失敗しても入口へ戻さない。
+    hydrateCloudStore().then(()=>{reloadTenantState();updateDashboard();}).catch(e=>console.warn('post-create hydrate',e));
 
     // 画面を先に開いた後で、DB側の正式なmembership情報を同期。
     getMemberships().then(async memberships=>{

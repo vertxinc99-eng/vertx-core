@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v6.0 NOVA</title>
-  <link rel="stylesheet" href="style.css">
+  <title>VERTX CORE v6.2 NOVA ICON</title>
+  <link rel="stylesheet" href="style.css?v=6.2.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate">
@@ -40,7 +40,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v6.0 NOVA</span></h1>
+        <h1>CORE <span>v6.2 NOVA ICON</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -48,9 +48,11 @@
     <main>
       <section id="home" class="screen active">
         <div class="hero card">
-          <p class="muted">お疲れさまです</p>
-          <h2>今日も安全第一で。</h2>
-          <button class="primary-btn" data-go="sites">＋ 注文を作る</button>
+          <div class="hero-role-row"><span id="homeRoleChip" class="role-chip">FIELD</span><span class="live-dot">LIVE</span></div>
+          <p id="homeGreeting" class="muted">お疲れさまです</p>
+          <h2 id="homeHeadline">今日も安全第一で。</h2>
+          <p id="homeRoleLead" class="hero-lead">現場・注文・搬入をすぐ確認できます。</p>
+          <button class="primary-btn hero-action" data-go="sites"><span class="btn-app-icon">＋</span> 注文を作る</button>
         </div>
 
         <div class="stats-grid">
@@ -60,30 +62,30 @@
 
         <div class="section-head"><h3>クイックメニュー</h3></div>
         <div class="menu-grid">
-          <button class="menu-card" data-go="sites"><span>📍</span><b>現場から注文</b><small>現場を選んですぐ発注</small></button>
-          <button class="menu-card" data-go="order"><span>📦</span><b>資材注文</b><small>資材から直接作成</small></button>
-          <button class="menu-card" data-go="history"><span>📋</span><b>注文履歴</b><small>再注文にも対応</small></button>
-          <button class="menu-card" data-go="favorites"><span>★</span><b>お気に入り</b><small>よく使う資材だけ表示</small></button>
+          <button class="menu-card" data-go="sites"><span class="app-icon">📍</span><b>現場から注文</b><small>現場を選んですぐ発注</small></button>
+          <button class="menu-card" data-go="order"><span class="app-icon">📦</span><b>資材注文</b><small>資材から直接作成</small></button>
+          <button class="menu-card" data-go="history"><span class="app-icon">📋</span><b>注文履歴</b><small>再注文にも対応</small></button>
+          <button class="menu-card" data-go="favorites"><span class="app-icon">★</span><b>お気に入り</b><small>よく使う資材だけ表示</small></button>
           
-          <button class="menu-card" data-go="drawings"><span>▧</span><b>図面アップロード</b><small>PDF・写真を保存して注文に添付</small></button>
-          <button class="menu-card featured" data-go="assist"><span>✦</span><b>AI図面解析</b><small>PDF・写真をAIが読んで資材候補を作成</small></button>
-          <button class="menu-card" data-go="siteStock"><span>▤</span><b>現場在庫</b><small>納品済み注文を自動反映</small></button>
-          <button class="menu-card" data-go="shortage"><span>＋</span><b>不足材</b><small>不足分だけすぐ追加注文</small></button>
-          <button class="menu-card" data-go="sets"><span>▦</span><b>よく使うセット</b><small>セットを保存して一発入力</small></button>
-          <button class="menu-card" data-go="dispatch"><span>🚚</span><b>配車予定</b><small>搬入日・車両・進捗を確認</small></button>
-          <button class="menu-card featured" data-go="compare"><span>⇄</span><b>AI図面比較</b><small>新旧図面の変更点をAI確認</small></button>
-          <button class="menu-card featured" data-go="voiceOrder"><span>🎙</span><b>音声オーダー</b><small>現場の呼び方で喋って注文入力</small></button>
-          <button class="menu-card featured" data-go="photoAi"><span>📷</span><b>写真AI</b><small>現場写真から資材候補を抽出</small></button>
-          <button class="menu-card" data-go="siteDashboard"><span>📊</span><b>現場ダッシュボード</b><small>在庫・重量・注文・搬入を集約</small></button>
-          <button class="menu-card ops-new" data-go="returns"><span>↩</span><b>返却管理</b><small>返却数を記録して現場在庫を自動減算</small></button>
-          <button class="menu-card ops-new" data-go="siteCosts"><span>¥</span><b>現場原価</b><small>売上・人件費・運搬・外注から粗利確認</small></button>
-          <button class="menu-card ops-new" data-go="siteQr"><span>▦</span><b>現場QR</b><small>現場ページへ一発アクセス</small></button>
-          <button class="menu-card ops-new" data-go="suppliers"><span>⇧</span><b>発注先管理</b><small>資材屋・リース会社と送信テンプレを登録</small></button>
-          <button class="menu-card" data-go="analytics"><span>📈</span><b>分析</b><small>注文量・重量・配車を集計</small></button>
-          <button class="menu-card" data-go="members"><span>👷</span><b>メンバー・権限</b><small>社長・管理者・職長・閲覧</small></button>
-          <button class="menu-card" data-go="plans"><span>💳</span><b>プラン</b><small>Free / Standard / Pro</small></button>
-          <button class="menu-card" data-go="companySettings"><span>🏢</span><b>会社設定</b><small>会社コード・招待URL・切替</small></button>
-          <button class="menu-card manual-card" data-go="manual"><span>?</span><b>使い方マニュアル</b><small>初期設定からAI・注文まで確認</small></button>
+          <button class="menu-card" data-go="drawings"><span class="app-icon">▧</span><b>図面アップロード</b><small>PDF・写真を保存して注文に添付</small></button>
+          <button class="menu-card featured" data-go="assist"><span class="app-icon">✦</span><b>AI図面解析</b><small>PDF・写真をAIが読んで資材候補を作成</small></button>
+          <button class="menu-card" data-go="siteStock"><span class="app-icon">▤</span><b>現場在庫</b><small>納品済み注文を自動反映</small></button>
+          <button class="menu-card" data-go="shortage"><span class="app-icon">＋</span><b>不足材</b><small>不足分だけすぐ追加注文</small></button>
+          <button class="menu-card" data-go="sets"><span class="app-icon">▦</span><b>よく使うセット</b><small>セットを保存して一発入力</small></button>
+          <button class="menu-card" data-go="dispatch"><span class="app-icon">🚚</span><b>配車予定</b><small>搬入日・車両・進捗を確認</small></button>
+          <button class="menu-card featured" data-go="compare"><span class="app-icon">⇄</span><b>AI図面比較</b><small>新旧図面の変更点をAI確認</small></button>
+          <button class="menu-card featured" data-go="voiceOrder"><span class="app-icon">🎙</span><b>音声オーダー</b><small>現場の呼び方で喋って注文入力</small></button>
+          <button class="menu-card featured" data-go="photoAi"><span class="app-icon">📷</span><b>写真AI</b><small>現場写真から資材候補を抽出</small></button>
+          <button class="menu-card" data-go="siteDashboard"><span class="app-icon">📊</span><b>現場ダッシュボード</b><small>在庫・重量・注文・搬入を集約</small></button>
+          <button class="menu-card ops-new" data-go="returns"><span class="app-icon">↩</span><b>返却管理</b><small>返却数を記録して現場在庫を自動減算</small></button>
+          <button class="menu-card ops-new" data-go="siteCosts"><span class="app-icon">¥</span><b>現場原価</b><small>売上・人件費・運搬・外注から粗利確認</small></button>
+          <button class="menu-card ops-new" data-go="siteQr"><span class="app-icon">▦</span><b>現場QR</b><small>現場ページへ一発アクセス</small></button>
+          <button class="menu-card ops-new" data-go="suppliers"><span class="app-icon">⇧</span><b>発注先管理</b><small>資材屋・リース会社と送信テンプレを登録</small></button>
+          <button class="menu-card" data-go="analytics"><span class="app-icon">📈</span><b>分析</b><small>注文量・重量・配車を集計</small></button>
+          <button class="menu-card" data-go="members"><span class="app-icon">👷</span><b>メンバー・権限</b><small>社長・管理者・職長・閲覧</small></button>
+          <button class="menu-card" data-go="plans"><span class="app-icon">💳</span><b>プラン</b><small>Free / Standard / Pro</small></button>
+          <button class="menu-card" data-go="companySettings"><span class="app-icon">🏢</span><b>会社設定</b><small>会社コード・招待URL・切替</small></button>
+          <button class="menu-card manual-card" data-go="manual"><span class="app-icon">?</span><b>使い方マニュアル</b><small>初期設定からAI・注文まで確認</small></button>
         </div>
       </section>
 
@@ -381,11 +383,11 @@
         </div>
       </section>
     <nav class="bottom-nav" aria-label="メインナビゲーション">
-      <button data-go="home" class="nav-item active"><span>⌂</span><small>HOME</small></button>
-      <button data-go="sites" class="nav-item"><span>⌖</span><small>SITES</small></button>
-      <button data-go="order" class="nav-item nav-order"><span>＋</span><small>ORDER</small></button>
-      <button data-go="assist" class="nav-item"><span>✦</span><small>AI</small></button>
-      <button data-go="more" class="nav-item"><span>•••</span><small>MORE</small></button>
+      <button data-go="home" class="nav-item active"><span class="nav-icon">⌂</span><small>HOME</small></button>
+      <button data-go="sites" class="nav-item"><span class="nav-icon">⌖</span><small>SITES</small></button>
+      <button data-go="order" class="nav-item nav-order"><span class="app-icon">＋</span><small>ORDER</small></button>
+      <button data-go="assist" class="nav-item"><span class="app-icon">✦</span><small>AI</small></button>
+      <button data-go="more" class="nav-item"><span class="nav-icon">•••</span><small>MORE</small></button>
     </nav>
   </div>
 
@@ -406,6 +408,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=6.2.0"></script>
 </body>
 </html>
