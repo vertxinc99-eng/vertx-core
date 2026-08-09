@@ -12,3 +12,7 @@
 3. Wait for Vercel Production deployment, then refresh the app.
 
 App: https://vertx-core.vercel.app/
+
+
+## v7.0
+See RELEASE_NOTES_V7_0.md for NOVA OS layout fixes, iPhone viewport guards, system stability and CORE AI 7 improvements.

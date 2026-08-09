@@ -1,4 +1,4 @@
-const VERTX_BUILD='6.3.0';
+const VERTX_BUILD='7.0.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -97,6 +97,7 @@ let photoAiFiles=[],photoAiCandidates=[];
 function go(screenId){
   if(screenId!=='home'&&!canOpenScreen(screenId)){toast('この機能を使う権限がありません');return false}
   try{lsSet('vertx_core_last_screen',screenId)}catch{}
+  document.body.dataset.screen=screenId;
   $$('.screen').forEach(el=>el.classList.toggle('active',el.id===screenId));
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.go===screenId || (screenId==='confirm'&&el.dataset.go==='order')));
   if(screenId==='history')renderHistory(); if(screenId==='more')updateLearningCount(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();if(screenId==='siteStock')renderSiteStock();if(screenId==='shortage')renderShortage();if(screenId==='sets')renderSets();if(screenId==='dispatch')renderDispatch();if(screenId==='compare')loadCompareDrawings();if(screenId==='siteDashboard')renderSiteDashboard();if(screenId==='analytics')renderAnalytics();if(screenId==='members')renderMembers();if(screenId==='plans')renderPlans();if(screenId==='returns')renderReturns();if(screenId==='siteCosts')renderSiteCosts();if(screenId==='siteQr')renderSiteQr();if(screenId==='suppliers')renderSuppliers();
@@ -327,12 +328,14 @@ function blobToBase64(blob){return new Promise((resolve,reject)=>{const r=new Fi
 function setAiStatus(msg,type=''){const el=$('#aiStatus');if(!el)return;el.textContent=msg;el.className='ai-status'+(type?' '+type:'');el.classList.toggle('hidden',!msg)}
 function compressImageBlob(blob,maxSide=1800,quality=.78){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(blob);img.onload=()=>{try{const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(b=>{URL.revokeObjectURL(url);b?resolve(b):reject(new Error('画像圧縮に失敗しました'))},'image/jpeg',quality)}catch(e){URL.revokeObjectURL(url);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('画像を読み込めませんでした'))};img.src=url})}
 async function getAiLearningContext(){
+  const local=(()=>{try{return JSON.parse(nativeGet(tenantKey('vertx_core_ai_learning_local'))||'[]')}catch{return []}})();
   try{
-    const org=getCompanySession()?.orgId;if(!org||!cloudReady||!supabaseClient)return [];
-    const {data,error}=await supabaseClient.from('ai_learning_examples').select('source_type,context,corrected_materials,created_at').eq('organization_id',org).order('created_at',{ascending:false}).limit(8);
+    const org=getCompanySession()?.orgId;if(!org||!cloudReady||!supabaseClient)return local.slice(0,12);
+    const {data,error}=await supabaseClient.from('ai_learning_examples').select('source_type,context,corrected_materials,created_at').eq('organization_id',org).order('created_at',{ascending:false}).limit(12);
     if(error)throw error;
-    return (data||[]).map(x=>({source_type:x.source_type,context:x.context,corrected_materials:x.corrected_materials}));
-  }catch(e){console.warn('learning context',e);return []}
+    const cloud=(data||[]).map(x=>({source_type:x.source_type,context:x.context,corrected_materials:x.corrected_materials,created_at:x.created_at}));
+    return cloud.length?cloud:local.slice(0,12);
+  }catch(e){console.warn('learning context',e);return local.slice(0,12)}
 }
 function aiCacheKey(drawings,mode,context){return JSON.stringify({ids:drawings.map(d=>[d.id,d.createdAt||'',d.size||0]),mode,context,learning:lsGet('vertx_core_ai_learning_version')||'0',build:VERTX_BUILD})}
 function getAiCache(key){try{const all=JSON.parse(nativeGet(tenantKey('vertx_core_ai_cache'))||'{}');const hit=all[key];if(hit&&Date.now()-hit.ts<7*24*3600*1000)return hit.analysis}catch{}return null}
@@ -343,21 +346,23 @@ async function runAiAnalysis(){
   const drawings=(await Promise.all(ids.map(id=>drawingGet(id)))).filter(Boolean);if(!drawings.length)return toast('図面が見つかりません');
   const mode=$('#aiMode').value,context=$('#aiContext').value.trim(),cacheKey=aiCacheKey(drawings,mode,context),cached=getAiCache(cacheKey);
   $('#runAiBtn').disabled=true;$('#applyAiBtn').classList.add('hidden');
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),90000);
   try{
-    if(cached){renderAiResult(cached,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});setAiStatus('前回の解析結果を即時表示しました。図面や条件を変えた場合は再解析してください。');return}
-    setAiStatus(`AIが${drawings.length}枚を高速前処理中…`);
-    const prepared=await Promise.all(drawings.map(async d=>{let aiBlob=d.blob;if((d.type||'').startsWith('image/')&&Number(d.size)>500*1024)aiBlob=await compressImageBlob(d.blob,1400,.66);return {d,aiBlob,bytes:Number(aiBlob.size||d.size||0)}}));
-    const totalBytes=prepared.reduce((s,x)=>s+x.bytes,0);if(totalBytes>2.65*1024*1024)throw new Error('選択した図面の合計サイズが大きすぎます。必要な断面・立面だけに絞ってください。');
-    setAiStatus(`AIが${drawings.length}枚の平面・立面・断面を照合中…`);
-    const files=await Promise.all(prepared.map(async({d,aiBlob})=>({filename:d.name,mimeType:d.type,dataBase64:await blobToBase64(aiBlob)})));
-    const [learningExamples]=await Promise.all([getAiLearningContext()]);
+    if(cached){renderAiResult(cached,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});setAiStatus('学習済みキャッシュから即時表示しました。条件を変えた場合は再解析してください。');return}
+    const maxSide=drawings.length>=5?1050:drawings.length>=3?1250:1450;
+    const quality=drawings.length>=5?.56:drawings.length>=3?.62:.68;
+    setAiStatus(`CORE AIが${drawings.length}枚を最適化中…`);
+    const prepared=await Promise.all(drawings.map(async d=>{let aiBlob=d.blob;if((d.type||'').startsWith('image/')&&Number(d.size)>350*1024)aiBlob=await compressImageBlob(d.blob,maxSide,quality);return {d,aiBlob,bytes:Number(aiBlob.size||d.size||0)}}));
+    const totalBytes=prepared.reduce((s,x)=>s+x.bytes,0);if(totalBytes>2.55*1024*1024)throw new Error('図面の合計サイズが大きすぎます。必要な立面・断面だけに絞ってください。');
+    setAiStatus(`CORE AIが平面・立面・断面を照合中…`);
+    const [files,learningExamples]=await Promise.all([Promise.all(prepared.map(async({d,aiBlob})=>({filename:d.name,mimeType:d.type,dataBase64:await blobToBase64(aiBlob)}))),getAiLearningContext()]);
     const materialNames=MATERIALS.map(m=>m.name);
-    const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files,mode,context,materialNames,learningExamples})});
+    const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files,mode,context,materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category}))})});
     const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`AI解析エラー (${r.status})`);
     setAiCache(cacheKey,data.analysis);renderAiResult(data.analysis,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});
-    setAiStatus(`解析完了。会社の過去${learningExamples.length}件の確定例も参考にしました。候補を確認してください。`);
-  }catch(e){const msg=e?.message||'AI解析に失敗しました';const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。必要な断面・立面だけを選んで再試行してください。':msg;setAiStatus(friendly,'error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
-  finally{$('#runAiBtn').disabled=false}
+    setAiStatus(`解析完了。会社の確定例${learningExamples.length}件と資材呼称を参照しました。`);
+  }catch(e){const msg=e?.name==='AbortError'?'AI解析が90秒を超えたため停止しました。図面を絞って再試行してください。':(e?.message||'AI解析に失敗しました');const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。必要な断面・立面だけを選んで再試行してください。':msg;setAiStatus(friendly,'error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
+  finally{clearTimeout(timeout);$('#runAiBtn').disabled=false}
 }
 function renderAiResult(a,d){
   const rows=(a.materials||[]).filter(x=>Number(x.quantity)>0).map(x=>{const matched=matchMaterialByAiName(x.material_name);return {...x,matched}});
@@ -620,12 +625,12 @@ function applyRoleUi(){document.querySelectorAll('[data-go]').forEach(el=>{const
 
 async function saveAiLearningExample(source='drawing'){
   try{
-    const org=getCompanySession()?.orgId; if(!org||!cloudReady) return;
     const finalItems=Object.entries(state.cart||{}).map(([id,qty])=>{const m=MATERIALS.find(x=>String(x.id)===String(id));return m&&Number(qty)>0?{material_name:m.name,quantity:Number(qty),unit:m.unit}:null}).filter(Boolean);
-    if(!finalItems.length) return;
-    await supabaseClient.from('ai_learning_examples').insert({organization_id:org,source_type:source,context:($('#aiContext')?.value||$('#photoAiContext')?.value||'').trim(),corrected_materials:finalItems});
-    lsSet('vertx_core_ai_learning_version',String(Date.now()));
-    updateLearningCount();
+    if(!finalItems.length)return;
+    const example={source_type:source,context:($('#aiContext')?.value||$('#photoAiContext')?.value||'').trim(),corrected_materials:finalItems,created_at:new Date().toISOString()};
+    try{const key=tenantKey('vertx_core_ai_learning_local');const prev=JSON.parse(nativeGet(key)||'[]');nativeSet(key,JSON.stringify([example,...prev].slice(0,30)))}catch{}
+    const org=getCompanySession()?.orgId;if(org&&cloudReady&&supabaseClient){const {error}=await supabaseClient.from('ai_learning_examples').insert({organization_id:org,source_type:example.source_type,context:example.context,corrected_materials:example.corrected_materials});if(error)console.warn('cloud learning save failed',error)}
+    lsSet('vertx_core_ai_learning_version',String(Date.now()));updateLearningCount();
   }catch(e){console.warn('learning save failed',e)}
 }
 async function updateLearningCount(){
@@ -820,6 +825,15 @@ async function copyCompanyInvite(){const s=getCompanySession();if(!s?.inviteToke
 async function signOut(){if(supabaseClient)await supabaseClient.auth.signOut();nativeRemove(VERTX_SESSION_KEY);location.reload()}
 function prefillCompanyFromUrl(){const code=normalizeCompanyCode(new URL(location.href).searchParams.get('company')||'');if(code&&$('#tenantCompanyCode'))$('#tenantCompanyCode').value=code}
 let appStarted=false;
+function applyViewportGuards(){
+  const standalone=window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true;
+  document.body.classList.toggle('browser-mode',!standalone);
+  const vv=window.visualViewport;
+  const update=()=>{const obscured=vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;document.documentElement.style.setProperty('--browser-obscured-bottom',`${Math.min(96,Math.max(0,obscured))}px`)};
+  update();vv?.addEventListener('resize',update);vv?.addEventListener('scroll',update);
+}
+applyViewportGuards();
+
 function startApp(){if(appStarted)return;appStarted=true;const d=new Date();d.setDate(d.getDate()+1);$('#deliveryDate').value=d.toISOString().slice(0,10);if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
 async function cloudBoot(){
   prefillSavedIdentity();
