@@ -1,4 +1,5 @@
 const MAX_BYTES = 2.9 * 1024 * 1024;
+const AI_TIMEOUT_MS = 115000;
 
 function send(res, status, body) {
   res.statusCode = status;
@@ -36,7 +37,7 @@ module.exports = async function handler(req, res) {
 候補数量の根拠が弱い場合は confidence を0.55未満にし、reasonに不足している図面や寸法を書いてください。`;
 
     const content = [
-      { type: 'input_text', text: `解析モード: ${mode}\n現場メモ: ${context || 'なし'}\n利用中の資材マスタ候補: ${catalog || '未指定'}\n会社固有の呼称辞書: ${vocabulary || '未指定'}\nこの会社の過去の確定例（似る場合だけ参考にし、図面より優先しない）:\n${learned || 'なし'}\n添付された複数の平面図・立面図・断面図・詳細図を相互に照合し、同じ現場の一式として解析してください。重複カウントを避け、図面間で矛盾がある場合はwarningsに書いてください。足場タイプ・読み取れた寸法・資材候補と数量・根拠・注意点を抽出してください。` }
+      { type: 'input_text', text: `解析モード: ${mode}\n現場メモ: ${context || 'なし'}\n利用中の資材マスタ候補: ${catalog || '未指定'}\n会社固有の呼称辞書: ${vocabulary || '未指定'}\nこの会社の過去の確定例（似る場合だけ参考にし、図面より優先しない）:\n${learned || 'なし'}\n添付された複数の平面図・立面図・断面図・詳細図を相互に照合し、同じ現場の一式として解析してください。同一資材は重複行を作らず1行に統合し、重複カウントを避けてください。図面間で矛盾がある場合はwarningsに書いてください。数量根拠は立面・平面・断面のどこから読んだかreasonに短く示し、足場タイプ・読み取れた寸法・資材候補と数量・根拠・注意点を抽出してください。` }
     ];
     for (const f of files) {
       const filename=String(f.filename||'drawing');
@@ -87,14 +88,20 @@ module.exports = async function handler(req, res) {
       }
     };
 
-    const r = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), AI_TIMEOUT_MS);
+    let r;
+    try {
+      r = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+    } finally { clearTimeout(timer); }
     const data = await r.json();
     if (!r.ok) return send(res, r.status, { error: data?.error?.message || 'OpenAI APIでエラーが発生しました' });
 
@@ -105,6 +112,7 @@ module.exports = async function handler(req, res) {
     catch { return send(res, 502, { error: 'AI解析結果の形式を読み取れませんでした', raw: text.slice(0, 500) }); }
     return send(res, 200, { analysis });
   } catch (e) {
+    if(e?.name==='AbortError')return send(res,504,{error:'AI解析が時間内に完了しませんでした。図面を重要なものに絞って再試行してください。'});
     return send(res, 500, { error: e?.message || 'サーバーエラー' });
   }
 };

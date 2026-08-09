@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v7.15 OPS INTELLIGENCE</title>
-  <link rel="stylesheet" href="style.css?v=7.15.0">
+  <title>VERTX CORE v7.16 OWNER TEST LAB</title>
+  <link rel="stylesheet" href="style.css?v=7.16.0">
 </head>
 <body>
+  <div id="devTestBanner" class="dev-test-banner hidden"><div><b>TEST MODE</b><span id="devTestBannerRole">職長</span></div><button onclick="setDevTestRole('')">終了</button></div>
   <div id="cloudAuthGate" class="company-gate">
     <div class="company-gate-card">
       <p class="eyebrow">VERTX CORE CLOUD</p>
@@ -40,7 +41,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.15 OPS INTELLIGENCE</span></h1>
+        <h1>CORE <span>v7.16 OWNER TEST LAB</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -259,7 +260,7 @@
       </section>
       <section id="photoAi" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">PHOTO AI</p><h2>現場写真AI</h2></div></div>
-        <div class="card form-card"><label class="primary-btn upload-btn">＋ 現場写真を選択<input id="photoAiInput" type="file" accept="image/*" multiple hidden></label><div id="photoAiFiles" class="muted">写真未選択</div><label>確認したいこと<textarea id="photoAiContext" rows="3" placeholder="例：不足しそうな資材、写っている足場材を確認"></textarea></label><button id="runPhotoAiBtn" class="primary-btn full">✦ 写真をAI解析</button><div id="photoAiStatus" class="ai-status hidden"></div></div><div id="photoAiResult" class="card assist-result empty">写真を選択してください</div><button id="applyPhotoAiBtn" class="primary-btn full hidden">候補を注文へ入れる</button>
+        <div class="card form-card"><label class="primary-btn upload-btn">＋ 現場写真を選択<input id="photoAiInput" type="file" accept="image/*" multiple hidden></label><div id="photoAiFiles" class="muted">写真未選択</div><label>確認したいこと<textarea id="photoAiContext" rows="3" placeholder="例：不足しそうな資材、写っている足場材を確認"></textarea></label><button id="runPhotoAiBtn" class="primary-btn full">✦ 写真をAI解析</button><div id="photoAiStatus" class="ai-status hidden"></div></div><div id="photoAiResult" class="card assist-result empty">写真を選択してください</div><div class="action-grid"><button id="applyPhotoAiBtn" class="primary-btn full hidden">候補を注文へ入れる</button><button id="applyPhotoReturnBtn" class="secondary-btn full hidden">候補を返却重量へ入れる</button></div>
       </section>
       <section id="siteDashboard" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE DASHBOARD</p><h2>現場ダッシュボード</h2></div></div><div class="card form-card"><label>現場<select id="dashSite"></select></label></div><div id="siteDashboardBody"></div>
@@ -376,6 +377,13 @@
         <div id="auditLogList" class="history-list"></div>
       </section>
 
+      <section id="devTest" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="more">‹</button><div><p class="eyebrow">OWNER TEST LAB</p><h2>開発者テスト</h2></div></div>
+        <div class="dev-test-hero"><span>SAFE ROLE PREVIEW</span><h3>1台のiPhoneで、全権限を確認。</h3><p>DB上の社長権限は変えず、画面と操作権限だけを管理者・職長・閲覧として疑似表示します。</p></div>
+        <div id="devTestPanel"></div>
+        <div class="manual-note"><b>テストモードについて</b><p>本当のメンバー権限は変更されません。ただしテスト中に作成した注文など、通常の業務データは保存されます。テスト後は上部のTEST MODEバーから社長モードへ戻してください。</p></div>
+      </section>
+
       <section id="manual" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MANUAL</p><h2>使い方マニュアル</h2></div></div>
         <div class="manual-hero manual-light"><span>VERTX CORE GUIDE</span><h3>これを見れば全部わかる。</h3><p>最初の登録から、注文・AI・返却・権限・サブスクまで機能ごとにまとめています。</p></div>
@@ -385,21 +393,22 @@
         <div class="manual-steps">
           <details id="m01" class="manual-step" open><summary><span>01</span><b>会社登録・ログイン</b></summary><div><p>最初に会社名と担当者名を登録します。一度登録した情報は端末に保存され、次回から同じ会社で開けます。会社を変える時だけ「その他 → 会社設定 → 会社を切り替える」を使います。</p></div></details>
           <details id="m02" class="manual-step"><summary><span>02</span><b>現場を登録・選択</b></summary><div><p>下メニューの「SITES」から現場名を追加します。現場を選ぶと、その現場を指定した状態で注文へ進めます。最後に選んだ現場は端末に保持されます。</p></div></details>
-          <details id="m03" class="manual-step"><summary><span>03</span><b>資材注文</b></summary><div><p>「ORDER」でカテゴリーまたは検索から資材を探し、− / ＋で数量を入力します。画面下に合計点数・重量・車両目安が出ます。「注文確認へ」で現場・希望日・メモを確認して保存します。</p></div></details>
+          <details id="m03" class="manual-step"><summary><span>03</span><b>資材注文</b></summary><div><p>「ORDER」でカテゴリーまたは検索から資材を探し、− / ＋で数量を入力します。「4板」「羽子板」「ラッセルブラ」「かんざし」など現場の呼び方でも検索できます。最近使った資材や、その現場で過去によく使った資材も上に出ます。画面下に合計点数・重量・車両目安が出ます。数量・現場・希望日・メモは途中でも自動保存されます。</p></div></details>
           <details id="m04" class="manual-step"><summary><span>04</span><b>資材名・単重を会社専用に変更</b></summary><div><p>資材カード右上の「••• 編集」を押します。表示名、単重、カテゴリー、表示/非表示をその会社だけ変更できます。別会社の資材マスタには影響しません。</p></div></details>
           <details id="m05" class="manual-step"><summary><span>05</span><b>お気に入り・最近使った資材・現場の定番</b></summary><div><p>☆を押すとお気に入りに登録できます。注文で使った資材は「最近使った資材」に自動表示されます。同じ現場で繰り返し使った資材は「この現場の定番」として数量目安つきで表示され、まとめて追加できます。「よく使うセット」では任意の資材構成を保存してワンタップ入力できます。</p></div></details>
           <details id="m06" class="manual-step"><summary><span>06</span><b>AI図面解析</b></summary><div><p>AI画面で平面・立面・断面・詳細図などを複数選び、解析します。AIが資材候補と数量を提示します。結果は候補なので必ず人が確認し、必要なら数量を修正してから注文へ反映してください。</p></div></details>
           <details id="m07" class="manual-step"><summary><span>07</span><b>AI学習の使い方</b></summary><div><p>AI候補を人が修正して注文確定した内容を、その会社の過去例として次回解析の参考にします。会社ごとに分離され、他社の修正履歴は混ざりません。AIが勝手に確定発注することはありません。</p></div></details>
-          <details id="m08" class="manual-step"><summary><span>08</span><b>写真AI・音声オーダー・図面比較</b></summary><div><p>写真AIは現場写真から資材候補を抽出。音声オーダーは「枠610を30枚、ブレス1829を20本」のように話して候補へ変換します。AI図面比較では新旧図面の変更候補を確認できます。</p></div></details>
+          <details id="m08" class="manual-step"><summary><span>08</span><b>写真AI・音声オーダー・図面比較</b></summary><div><p>写真AIは現場写真から資材候補を抽出し、注文または返却重量計算へ送れます。会社の資材名・別名と過去の確定例も参照します。音声オーダーは「枠610を30枚、ブレス1829を20本」「4板を20枚」のように話して候補へ変換します。AI図面比較では新旧図面の変更候補を確認できます。</p></div></details>
           <details id="m09" class="manual-step"><summary><span>09</span><b>現場在庫・不足材</b></summary><div><p>注文ステータスを「納品済」にすると現場在庫へ自動加算されます。在庫画面では数量と総重量を確認できます。不足材から不足分だけ追加注文へ進めます。</p></div></details>
           <details id="m10" class="manual-step"><summary><span>10</span><b>返却管理</b></summary><div><p>「返却管理」で現場・資材・数量・返却日を入力すると、その分だけ現場在庫から減ります。入力ミスは返却履歴の「記録を取り消す」で在庫を戻せます。</p></div></details>
-          <details id="m11" class="manual-step"><summary><span>11</span><b>返却重量計算</b></summary><div><p>「返却重量計算」で、返す資材を1種類ずつ選んで数量を追加します。総重量と3t・4tなどの積載目安、残り積載量を表示します。現場と返却日を選んで「この内容で返却車を手配」を押すと、返却依頼を保存して配車予定にも表示します。共有画面が開く端末では、そのままLINE等で返却依頼を送れます。実車の最大積載量が3,000kg未満なら、車検証の数値を「実車の最大積載量」に入力してください。</p></div></details>
+          <details id="m11" class="manual-step"><summary><span>11</span><b>返却重量計算</b></summary><div><p>「返却重量計算」で、返す資材を1種類ずつ選んで数量を追加します。総重量と3t・4tなどの積載目安、残り積載量に加えて、選択車両で重量上何台・何便に分ける目安かも表示します。現場と返却日を選んで「この内容で返却車を手配」を押すと、返却依頼を保存して配車予定にも表示します。共有画面が開く端末では、そのままLINE等で返却依頼を送れます。実車の最大積載量が3,000kg未満なら、車検証の数値を「実車の最大積載量」に入力してください。</p></div></details>
           <details id="m12" class="manual-step"><summary><span>12</span><b>積載分割・配車・発注先・PDF/共有</b></summary><div><p>返却重量が1台に収まらない場合は、重量ベースで必要台数の目安を自動表示します。配車予定では搬入と返却を同じタイムラインで確認できます。発注先管理では資材屋やリース会社と送信用テンプレを保存できます。注文履歴からPDF・LINE共有・再注文もできます。</p></div></details>
-          <details id="m13" class="manual-step"><summary><span>13</span><b>現場原価・分析・QR</b></summary><div><p>現場原価で売上、人件費、運搬費、資材・リース、外注などを入力すると粗利・粗利率を計算します。分析では注文量や重量を集計。現場QRは対象現場を選んだ状態でCOREを開くQRを作れます。</p></div></details>
+          <details id="m13" class="manual-step"><summary><span>13</span><b>現場原価・分析・QR</b></summary><div><p>現場原価で売上、人件費、運搬費、資材・リース、外注などを入力すると粗利・粗利率を計算します。社長・管理者のHOMEには承認待ち、今日の搬入・返却、登録現場数をまとめた管理サマリーも表示します。分析では注文量や重量を集計。現場QRは対象現場を選んだ状態でCOREを開くQRを作れます。</p></div></details>
           <details id="m14" class="manual-step"><summary><span>14</span><b>社員招待・権限</b></summary><div><p>「メンバー・権限」から、管理者用・社員/職長用・閲覧用の招待URLをコピーして本人へ送ります。社員本人は自分のアカウントでURLを開いて参加します。社長アカウントで社員URLを開いても社長権限は自動で下がりません。</p></div></details>
           <details id="m15" class="manual-step"><summary><span>15</span><b>注文承認</b></summary><div><p>職長が作った注文は「承認待ち」。社長・管理者が注文履歴から承認して発注できます。閲覧権限は編集・発注できません。</p></div></details>
           <details id="m16" class="manual-step"><summary><span>16</span><b>プラン・サブスク</b></summary><div><p>Freeは基本注文と重量計算。Standardはクラウド・在庫・複数ユーザー・配車など。ProはAI機能を含む上位プランです。Stripe本番設定完了後は、社長がプラン画面から申込・契約管理を行えます。</p></div></details>
-          <details id="m17" class="manual-step"><summary><span>17</span><b>操作履歴・エラーが出た時</b></summary><div><p>社長・管理者は「その他 → 操作履歴」で主要な変更操作を確認できます。エラー時はまず画面を再読み込みし、バージョン表示を確認します。AIだけ失敗する場合は図面枚数を減らして再試行。DBや招待でエラーが出た場合は、表示されたエラー文が読めるスクリーンショットを残してください。</p></div></details>
+          <details id="m17" class="manual-step"><summary><span>17</span><b>操作履歴・エラーが出た時</b></summary><div><p>社長・管理者は「その他 → 操作履歴」で、注文、返却、返却車手配、資材設定、原価、AI解析など主要操作を確認できます。注文途中や返却車の条件は自動保存されます。エラー時はまず画面を再読み込みし、バージョン表示を確認します。AIだけ失敗する場合は図面枚数を減らして再試行。DBや招待でエラーが出た場合は、表示されたエラー文が読めるスクリーンショットを残してください。</p></div></details>
+          <details id="m18" class="manual-step"><summary><span>18</span><b>社長用・開発者テスト</b></summary><div><p>社長は「MORE → 開発者テスト」から、管理者・職長・閲覧として画面を疑似表示できます。DB上のOwner権限そのものは変更しません。テスト中は上部にTEST MODEバーが表示され、いつでも「終了」で通常の社長表示へ戻せます。同じ画面からシステム診断も実行できます。</p></div></details>
         </div>
         <div class="manual-note"><b>安全に使うために</b><p>重量・トラック判定やAI数量は作業判断の補助です。車両は実車の車検証、現場条件、施工計画、安全基準を優先してください。</p></div>
       </section>
@@ -417,7 +426,7 @@
         <div class="control-stack">
           <div class="control-section"><span>TEAM</span><button data-go="members"><b>メンバー・権限</b><small>権限別の招待URL・承認権限</small><em>›</em></button><button data-go="companySettings"><b>会社設定</b><small>会社コード・招待・切替</small><em>›</em></button></div>
           <div class="control-section"><span>OPERATIONS</span><button data-go="returns"><b>返却管理</b><small>返却履歴・現場在庫の自動減算</small><em>›</em></button><button data-go="returnLoad"><b>返却重量計算</b><small>返却材の総重量・積載目安</small><em>›</em></button><button data-go="siteCosts"><b>現場原価</b><small>売上・原価・粗利率</small><em>›</em></button><button data-go="siteQr"><b>現場QR</b><small>現場ページへ一発アクセス</small><em>›</em></button><button data-go="suppliers"><b>発注先管理</b><small>資材屋・リース会社・送信テンプレ</small><em>›</em></button><button data-go="materialsMaster"><b>資材マスタ</b><small>追加・単重・詳細設定</small><em>›</em></button><button data-go="sets"><b>よく使うセット</b><small>定番注文をワンタップ化</small><em>›</em></button><button data-go="dispatch"><b>配車予定</b><small>搬入・返却を同じタイムラインで確認</small><em>›</em></button><button data-go="auditLog"><b>操作履歴</b><small>誰がいつ何を変更したか確認</small><em>›</em></button></div>
-          <div class="control-section"><span>CORE</span><button data-go="analytics"><b>利用分析</b><small>注文量・重量・利用状況</small><em>›</em></button><button data-go="plans"><b>プラン</b><small>Free / Standard / Pro</small><em>›</em></button><button data-go="manual"><b>使い方マニュアル</b><small>初期設定から注文・AIまで</small><em>›</em></button></div>
+          <div class="control-section"><span>CORE</span><button data-go="analytics"><b>利用分析</b><small>注文量・重量・利用状況</small><em>›</em></button><button data-go="plans"><b>プラン</b><small>Free / Standard / Pro</small><em>›</em></button><button data-go="devTest"><b>🧪 開発者テスト</b><small>iPhone1台で社長・管理者・職長・閲覧を確認</small><em>›</em></button><button data-go="manual"><b>使い方マニュアル</b><small>初期設定から注文・AIまで</small><em>›</em></button></div>
         </div>
       </section>
     <nav class="bottom-nav" aria-label="メインナビゲーション">
@@ -446,6 +455,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.15.0"></script>
+  <script src="app.js?v=7.16.0"></script>
 </body>
 </html>
