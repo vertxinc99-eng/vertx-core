@@ -1,4 +1,4 @@
-// VERTX CORE v5.7 FIELD OPS + BILLING
+// VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
 let cloudReady=false;
@@ -462,7 +462,7 @@ function renderSiteStock(){
   $$('[data-stock-order]').forEach(b=>b.onclick=()=>{const r=getStock()[Number(b.dataset.stockOrder)];if(!r)return;state.selectedSite=r.site;state.cart[r.materialId]=(state.cart[r.materialId]||0)+1;renderMaterials();go('order');toast('注文に追加しました')});
 }
 function saveStockEntry(){const site=$('#stockSite').value,id=$('#stockMaterial').value,qty=Math.max(0,Number($('#stockQty').value)||0),memo=$('#stockMemo').value.trim();const m=MATERIALS.find(x=>x.id===id);if(!site||!m)return;const a=getStock();const i=a.findIndex(x=>x.site===site&&x.materialId===id);const row={site,materialId:id,materialName:m.name,qty,memo,updatedAt:new Date().toISOString()};if(i>=0)a[i]=row;else a.unshift(row);saveStockRows(a);renderSiteStock();toast('現場資材を保存しました')}
-// v5.7 FIELD OPS -------------------------------------------------------------
+// v5.8 NEXT UI -------------------------------------------------------------
 function todayIso(){return new Date().toISOString().slice(0,10)}
 function getReturns(){try{return JSON.parse(lsGet('vertx_core_returns')||'[]')}catch{return []}}
 function saveReturns(v){lsSet('vertx_core_returns',JSON.stringify(v))}
@@ -726,15 +726,50 @@ async function chooseOrganization(){
   }
   if(joined&&memberships.length)toast('招待された会社に参加しました');
 }
+function makeAutoCompanyCode(){
+  const tail=Date.now().toString(36).slice(-6).toUpperCase();
+  return `VX${tail}`;
+}
 async function companyLogin(){
-  const company=$('#tenantCompanyName').value.trim();let code=normalizeCompanyCode($('#tenantCompanyCode').value);const user=$('#tenantUserName').value.trim();
-  if(!company)return toast('会社名を入力してください');if(!code)code=normalizeCompanyCode(company.replace(/株式会社|有限会社|合同会社/g,''));if(!code)return toast('会社コードを英数字で入力してください');
-  const st=$('#companyGateStatus');if(st)st.textContent='会社を作成中…';
-  const {data,error}=await supabaseClient.rpc('create_organization',{p_name:company,p_code:code});
-  if(error){if(st)st.textContent='作成できません：'+error.message;return}
-  const memberships=await getMemberships(),hit=memberships.find(m=>m.organizations.id===data||m.organizations.code===code);
-  if(!hit){if(st)st.textContent='会社は作成されました。再読み込みしてください。';return}
-  const sess=sessionFromMembership(hit);sess.user=user||cloudUser?.email||'';nativeSet(VERTX_SESSION_KEY,JSON.stringify(sess));await hydrateCloudStore();cloudReady=true;reloadTenantState();location.reload();
+  const company=$('#tenantCompanyName').value.trim();
+  const rawCode=$('#tenantCompanyCode').value.trim();
+  let code=normalizeCompanyCode(rawCode);
+  const user=$('#tenantUserName').value.trim();
+  const st=$('#companyGateStatus');
+  if(!company){if(st)st.textContent='会社名を入力してください。';return toast('会社名を入力してください')}
+  // 会社コードは任意。日本語しか入力されていない場合も止めず、自動発行する。
+  if(!code)code=makeAutoCompanyCode();
+  if(st){st.classList.remove('error','success');st.textContent=`会社を作成中… 会社コード：${code}`}
+  if($('#tenantLoginBtn')){$('#tenantLoginBtn').disabled=true;$('#tenantLoginBtn').textContent='作成しています…'}
+  try{
+    let result=await supabaseClient.rpc('create_organization',{p_name:company,p_code:code});
+    // コード重複だけは自動で別コードを発行して再試行。
+    if(result.error && /duplicate|unique|already exists/i.test(result.error.message||'')){
+      code=makeAutoCompanyCode();
+      result=await supabaseClient.rpc('create_organization',{p_name:company,p_code:code});
+    }
+    const {data,error}=result;
+    if(error)throw error;
+    let memberships=await getMemberships();
+    let hit=memberships.find(m=>m.organizations.id===data||m.organizations.code===code);
+    if(!hit){
+      await new Promise(r=>setTimeout(r,500));
+      memberships=await getMemberships();
+      hit=memberships.find(m=>m.organizations.id===data||m.organizations.code===code);
+    }
+    if(!hit)throw new Error('会社作成は完了しましたが、会社情報の読込に失敗しました。画面を更新してください。');
+    const sess=sessionFromMembership(hit);sess.user=user||cloudUser?.email||'';nativeSet(VERTX_SESSION_KEY,JSON.stringify(sess));
+    await hydrateCloudStore();cloudReady=true;reloadTenantState();
+    if(st){st.classList.add('success');st.textContent='会社を作成しました。VERTX COREを開きます…'}
+    renderCompanyIdentity();startApp();
+  }catch(error){
+    console.error('company create',error);
+    const msg=error?.message||'不明なエラー';
+    if(st){st.classList.add('error');st.textContent='作成できません：'+msg}
+    toast('会社を作成できませんでした');
+  }finally{
+    if($('#tenantLoginBtn')){$('#tenantLoginBtn').disabled=false;$('#tenantLoginBtn').textContent='VERTX COREを開始'}
+  }
 }
 async function switchCompany(){nativeRemove(VERTX_SESSION_KEY);location.reload()}
 function companyInviteUrl(){const s=getCompanySession();const u=new URL(location.origin+location.pathname);if(s?.inviteToken)u.searchParams.set('invite',s.inviteToken);return u.toString()}

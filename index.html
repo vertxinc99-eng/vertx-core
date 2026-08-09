@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v5.7 FIELD OPS</title>
+  <title>VERTX CORE v5.8 NEXT UI</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,23 +23,24 @@
     </div>
   </div>
   <div id="companyGate" class="company-gate hidden">
-    <div class="company-gate-card">
-      <p class="eyebrow">VERTX CORE</p>
-      <h2>会社を作成 / 参加</h2>
-      <p class="muted">会社を作成するとクラウドでデータを共有できます。招待URLから開いた場合は、その会社へ参加できます。</p>
-      <label>会社名<input id="tenantCompanyName" type="text" placeholder="例：株式会社〇〇架設"></label>
-      <label>会社コード<input id="tenantCompanyCode" type="text" placeholder="例：VERTX / YKAS"></label>
-      <label>担当者名<input id="tenantUserName" type="text" placeholder="例：山田太郎"></label>
-      <button id="tenantLoginBtn" class="primary-btn full">この会社を作成</button>
+    <div class="company-gate-card setup-card">
+      <div class="setup-brand"><span class="setup-mark">V</span><div><p class="eyebrow">VERTX CORE</p><b>WORKSPACE SETUP</b></div></div>
+      <div class="setup-copy"><span class="setup-step">01 / 01</span><h2>会社ワークスペースを作成</h2><p>現場・注文・在庫・メンバーを、会社ごとにひとつのCOREへ。</p></div>
+      <div class="setup-fields">
+        <label><span>会社名 <em>必須</em></span><input id="tenantCompanyName" type="text" placeholder="例：VERTX"></label>
+        <label><span>担当者名</span><input id="tenantUserName" type="text" placeholder="例：今村 修太"></label>
+        <label><span>会社コード <small>任意・未入力なら自動発行</small></span><input id="tenantCompanyCode" type="text" placeholder="例：VERTX01"></label>
+      </div>
+      <button id="tenantLoginBtn" class="primary-btn full setup-start">VERTX COREを開始 <span>→</span></button>
       <button id="joinInviteBtn" class="secondary-btn full hidden">招待された会社に参加</button>
-      <small id="companyGateStatus">会社ごとにデータを完全分離して保存します。</small>
+      <div class="setup-security"><span>✓</span><small id="companyGateStatus">会社ごとにデータを分離して安全に保存します。</small></div>
     </div>
   </div>
   <div class="app-shell">
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v5.7 FIELD OPS</span></h1>
+        <h1>CORE <span>v5.8 NEXT UI</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>

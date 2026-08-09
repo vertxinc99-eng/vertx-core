@@ -1,4 +1,4 @@
-# VERTX CORE v5.7 FIELD OPS
+# VERTX CORE v5.8 NEXT UI
 
 追加機能:
 - 返却管理：返却記録と現場在庫の自動減算、取消時の在庫復元
