@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.18.0';
+const VERTX_BUILD='7.25.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -1075,7 +1075,8 @@ applyViewportGuards();
 const DAILY_REPORT_KEY='vertx_core_daily_reports_v717';
 const SITE_ALBUM_KEY='vertx_core_site_album_v717';
 const CLIENT_SHARE_KEY='vertx_core_client_share_v717';
-let handoverBg='',handoverActions=[],handoverTool='pen',handoverDrawing=false,handoverStart=null,handoverDraft=null;
+let handoverBg='',handoverImg=null,handoverActions=[],handoverTool='pen',handoverDrawing=false,handoverStart=null,handoverDraft=null;
+let handoverView={scale:1,panX:0,panY:0},handoverPointers=new Map(),handoverPinch=null;
 function splitWorkerNames(v){return String(v||'').split(/[、,\/\n]/).map(x=>x.trim()).filter(Boolean)}
 function getDailyReports(){try{return JSON.parse(lsGet(DAILY_REPORT_KEY)||'[]')}catch{return []}}
 function saveDailyReports(v){lsSet(DAILY_REPORT_KEY,JSON.stringify(v.slice(0,60)))}
@@ -1089,17 +1090,52 @@ function dayDispatch(site,date){const orders=getHistory().filter(x=>x.site===sit
 function renderDailyTruck(){const root=$('#dailyTruckTimeline');if(!root)return;const rows=dayDispatch($('#dailySite')?.value||'', $('#dailyDate')?.value||'');root.innerHTML=rows.length?rows.map(x=>`<div class="daily-truck-row"><span>${escapeHtml(x.time||'時間未設定')}</span><b>${escapeHtml(x.kind)} · ${escapeHtml(x.truck||'車両未設定')}</b><small>${escapeHtml(x.status)} · ${formatWeight(x.weight||0)}</small></div>`).join(''):'<div class="empty compact-empty">この日の搬入・返却予定はありません</div>'}
 function updateDailyCountFromNames(){const n=splitWorkerNames($('#dailyWorkerNames')?.value).length;if(n&&$('#dailyWorkerCount'))$('#dailyWorkerCount').value=n}
 async function compactImageData(file,maxSide=760,quality=.52){const b=await compressImageBlob(file,maxSide,quality);return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=()=>reject(r.error);r.readAsDataURL(b)})}
-function handoverPoint(e,c){const r=c.getBoundingClientRect(),p=e.touches?.[0]||e;return {x:(p.clientX-r.left)*c.width/r.width,y:(p.clientY-r.top)*c.height/r.height}}
+function handoverPoint(e,c){
+  const r=c.getBoundingClientRect(),p=e.touches?.[0]||e;
+  const sx=(p.clientX-r.left)*c.width/r.width,sy=(p.clientY-r.top)*c.height/r.height;
+  return {x:(sx-handoverView.panX)/handoverView.scale,y:(sy-handoverView.panY)/handoverView.scale};
+}
 function drawHandoverArrow(ctx,a,b){const ang=Math.atan2(b.y-a.y,b.x-a.x),head=20;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-head*Math.cos(ang-Math.PI/6),b.y-head*Math.sin(ang-Math.PI/6));ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-head*Math.cos(ang+Math.PI/6),b.y-head*Math.sin(ang+Math.PI/6));ctx.stroke()}
 function drawHandoverAction(ctx,x){ctx.save();ctx.strokeStyle='#ef4444';ctx.fillStyle='#ef4444';ctx.lineWidth=7;ctx.lineCap='round';ctx.lineJoin='round';if(x.type==='pen'){ctx.beginPath();(x.points||[]).forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke()}else if(x.type==='circle'){const cx=(x.a.x+x.b.x)/2,cy=(x.a.y+x.b.y)/2,rx=Math.abs(x.b.x-x.a.x)/2,ry=Math.abs(x.b.y-x.a.y)/2;ctx.beginPath();ctx.ellipse(cx,cy,Math.max(2,rx),Math.max(2,ry),0,0,Math.PI*2);ctx.stroke()}else if(x.type==='arrow'){drawHandoverArrow(ctx,x.a,x.b)}else if(x.type==='text'){ctx.font='bold 30px -apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif';ctx.lineWidth=5;ctx.strokeStyle='rgba(255,255,255,.96)';ctx.strokeText(x.text,x.x,x.y);ctx.fillText(x.text,x.x,x.y)}ctx.restore()}
-function renderHandoverCanvas(preview=null){const c=$('#handoverCanvas');if(!c)return;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#f8fafc';ctx.fillRect(0,0,c.width,c.height);const finish=()=>{handoverActions.forEach(x=>drawHandoverAction(ctx,x));if(preview)drawHandoverAction(ctx,preview)};if(handoverBg){const im=new Image();im.onload=()=>{const scale=Math.min(c.width/im.width,c.height/im.height),w=im.width*scale,h=im.height*scale,x=(c.width-w)/2,y=(c.height-h)/2;ctx.fillStyle='#111827';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(im,x,y,w,h);finish()};im.src=handoverBg}else finish()}
-function setupHandoverCanvas(){const c=$('#handoverCanvas');if(!c||c.dataset.bound==='1')return;c.dataset.bound='1';const start=e=>{e.preventDefault();const p=handoverPoint(e,c);if(handoverTool==='text'){const text=prompt('写真に入れる文字を入力してください');if(text?.trim()){handoverActions.push({type:'text',x:p.x,y:p.y,text:text.trim().slice(0,40)});renderHandoverCanvas()}return}handoverDrawing=true;handoverStart=p;handoverDraft=handoverTool==='pen'?{type:'pen',points:[p]}:{type:handoverTool,a:p,b:p}};const move=e=>{if(!handoverDrawing)return;e.preventDefault();const p=handoverPoint(e,c);if(handoverDraft.type==='pen')handoverDraft.points.push(p);else handoverDraft.b=p;renderHandoverCanvas(handoverDraft)};const end=e=>{if(!handoverDrawing)return;e?.preventDefault?.();handoverDrawing=false;if(handoverDraft){handoverActions.push(handoverDraft);handoverDraft=null;renderHandoverCanvas()}};c.addEventListener('pointerdown',start);c.addEventListener('pointermove',move);c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end)}
-async function loadHandoverPhoto(file){if(!file)return;try{handoverBg=await compactImageData(file,900,.62);handoverActions=[];$('#handoverMarkupEditor')?.classList.remove('hidden');setupHandoverCanvas();renderHandoverCanvas();toast('引継ぎ写真を読み込みました')}catch(e){toast('写真を読み込めませんでした: '+(e.message||e))}}
+function drawHandoverScene(ctx,c,preview=null,applyView=true){
+  ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#111827';ctx.fillRect(0,0,c.width,c.height);
+  ctx.save();if(applyView){ctx.translate(handoverView.panX,handoverView.panY);ctx.scale(handoverView.scale,handoverView.scale)}
+  if(handoverImg){const scale=Math.min(c.width/handoverImg.width,c.height/handoverImg.height),w=handoverImg.width*scale,h=handoverImg.height*scale,x=(c.width-w)/2,y=(c.height-h)/2;ctx.drawImage(handoverImg,x,y,w,h)}else{ctx.fillStyle='#f8fafc';ctx.fillRect(0,0,c.width,c.height)}
+  handoverActions.forEach(x=>drawHandoverAction(ctx,x));if(preview)drawHandoverAction(ctx,preview);ctx.restore();
+}
+function loadHandoverImageElement(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('写真を読み込めませんでした'));im.src=src})}
+function renderHandoverCanvas(preview=null){const c=$('#handoverCanvas');if(!c)return;drawHandoverScene(c.getContext('2d'),c,preview,true);updateHandoverZoomLabel()}
+function updateHandoverZoomLabel(){const el=$('#handoverZoomLabel');if(el)el.textContent=`${Math.round(handoverView.scale*100)}%`}
+function resetHandoverZoom(){handoverView={scale:1,panX:0,panY:0};handoverPinch=null;handoverPointers.clear();renderHandoverCanvas()}
+function clampHandoverView(c){
+  const s=handoverView.scale,maxX=c.width*(s-1),maxY=c.height*(s-1);
+  handoverView.panX=Math.min(0,Math.max(-maxX,handoverView.panX));
+  handoverView.panY=Math.min(0,Math.max(-maxY,handoverView.panY));
+}
+function setupHandoverCanvas(){
+  const c=$('#handoverCanvas');if(!c||c.dataset.bound==='1')return;c.dataset.bound='1';
+  c.addEventListener('pointerdown',e=>{
+    c.setPointerCapture?.(e.pointerId);handoverPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(handoverPointers.size===2){e.preventDefault();handoverDrawing=false;handoverDraft=null;const pts=[...handoverPointers.values()],dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;handoverPinch={dist:Math.hypot(dx,dy),scale:handoverView.scale,panX:handoverView.panX,panY:handoverView.panY,cx:(pts[0].x+pts[1].x)/2,cy:(pts[0].y+pts[1].y)/2};return}
+    if(handoverPointers.size>1)return;
+    e.preventDefault();const p=handoverPoint(e,c);
+    if(handoverTool==='text'){const text=prompt('写真に入れる文字を入力してください');if(text?.trim()){handoverActions.push({type:'text',x:p.x,y:p.y,text:text.trim().slice(0,40)});renderHandoverCanvas()}return}
+    handoverDrawing=true;handoverStart=p;handoverDraft=handoverTool==='pen'?{type:'pen',points:[p]}:{type:handoverTool,a:p,b:p};
+  });
+  c.addEventListener('pointermove',e=>{
+    if(handoverPointers.has(e.pointerId))handoverPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(handoverPointers.size>=2&&handoverPinch){e.preventDefault();const pts=[...handoverPointers.values()].slice(0,2),dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y,dist=Math.max(1,Math.hypot(dx,dy));const newScale=Math.max(1,Math.min(4,handoverPinch.scale*(dist/handoverPinch.dist)));const r=c.getBoundingClientRect(),oldCx=(handoverPinch.cx-r.left)*c.width/r.width,oldCy=(handoverPinch.cy-r.top)*c.height/r.height,newCx=((pts[0].x+pts[1].x)/2-r.left)*c.width/r.width,newCy=((pts[0].y+pts[1].y)/2-r.top)*c.height/r.height;const worldX=(oldCx-handoverPinch.panX)/handoverPinch.scale,worldY=(oldCy-handoverPinch.panY)/handoverPinch.scale;handoverView.scale=newScale;handoverView.panX=newCx-worldX*newScale;handoverView.panY=newCy-worldY*newScale;clampHandoverView(c);renderHandoverCanvas();return}
+    if(!handoverDrawing)return;e.preventDefault();const p=handoverPoint(e,c);if(handoverDraft.type==='pen')handoverDraft.points.push(p);else handoverDraft.b=p;renderHandoverCanvas(handoverDraft)
+  });
+  const end=e=>{handoverPointers.delete(e.pointerId);if(handoverPointers.size<2)handoverPinch=null;if(!handoverDrawing)return;e?.preventDefault?.();handoverDrawing=false;if(handoverDraft){handoverActions.push(handoverDraft);handoverDraft=null;renderHandoverCanvas()}};
+  c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
+}
+async function loadHandoverPhoto(file){if(!file)return;try{handoverBg=await compactImageData(file,1200,.68);handoverImg=await loadHandoverImageElement(handoverBg);handoverActions=[];resetHandoverZoom();$('#handoverMarkupEditor')?.classList.remove('hidden');setupHandoverCanvas();renderHandoverCanvas();toast('引継ぎ写真を読み込みました')}catch(e){toast('写真を読み込めませんでした: '+(e.message||e))}}
 function setHandoverTool(tool){handoverTool=tool;document.querySelectorAll('[data-handover-tool]').forEach(b=>b.classList.toggle('active',b.dataset.handoverTool===tool))}
 function undoHandoverMarkup(){if(handoverActions.length){handoverActions.pop();renderHandoverCanvas()}}
 function clearHandoverMarkup(){if(!handoverBg)return;handoverActions=[];renderHandoverCanvas();toast('書き込みだけ消しました')}
-function getHandoverMarkupImage(){const c=$('#handoverCanvas');return handoverBg&&c?c.toDataURL('image/jpeg',.62):''}
-function resetHandoverMarkup(){handoverBg='';handoverActions=[];handoverDraft=null;$('#handoverMarkupEditor')?.classList.add('hidden');if($('#handoverPhotoInput'))$('#handoverPhotoInput').value='';renderHandoverCanvas()}
+function getHandoverMarkupImage(){const c=$('#handoverCanvas');if(!handoverBg||!c)return'';const out=document.createElement('canvas');out.width=c.width;out.height=c.height;drawHandoverScene(out.getContext('2d'),out,null,false);return out.toDataURL('image/jpeg',.68)}
+function resetHandoverMarkup(){handoverBg='';handoverImg=null;handoverActions=[];handoverDraft=null;handoverView={scale:1,panX:0,panY:0};handoverPointers.clear();handoverPinch=null;$('#handoverMarkupEditor')?.classList.add('hidden');if($('#handoverPhotoInput'))$('#handoverPhotoInput').value='';renderHandoverCanvas()}
 function getKyRiskRows(){
   const rows=[];
   for(let i=0;i<3;i++){
@@ -1134,9 +1170,61 @@ function renderClientPreview(p){const root=$('#sharePreview');if(!root)return;if
 async function publishClientShare(){const site=$('#shareSite')?.value||'';if(!site)return toast('現場を選択してください');if(!cloudReady||!supabaseClient||!getCompanySession()?.orgId)return toast('元請け共有はクラウド接続時に利用できます');const all=getClientShareMeta(),old=all[site]||{},token=old.token||crypto.randomUUID(),notice=$('#shareNotice')?.value.trim()||'',payload=buildClientSnapshot(site,notice),row={token,organization_id:getCompanySession().orgId,site_name:site,payload,updated_at:new Date().toISOString()};const {error}=await supabaseClient.from('site_public_shares').upsert(row,{onConflict:'token'});if(error)return toast('共有ページ更新失敗: '+error.message);const url=`${location.origin}${location.pathname}?site_share=${encodeURIComponent(token)}`;all[site]={token,url,notice};saveClientShareMeta(all);renderClientShare();audit('元請け共有更新',site);toast('共有ページを更新しました')}
 async function copyClientShareUrl(url){try{await navigator.clipboard.writeText(url);toast('共有URLをコピーしました')}catch{prompt('このURLをコピーしてください',url)}}
 async function openPublicSiteShare(token){document.querySelector('#cloudAuthGate')?.classList.add('hidden');document.querySelector('#companyGate')?.classList.add('hidden');document.querySelector('.topbar')?.classList.add('hidden');document.querySelector('.bottom-nav')?.classList.add('hidden');document.querySelectorAll('section.screen').forEach(x=>x.classList.remove('active'));$('#publicSiteShare')?.classList.add('active');const root=$('#publicSiteShareContent');try{const {data,error}=await supabaseClient.rpc('get_public_site_share',{p_token:token});if(error)throw error;const p=Array.isArray(data)?data[0]?.payload:data?.payload||data;if(!p)throw new Error('共有ページが見つかりません');root.innerHTML=`<div class="public-share-brand"><b>VERTX CORE</b><span>現場共有</span></div><div class="public-site-head"><span>現場の今</span><h1>${escapeHtml(p.site||'現場')}</h1><small>最終更新 ${new Date(p.updatedAt||Date.now()).toLocaleString('ja-JP')}</small></div><section class="public-block"><h2>現場の現状</h2><p>${escapeHtml(p.status||'更新待ち')}</p>${p.notice?`<div class="public-notice">${escapeHtml(p.notice)}</div>`:''}</section><section class="public-block"><h2>現場写真</h2><div class="public-photo-grid">${(p.photos||[]).slice(0,5).map(x=>`<figure><img src="${x.dataUrl}"><figcaption><b>${escapeHtml(x.tag||'')}</b> ${escapeHtml(x.comment||'')}</figcaption></figure>`).join('')||'<p>共有写真はありません</p>'}</div></section><section class="public-block"><h2>搬入予定</h2>${(p.deliveries||[]).map(x=>`<div class="public-row"><b>${escapeHtml(x.date||'')} ${escapeHtml(x.time||'')}</b><span>${escapeHtml(x.truck||'')} · ${escapeHtml(x.status||'')}</span></div>`).join('')||'<p>予定なし</p>'}</section><section class="public-block"><h2>返却・搬出予定</h2>${(p.returns||[]).map(x=>`<div class="public-row"><b>${escapeHtml(x.date||'')} ${escapeHtml(x.time||'')}</b><span>${escapeHtml(x.truck||'')} · ${escapeHtml(x.status||'')}</span></div>`).join('')||'<p>予定なし</p>'}</section><section class="public-block"><h2>最近の注文</h2>${(p.orders||[]).slice(0,3).map(o=>`<div class="public-order"><b>${escapeHtml(o.date||'')} ${escapeHtml(o.status||'')}</b><p>${(o.items||[]).map(i=>`${escapeHtml(i.name)} ${Number(i.qty)||0}${escapeHtml(i.unit||'')}`).join(' / ')}</p></div>`).join('')||'<p>注文情報なし</p>'}</section><footer>VERTX CORE · 現場共有</footer>`}catch(e){root.innerHTML=`<div class="card empty">共有ページを読み込めませんでした。${escapeHtml(e.message||'')}</div>`}}
-function runCoreSelfCheck(){const issues=[];const ids=new Set(),names=new Set();for(const m of MATERIALS){if(ids.has(String(m.id)))issues.push('資材ID重複:'+m.id);ids.add(String(m.id));const n=normalizeMatName(m.name);if(names.has(n))issues.push('資材名重複:'+m.name);names.add(n)}['dailyReport','handoverCanvas','handoverPhotoInput','siteAlbum','clientShare','publicSiteShare','returnLoad','manual'].forEach(id=>{if(!document.getElementById(id))issues.push('画面不足:'+id)});if(issues.length)console.warn('CORE SELF CHECK',issues);else console.info('CORE SELF CHECK PASS v7.21');return issues}
+function runCoreSelfCheck(){const issues=[];const ids=new Set(),names=new Set();for(const m of MATERIALS){if(ids.has(String(m.id)))issues.push('資材ID重複:'+m.id);ids.add(String(m.id));const n=normalizeMatName(m.name);if(names.has(n))issues.push('資材名重複:'+m.name);names.add(n)}['dailyReport','handoverCanvas','handoverPhotoInput','siteAlbum','clientShare','publicSiteShare','returnLoad','manual'].forEach(id=>{if(!document.getElementById(id))issues.push('画面不足:'+id)});if(issues.length)console.warn('CORE SELF CHECK',issues);else console.info('CORE SELF CHECK PASS v7.25');return issues}
 
-function startApp(){if(appStarted)return;appStarted=true;const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
+
+
+const SCREEN_HELP={
+  sites:{title:'現場を作る・選ぶ',steps:[['現場を追加','現場名を入力して「＋ 現場を追加」。'],['使う現場を選ぶ','一覧から現場をタップ。以後の注文・返却・日報に使います。']],example:'例：〇〇ビル新築工事'},
+  order:{title:'資材を注文する',steps:[['資材を探す','カテゴリーか検索を使います。'],['数量を入れる','－ / ＋ で数量を調整。'],['注文確認へ','下の注文確認から内容を確認して発注します。']],example:'検索例：枠610 / 4板 / 羽子板 / ラッセルブラ'},
+  favorites:{title:'お気に入り',steps:[['☆を付ける','ORDERでよく使う資材の☆を押します。'],['ここで確認','お気に入りだけをまとめて探せます。']]},
+  confirm:{title:'注文確認',steps:[['現場・日付を確認','搬入日・時間・発注先も必要なら設定。'],['数量と重量を確認','間違いがないか最後に確認。'],['発注','職長は承認待ち、社長・管理者は発注へ進みます。']],note:'AIや重量計算は補助。最終確認は人が行ってください。'},
+  history:{title:'注文履歴',steps:[['過去注文を見る','現場・日付・注文内容を確認。'],['再利用する','同じ内容を再注文する時の参考にします。']]},
+  materialsMaster:{title:'資材マスタ',steps:[['資材を確認','登録済み資材・単重を確認。'],['必要なら追加','新しい資材を追加できます。']],note:'普段の呼び名変更はORDERの資材右上「••• 編集」が一番早いです。'},
+  drawings:{title:'図面アップロード',steps:[['図面を選ぶ','PDF/JPG/PNGを追加。'],['現場に保存','あとでAI解析・比較に使えます。']]},
+  assist:{title:'AI図面解析',steps:[['図面を選ぶ','解析したい図面を選択。'],['AI解析','候補が出るまで待ちます。'],['人が確認','数量を直して注文に反映します。']],note:'AIの数量は候補です。必ず人が確認してください。'},
+  siteStock:{title:'現場在庫',steps:[['現場を選ぶ','確認したい現場を選択。'],['残数を見る','納品・返却の記録から現場在庫を確認します。']]},
+  shortage:{title:'不足材',steps:[['不足資材を追加','足りない資材だけ選択。'],['注文へ進む','不足分をそのまま注文に回せます。']]},
+  sets:{title:'よく使うセット',steps:[['定番を保存','よく使う組み合わせをセット登録。'],['一発で呼び出す','次回からまとめて数量を入れられます。']]},
+  dispatch:{title:'配車予定',steps:[['予定を見る','搬入・返却を同じ一覧で確認。'],['時間を確認','日報にもその日の予定が自動表示されます。']]},
+  compare:{title:'AI図面比較',steps:[['図面を2つ以上選ぶ','変更前・変更後などを選択。'],['比較する','AIが違いと候補を整理します。']],note:'最終判断は図面原本で確認してください。'},
+  voiceOrder:{title:'音声オーダー',steps:[['録音開始','資材名と数量を話します。'],['候補を確認','文字起こし後、数量を確認。'],['注文へ反映','問題なければORDERへ入れます。']],example:'例：枠610を20、ブレス1829を30'},
+  photoAi:{title:'現場写真AI',steps:[['写真を選ぶ','現場写真を追加。'],['解析','AIが資材候補を出します。'],['確認して反映','候補を修正して注文や返却計算へ。']]},
+  siteDashboard:{title:'現場ダッシュボード',steps:[['現場を選ぶ','見たい現場を選択。'],['状況を見る','注文・在庫・予定をまとめて確認します。']]},
+  analytics:{title:'利用分析',steps:[['利用状況を見る','注文量や重量などを確認します。']]},
+  members:{title:'メンバー・権限',steps:[['権限を選ぶ','管理者 / 職長 / 閲覧。'],['招待URLをコピー','本人へLINE等で送ります。'],['必要なら権限変更','社長・管理者がメンバーを管理します。']]},
+  plans:{title:'プラン',steps:[['現在プランを確認','Free / Standard / Proを確認。'],['変更する','申込・契約管理へ進みます。']]},
+  companySettings:{title:'会社設定',steps:[['会社情報を見る','会社名や会社コードを確認。'],['会社を切替','複数会社を使う時に切り替えます。']]},
+  returns:{title:'返却管理',steps:[['現場を選ぶ','返却する現場を選択。'],['返却数を記録','返した数量を入れると在庫から減ります。']]},
+  returnLoad:{title:'返却重量計算',steps:[['資材と数量を追加','ORDERと同じ並びで選べます。'],['車両を選ぶ','3t/4t等または車検証の最大積載量を入力。'],['返却車を手配','重量確認後、その内容で配車依頼を作ります。']],note:'積載判断は必ず車検証の最大積載量を優先してください。'},
+  siteCosts:{title:'現場原価',steps:[['現場を選ぶ','対象現場を選択。'],['数字を入力','必要な原価情報を記録します。']]},
+  siteQr:{title:'現場QR',steps:[['現場を選ぶ','対象現場を選択。'],['QRを作る','読み取るとその現場を開けます。']]},
+  suppliers:{title:'発注先管理',steps:[['会社を登録','リース会社・資材屋を追加。'],['テンプレ保存','送信用の文面を登録します。']]},
+  dailyReport:{title:'職長日報・KY',steps:[['作業者と内容を入力','作業者名を入れると人数を自動カウント。'],['KYを入力','危険・原因・頻度・重大性・対策を入力。'],['引継ぎがあれば写真メモ','写真を2本指でズーム・移動し、丸・矢印・文字を書けます。'],['保存','搬入・搬出予定も自動で日報に表示されます。']],example:'作業者例：〇〇太郎 / △△次郎 / 応援1名'},
+  siteAlbum:{title:'現場アルバム',steps:[['現場を選ぶ','写真を保存する現場を選択。'],['写真を追加','施工前・施工中・完了・搬入・返却など。'],['共有ON/OFF','元請けに見せる写真だけ共有ONにします。']]},
+  clientShare:{title:'元請け向け共有',steps:[['現場を選ぶ','共有する現場を選択。'],['お知らせを入力','元請けに伝えたい内容だけ入力。'],['共有URLを発行','URLをLINE等で送ります。']],note:'KY・原価・社員向け情報は共有ページに出しません。'},
+  auditLog:{title:'操作履歴',steps:[['履歴を見る','誰がいつ何を変更したか確認できます。']]},
+  devTest:{title:'開発者テスト',steps:[['見たい権限を選ぶ','管理者 / 職長 / 閲覧へ疑似切替。'],['動きを確認','HOMEや使える機能が変わります。'],['通常へ戻す','TEST MODEバーからOwner表示へ戻します。']],note:'DB上の本当のOwner権限は変わりません。'},
+  manual:{title:'使い方マニュアル',steps:[['知りたい項目を開く','7つの基本項目だけ最初に表示。'],['その他も見る','下の「その他の機能も見る」で全機能を確認できます。']],note:'各ページの右上「💬」でも、その画面だけの使い方をすぐ確認できます。'},
+  more:{title:'その他メニュー',steps:[['目的の機能を選ぶ','返却・日報・共有・メンバー等はここにあります。'],['迷ったら💬','このヘルプか「使い方マニュアル」を開いてください。']]}
+};
+function ensureContextHelpButtons(){
+  document.querySelectorAll('section.screen').forEach(screen=>{
+    if(['home','publicSiteShare'].includes(screen.id))return;
+    const head=screen.querySelector('.screen-head');
+    if(!head||head.querySelector('.context-help-btn'))return;
+    const b=document.createElement('button');b.type='button';b.className='context-help-btn';b.dataset.helpScreen=screen.id;b.setAttribute('aria-label','この画面の使い方');b.textContent='💬';head.appendChild(b);
+  });
+  document.querySelectorAll('.context-help-btn').forEach(b=>b.onclick=()=>openContextHelp(b.dataset.helpScreen));
+}
+function openContextHelp(screenId){
+  const d=SCREEN_HELP[screenId]||{title:'この画面の使い方',steps:[['操作する','画面の案内に沿って入力してください。']]};
+  if($('#contextHelpTitle'))$('#contextHelpTitle').textContent=d.title;
+  if($('#contextHelpBody'))$('#contextHelpBody').innerHTML=(d.steps||[]).map((x,i)=>`<div class="help-step"><em>${i+1}</em><div><b>${escapeHtml(x[0])}</b><p>${escapeHtml(x[1]||'')}</p></div></div>`).join('')+(d.example?`<div class="help-example"><b>入力例：</b>${escapeHtml(d.example)}</div>`:'')+(d.note?`<div class="help-note">${escapeHtml(d.note)}</div>`:'');
+  $('#contextHelpModal')?.classList.remove('hidden');
+}
+function closeContextHelp(){ $('#contextHelpModal')?.classList.add('hidden') }
+function startApp(){if(appStarted)return;appStarted=true;ensureContextHelpButtons();const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
 async function cloudBoot(){
   prefillSavedIdentity();
   prefillCompanyFromUrl();
@@ -1164,6 +1252,7 @@ $('#resetBtn').onclick=()=>{if(confirm('注文履歴・現場・お気に入り�
   document.querySelectorAll('[data-handover-tool]').forEach(b=>b.onclick=()=>setHandoverTool(b.dataset.handoverTool));
   if($('#handoverUndoBtn'))$('#handoverUndoBtn').onclick=undoHandoverMarkup;
   if($('#handoverClearBtn'))$('#handoverClearBtn').onclick=clearHandoverMarkup;
+  if($('#handoverZoomResetBtn'))$('#handoverZoomResetBtn').onclick=resetHandoverZoom;
   setupHandoverCanvas();
   if($('#albumSite'))$('#albumSite').onchange=renderSiteAlbum;
   if($('#albumPhotoInput'))$('#albumPhotoInput').onchange=e=>addSiteAlbumPhotos(e.target.files);
@@ -1172,5 +1261,10 @@ $('#resetBtn').onclick=()=>{if(confirm('注文履歴・現場・お気に入り�
   if($('#publishShareBtn'))$('#publishShareBtn').onclick=publishClientShare;
   runCoreSelfCheck();
 })();
+
+
+if($('#closeContextHelp'))$('#closeContextHelp').onclick=closeContextHelp;
+if($('#contextHelpModal'))$('#contextHelpModal').onclick=e=>{if(e.target.id==='contextHelpModal')closeContextHelp()};
+if($('#openFullManual'))$('#openFullManual').onclick=()=>{closeContextHelp();go('manual')};
 
 cloudBoot();

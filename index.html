@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v7.21 CLIENT SHARE UX</title>
-  <link rel="stylesheet" href="style.css?v=7.21.0">
+  <title>VERTX CORE v7.25 SMART HELP</title>
+  <link rel="stylesheet" href="style.css?v=7.25.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate">
@@ -27,9 +27,9 @@
       <div class="setup-brand"><span class="setup-mark">V</span><div><p class="eyebrow">VERTX CORE</p><b>NOVA WORKSPACE</b></div><span class="setup-live">CLOUD</span></div>
       <div class="setup-copy"><span class="setup-step">NEW WORKSPACE</span><h2>現場を動かす、<br><em>新しいCORE。</em></h2><p>注文・在庫・配車・AI・原価まで。会社の現場情報をひとつに。</p></div>
       <div class="setup-fields">
-        <label><span>会社名 <em>必須</em></span><input id="tenantCompanyName" type="text" placeholder="例：VERTX"></label>
-        <label><span>担当者名</span><input id="tenantUserName" type="text" placeholder="例：今村 修太"></label>
-        <label><span>会社コード <small>任意・未入力なら自動発行</small></span><input id="tenantCompanyCode" type="text" placeholder="例：VERTX01"></label>
+        <label><span>会社名 <em>必須</em></span><input id="tenantCompanyName" type="text" placeholder="例：〇〇建設"></label>
+        <label><span>担当者名</span><input id="tenantUserName" type="text" placeholder="例：〇〇太郎"></label>
+        <label><span>会社コード <small>任意・未入力なら自動発行</small></span><input id="tenantCompanyCode" type="text" placeholder="例：MARUMARU01"></label>
       </div>
       <button id="tenantLoginBtn" class="primary-btn full setup-start">COREを起動 <span>→</span></button>
       <button id="joinInviteBtn" class="secondary-btn full hidden">招待された会社に参加</button>
@@ -40,7 +40,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.21 CLIENT SHARE UX</span></h1>
+        <h1>CORE <span>v7.25 SMART HELP</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -381,7 +381,7 @@
           <label>現場<select id="dailySite"></select></label>
           <div id="dailyTruckTimeline" class="daily-truck-timeline"></div>
           <div class="field-grid two"><label>作業人数<input id="dailyWorkerCount" type="number" min="0" inputmode="numeric" placeholder="4"></label><label>日付<input id="dailyDate" type="date"></label></div>
-          <label>作業者名 <small>登録メンバーでも応援でもOK</small><textarea id="dailyWorkerNames" rows="2" placeholder="例：今村修太 / 沼田理央 / 応援A / 応援B"></textarea></label>
+          <label>作業者名 <small>登録メンバーでも応援でもOK</small><textarea id="dailyWorkerNames" rows="2" placeholder="例：〇〇太郎 / △△次郎 / 応援1名"></textarea></label>
           <label>本日の作業内容<textarea id="dailyWork" rows="3" placeholder="例：北面3〜5段組立、朝顔取付"></textarea></label>
           <label>現場の現状<textarea id="dailyStatus" rows="3" placeholder="例：北面5段まで完了。南面は電線側未着手"></textarea></label>
           <div class="ky-box ky-risk-box">
@@ -420,6 +420,7 @@
             <p class="handover-help">写真を選んで、現場の注意箇所に直接書き込めます。KYは上の入力式が基本です。</p>
             <label class="secondary-btn full handover-photo-upload">📷 引継ぎ写真を選ぶ<input id="handoverPhotoInput" type="file" accept="image/*" hidden></label>
             <div id="handoverMarkupEditor" class="handover-editor hidden">
+              <div class="handover-zoom-bar"><span>2本指で拡大・移動</span><b id="handoverZoomLabel">100%</b><button type="button" id="handoverZoomResetBtn">等倍に戻す</button></div>
               <canvas id="handoverCanvas" width="720" height="480"></canvas>
               <div class="handover-tools" role="toolbar" aria-label="引継ぎ写真の書き込みツール">
                 <button type="button" data-handover-tool="pen" class="active">✏️ ペン</button>
@@ -429,10 +430,10 @@
                 <button type="button" id="handoverUndoBtn">↶ 1つ戻す</button>
                 <button type="button" id="handoverClearBtn">書込み消去</button>
               </div>
-              <small class="handover-tip">写真そのものは消えません。書き込みだけ消去できます。</small>
+              <small class="handover-tip">1本指で書き込み、2本指で写真を拡大・移動できます。写真そのものは消えません。</small>
             </div>
           </div>
-          <div class="field-grid two"><label>引継ぎ先<input id="dailyHandoverTo" type="text" placeholder="例：沼田理央"></label><label>確認状態<select id="dailyHandoverStatus"><option value="未確認">未確認</option><option value="確認済み">確認済み</option></select></label></div>
+          <div class="field-grid two"><label>引継ぎ先<input id="dailyHandoverTo" type="text" placeholder="例：△△次郎"></label><label>確認状態<select id="dailyHandoverStatus"><option value="未確認">未確認</option><option value="確認済み">確認済み</option></select></label></div>
           <label>明日の予定<textarea id="dailyTomorrow" rows="2" placeholder="例：南面組立、朝顔4段目取付"></textarea></label>
           <label>必要資材<textarea id="dailyNeeded" rows="2" placeholder="例：アンチ1.8×20、下さん1.8×30"></textarea></label>
           <button id="saveDailyReportBtn" class="primary-btn full">日報・KYを保存</button>
@@ -492,44 +493,109 @@
 
       <section id="manual" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MANUAL</p><h2>使い方マニュアル</h2></div></div>
-        <div class="manual-hero manual-light"><span>VERTX CORE GUIDE</span><h3>これを見れば全部わかる。</h3><p>最初の登録から、注文・AI・返却・権限・サブスクまで機能ごとにまとめています。</p></div>
-        <div class="manual-index">
-          <button data-manual-open="m01">初期設定</button><button data-manual-open="m03">注文</button><button data-manual-open="m06">AI</button><button data-manual-open="m10">返却</button><button data-manual-open="m14">メンバー</button><button data-manual-open="m18">日報/KY</button><button data-manual-open="m20">元請け共有</button>
-        </div>
-        <div class="manual-steps">
-          <details id="m01" class="manual-step" open><summary><span>01</span><b>会社登録・ログイン</b></summary><div><p>最初に会社名と担当者名を登録します。一度登録した情報は端末に保存され、次回から同じ会社で開けます。会社を変える時だけ「その他 → 会社設定 → 会社を切り替える」を使います。</p></div></details>
-          <details id="m02" class="manual-step"><summary><span>02</span><b>現場を登録・選択</b></summary><div><p>下メニューの「SITES」から現場名を追加します。現場を選ぶと、その現場を指定した状態で注文へ進めます。最後に選んだ現場は端末に保持されます。</p></div></details>
-          <details id="m03" class="manual-step"><summary><span>03</span><b>資材注文</b></summary><div><p>「ORDER」でカテゴリーまたは検索から資材を探し、− / ＋で数量を入力します。「4板」「羽子板」「ラッセルブラ」「かんざし」など現場の呼び方でも検索できます。最近使った資材や、その現場で過去によく使った資材も上に出ます。画面下に合計点数・重量・車両目安が出ます。数量・現場・希望日・メモは途中でも自動保存されます。</p></div></details>
-          <details id="m04" class="manual-step"><summary><span>04</span><b>資材名・単重を会社専用に変更</b></summary><div><p>資材カード右上の「••• 編集」を押します。表示名、単重、カテゴリー、表示/非表示をその会社だけ変更できます。別会社の資材マスタには影響しません。</p></div></details>
-          <details id="m05" class="manual-step"><summary><span>05</span><b>お気に入り・最近使った資材・現場の定番</b></summary><div><p>☆を押すとお気に入りに登録できます。注文で使った資材は「最近使った資材」に自動表示されます。同じ現場で繰り返し使った資材は「この現場の定番」として数量目安つきで表示され、まとめて追加できます。「よく使うセット」では任意の資材構成を保存してワンタップ入力できます。</p></div></details>
-          <details id="m06" class="manual-step"><summary><span>06</span><b>AI図面解析</b></summary><div><p>AI画面で平面・立面・断面・詳細図などを複数選び、解析します。AIが資材候補と数量を提示します。結果は候補なので必ず人が確認し、必要なら数量を修正してから注文へ反映してください。</p></div></details>
-          <details id="m07" class="manual-step"><summary><span>07</span><b>AI学習の使い方</b></summary><div><p>AI候補を人が修正して注文確定した内容を、その会社の過去例として次回解析の参考にします。会社ごとに分離され、他社の修正履歴は混ざりません。AIが勝手に確定発注することはありません。</p></div></details>
-          <details id="m08" class="manual-step"><summary><span>08</span><b>写真AI・音声オーダー・図面比較</b></summary><div><p>写真AIは現場写真から資材候補を抽出し、注文または返却重量計算へ送れます。会社の資材名・別名と過去の確定例も参照します。音声オーダーは「枠610を30枚、ブレス1829を20本」「4板を20枚」のように話して候補へ変換します。AI図面比較では新旧図面の変更候補を確認できます。</p></div></details>
-          <details id="m09" class="manual-step"><summary><span>09</span><b>現場在庫・不足材</b></summary><div><p>注文ステータスを「納品済」にすると現場在庫へ自動加算されます。在庫画面では数量と総重量を確認できます。不足材から不足分だけ追加注文へ進めます。</p></div></details>
-          <details id="m10" class="manual-step"><summary><span>10</span><b>返却管理</b></summary><div><p>「返却管理」で現場・資材・数量・返却日を入力すると、その分だけ現場在庫から減ります。入力ミスは返却履歴の「記録を取り消す」で在庫を戻せます。</p></div></details>
-          <details id="m11" class="manual-step"><summary><span>11</span><b>返却重量計算</b></summary><div><p>「返却重量計算」で、返す資材を1種類ずつ選んで数量を追加します。総重量と3t・4tなどの積載目安、残り積載量に加えて、選択車両で重量上何台・何便に分ける目安かも表示します。現場と返却日を選んで「この内容で返却車を手配」を押すと、返却依頼を保存して配車予定にも表示します。共有画面が開く端末では、そのままLINE等で返却依頼を送れます。実車の最大積載量が3,000kg未満なら、車検証の数値を「実車の最大積載量」に入力してください。</p></div></details>
-          <details id="m12" class="manual-step"><summary><span>12</span><b>積載分割・配車・発注先・PDF/共有</b></summary><div><p>返却重量が1台に収まらない場合は、重量ベースで必要台数の目安を自動表示します。配車予定では搬入と返却を同じタイムラインで確認できます。発注先管理では資材屋やリース会社と送信用テンプレを保存できます。注文履歴からPDF・LINE共有・再注文もできます。</p></div></details>
-          <details id="m13" class="manual-step"><summary><span>13</span><b>現場原価・分析・QR</b></summary><div><p>現場原価で売上、人件費、運搬費、資材・リース、外注などを入力すると粗利・粗利率を計算します。社長・管理者のHOMEには承認待ち、今日の搬入・返却、登録現場数をまとめた管理サマリーも表示します。分析では注文量や重量を集計。現場QRは対象現場を選んだ状態でCOREを開くQRを作れます。</p></div></details>
-          <details id="m14" class="manual-step"><summary><span>14</span><b>社員招待・権限</b></summary><div><p>「メンバー・権限」から、管理者用・社員/職長用・閲覧用の招待URLをコピーして本人へ送ります。社員本人は自分のアカウントでURLを開いて参加します。社長アカウントで社員URLを開いても社長権限は自動で下がりません。</p></div></details>
-          <details id="m15" class="manual-step"><summary><span>15</span><b>注文承認</b></summary><div><p>職長が作った注文は「承認待ち」。社長・管理者が注文履歴から承認して発注できます。閲覧権限は編集・発注できません。</p></div></details>
-          <details id="m16" class="manual-step"><summary><span>16</span><b>プラン・サブスク</b></summary><div><p>Freeは基本注文と重量計算。Standardはクラウド・在庫・複数ユーザー・配車など。ProはAI機能を含む上位プランです。Stripe本番設定完了後は、社長がプラン画面から申込・契約管理を行えます。</p></div></details>
-          <details id="m17" class="manual-step"><summary><span>17</span><b>操作履歴・エラーが出た時</b></summary><div><p>社長・管理者は「その他 → 操作履歴」で、注文、返却、返却車手配、資材設定、原価、AI解析など主要操作を確認できます。注文途中や返却車の条件は自動保存されます。エラー時はまず画面を再読み込みし、バージョン表示を確認します。AIだけ失敗する場合は図面枚数を減らして再試行。DBや招待でエラーが出た場合は、表示されたエラー文が読めるスクリーンショットを残してください。</p></div></details>
-        
-          <details id="m18" class="manual-step"><summary><span>18</span><b>職長日報・KY・引継ぎ</b></summary><div><p>「職長日報・KY」で現場と日付を選びます。作業者名を入力すると人数の目安になります。KYはリスクアセスメント式で、最大3件の「予測される危険」「なぜ起きる・どうなる」「頻度」「重大性」「対策」を入力するとリスク点を自動表示します。本日の重点安全目標も入力できます。引継ぎ時だけ「引継ぎ写真メモ」で写真を選び、ペン・丸・矢印・文字を写真へ直接書き込めます。職長が別現場へ移る場合は引継ぎ先とメモを入力し、受けた人は確認済みにできます。</p></div></details>
-          <details id="m19" class="manual-step"><summary><span>19</span><b>搬入・搬出予定と現場アルバム</b></summary><div><p>日報を開くと、その現場・その日の搬入と返却予定を既存の注文・返却データから時間つきで自動表示します。注文時の搬入時間、返却車手配時の搬出時間を入力しておけば日報にそのまま表示されます。二重入力は不要です。「現場アルバム」では施工前・施工中・完了・搬入・返却などのタグを付けて写真を保存できます。元請けへ見せたくない写真は「社内のみ」を選びます。</p></div></details>
-          <details id="m20" class="manual-step"><summary><span>20</span><b>元請け向け共有ページ</b></summary><div><p>「元請け向け共有」で現場を選び、「共有ページを更新・URL発行」を押します。共有ページには現場の現状、共有OKの最新写真5枚、搬入予定、搬出・返却予定、最近の注文内容、現場のお知らせ、最終更新日時だけを表示します。KY、社内メモ、原価、社員情報は表示されません。発行したURLをLINE等で元請けへ送れます。</p></div></details>
-        </div>
-        <div class="manual-note"><b>安全に使うために</b><p>重量・トラック判定やAI数量は作業判断の補助です。車両は実車の車検証、現場条件、施工計画、安全基準を優先してください。</p></div>
-      </section>
-      <section id="success" class="screen success-screen">
-        <div class="success-mark">✓</div><p class="eyebrow">COMPLETE</p><h2>注文を保存しました</h2>
-        <p class="muted center">履歴からいつでも確認・再注文できます。</p>
-        <button class="primary-btn full" data-go="history">注文履歴を見る</button>
-        <button class="secondary-btn full" data-go="home">ホームへ戻る</button>
-      </section>
-    </main>
 
+        <div class="manual-hero manual-light manual-compact-hero">
+          <span>VERTX CORE GUIDE</span>
+          <h3>使いたい項目だけ開けばOK。</h3>
+          <p>最初の画面は短くしました。下の7項目から、今やりたいことだけタップしてください。</p>
+        </div>
 
+        <div class="manual-start-card manual-quickstart">
+          <div class="manual-start-head"><span>最短スタート</span><b>注文はこの3つだけ</b></div>
+          <div class="manual-start-steps">
+            <div><em>1</em><b>現場を選ぶ</b><small>SITES</small></div>
+            <div><em>2</em><b>資材を選ぶ</b><small>ORDER</small></div>
+            <div><em>3</em><b>発注する</b><small>注文確認</small></div>
+          </div>
+        </div>
+
+        <div class="manual-index manual-index-7">
+          <button data-manual-open="g01">現場</button>
+          <button data-manual-open="g02">注文</button>
+          <button data-manual-open="g03">AI</button>
+          <button data-manual-open="g04">返却</button>
+          <button data-manual-open="g05">日報/KY</button>
+          <button data-manual-open="g06">メンバー</button>
+          <button data-manual-open="g07">元請け共有</button>
+        </div>
+
+        <div class="manual-steps manual-groups">
+          <details id="g01" class="manual-step"><summary><span>01</span><b>現場を作る・選ぶ</b></summary><div>
+            <ol><li>下の「SITES」を押す</li><li>現場名を入れて「＋ 現場を追加」</li><li>使う現場をタップ</li></ol>
+            <p class="manual-example"><b>入力例：</b>〇〇ビル新築工事</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p>会社名と担当者名は最初の1回だけ登録します。同じ端末では前回の会社・現場を記憶します。</p></div></details>
+          </div></details>
+
+          <details id="g02" class="manual-step"><summary><span>02</span><b>資材を注文する</b></summary><div>
+            <ol><li>「ORDER」を押す</li><li>資材を探して「＋」で数量入力</li><li>「注文確認へ」→ 内容確認 → 発注</li></ol>
+            <p class="manual-example"><b>検索例：</b>枠610 / 4板 / かんざし / 羽子板 / ラッセルブラ</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>資材名を変える：</b>資材右上の「••• 編集」。会社ごとに名前・単重・カテゴリーを変更できます。</p><p><b>お気に入り：</b>☆を押すと上から探しやすくなります。</p><p><b>職長の注文：</b>承認待ちになり、社長・管理者が承認します。</p></div></details>
+          </div></details>
+
+          <details id="g03" class="manual-step"><summary><span>03</span><b>AIを使う</b></summary><div>
+            <ol><li>下の「AI」を押す</li><li>図面・写真を選ぶ</li><li>解析結果を確認して注文へ反映</li></ol>
+            <p class="manual-warning"><b>重要：</b>AIの数量は候補です。必ず人が確認してください。</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>図面AI：</b>平面図・立面図などから資材候補を出します。</p><p><b>写真AI：</b>現場写真から資材候補を出します。</p><p><b>音声注文：</b>「枠610を30、ブレス1829を20」のように話して入力できます。</p><p>確定時の修正内容は、その会社の次回解析の参考にします。</p></div></details>
+          </div></details>
+
+          <details id="g04" class="manual-step"><summary><span>04</span><b>返却・重量・トラック</b></summary><div>
+            <ol><li>MORE →「返却重量計算」</li><li>資材と数量を追加</li><li>3t・4tなどを選び、重量確認 → 返却車を手配</li></ol>
+            <p class="manual-example"><b>例：</b>枠610×150、ブレス1829×200、アンチ1.8×150</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p>搬入・返却予定は配車画面にまとまります。時間を入れると職長日報にも表示されます。</p><p>返却記録を間違えた時は履歴から取り消せます。</p><p class="manual-warning"><b>積載は必ず車検証の最大積載量を優先してください。</b></p></div></details>
+          </div></details>
+
+          <details id="g05" class="manual-step"><summary><span>05</span><b>職長日報・KY・引継ぎ</b></summary><div>
+            <ol><li>MORE →「職長日報・KY」</li><li>作業者・作業内容・現場状況を入力</li><li>KYと引継ぎを入れて保存</li></ol>
+            <p class="manual-example"><b>作業者例：</b>〇〇太郎 / △△次郎 / 応援1名</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>KY：</b>危険・原因・頻度・重大性・対策を入力。最大3件。</p><p><b>引継ぎ写真：</b>写真を選び、2本指でズーム・移動。ペン・丸・矢印・文字で書き込めます。</p><p><b>搬入搬出：</b>その日の配車予定が日報に自動表示されます。</p></div></details>
+          </div></details>
+
+          <details id="g06" class="manual-step"><summary><span>06</span><b>社員・職長を招待する</b></summary><div>
+            <ol><li>MORE →「メンバー・権限」</li><li>使わせたい権限のURLをコピー</li><li>本人へLINE等で送る</li></ol>
+            <p class="manual-tip">社長のiPhone1台で確認する時は「開発者テスト」で権限を疑似切替できます。</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>管理者：</b>管理・承認も可能。</p><p><b>職長：</b>現場・注文中心。</p><p><b>閲覧：</b>基本見るだけ。</p><p>職長の注文は社長・管理者の承認待ちになります。</p></div></details>
+          </div></details>
+
+          <details id="g07" class="manual-step"><summary><span>07</span><b>元請けへ現場を共有する</b></summary><div>
+            <ol><li>MORE →「元請け向け共有」</li><li>現場とお知らせを選ぶ</li><li>URLを発行して元請けへ送る</li></ol>
+            <p>現場状況・最新写真5枚・搬入予定・返却予定・注文内容を見せられます。</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>外に出さない情報：</b>KY、社内メモ、原価、社員向け情報。</p><p>URLを更新すれば、元請けは同じ共有ページで最新状況を確認できます。</p></div></details>
+          </div></details>
+        </div>
+
+        <details class="manual-step manual-all-tools">
+          <summary><span>＋</span><b>その他の機能も見る</b></summary>
+          <div class="manual-tool-grid">
+            <div><b>お気に入り</b><p>ORDERの☆を押す。よく使う資材を探しやすくできます。</p></div>
+            <div><b>注文履歴・再注文</b><p>HOME → 注文履歴。過去注文を見て、同じ内容をもう一度使えます。</p></div>
+            <div><b>現場在庫</b><p>MORE/HOME → 現場在庫。納品済み資材の残数を確認します。</p></div>
+            <div><b>不足材</b><p>不足している資材だけ追加して、そのまま注文へ進めます。</p></div>
+            <div><b>よく使うセット</b><p>毎回同じ組み合わせをセット保存して、次から一発で呼び出します。</p></div>
+            <div><b>配車予定</b><p>搬入と返却の日時・車両を1つの一覧で確認します。</p></div>
+            <div><b>現場アルバム</b><p>施工前・施工中・完了・搬入・返却の写真を現場ごとに保存します。</p></div>
+            <div><b>現場QR</b><p>現場専用QRを作り、読み取るとその現場をすぐ開けます。</p></div>
+            <div><b>発注先管理</b><p>リース会社・資材屋と送信用テンプレを登録します。</p></div>
+            <div><b>資材マスタ</b><p>新しい資材の追加や単重の確認に使います。普段の名前変更はORDERの「••• 編集」が早いです。</p></div>
+            <div><b>図面比較</b><p>複数図面をAIで見比べて、変更点や資材候補を確認します。</p></div>
+            <div><b>写真AI</b><p>現場写真から資材候補を出します。結果は必ず人が確認してください。</p></div>
+            <div><b>音声注文</b><p>例「枠610を20、ブレス1829を30」のように話して数量候補を作ります。</p></div>
+            <div><b>会社設定</b><p>会社情報・会社切替・招待関連を確認します。</p></div>
+            <div><b>操作履歴</b><p>誰がいつ何を変更したか確認できます。</p></div>
+            <div><b>開発者テスト</b><p>Ownerだけ。iPhone1台で管理者・職長・閲覧の見え方を試せます。</p></div>
+            <div><b>プラン</b><p>Free / Standard / Proの契約状態を確認します。</p></div>
+          </div>
+        </details>
+
+        <div class="manual-help-box manual-help-compact">
+          <b>困った時</b>
+          <p><strong>各ページ右上の「💬」</strong>を押すと、その画面だけの使い方が出ます。</p>
+          <p><strong>資材名変更：</strong>ORDER → 資材右上「••• 編集」</p>
+          <p><strong>返却：</strong>MORE → 返却重量計算</p>
+          <p><strong>日報：</strong>MORE → 職長日報・KY</p>
+        </div>
+
+        <div class="manual-note"><b>最後に1つだけ</b><p>AI・重量・車両判定は補助です。発注数量・施工・安全・積載の最終確認は人が行ってください。</p></div>
+      </section>
       <section id="more" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">CONTROL CENTER</p><h2>その他</h2></div></div>
         <div class="control-stack">
@@ -559,11 +625,20 @@
       <small class="quick-note">変更はこの会社だけに保存され、他社の資材名には影響しません。</small>
     </div>
   </div>
+
+  <div id="contextHelpModal" class="context-help-modal hidden" role="dialog" aria-modal="true" aria-labelledby="contextHelpTitle">
+    <div class="context-help-sheet">
+      <div class="context-help-handle"></div>
+      <div class="context-help-head"><div><span>QUICK HELP</span><h3 id="contextHelpTitle">この画面の使い方</h3></div><button id="closeContextHelp" aria-label="閉じる">×</button></div>
+      <div id="contextHelpBody" class="context-help-body"></div>
+      <button id="openFullManual" class="secondary-btn full">使い方マニュアルを開く</button>
+    </div>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="printArea" class="print-area"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.21.0"></script>
+  <script src="app.js?v=7.25.0"></script>
 </body>
 </html>
