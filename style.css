@@ -475,3 +475,11 @@ body:has(.dev-test-banner:not(.hidden)) .app-shell{padding-top:58px}
 
 /* v7.26 viewer KY read-only */
 #dailyReport .field-brief-card.viewer-hidden{display:none!important}.viewer-ky-notice{display:flex!important;flex-direction:column;gap:4px;margin-bottom:14px;padding:14px 16px!important;border:1px solid #cfe0ff!important;background:#f6f9ff!important}.viewer-ky-notice b{color:#0b1324;font-size:15px}.viewer-ky-notice span{color:#475569;font-size:13px;line-height:1.5}.viewer-ky-notice.hidden{display:none!important}
+
+
+/* v7.27 Viewer navigation + read-only screens */
+.viewer-readonly-notice{display:flex;gap:10px;align-items:center;margin:0 20px 16px;padding:14px 16px;border:1px solid #b7d7ff;background:#f4f9ff;color:#07162f}
+.viewer-readonly-notice b{white-space:nowrap;color:#006ee6}.viewer-readonly-notice span{font-size:13px;line-height:1.55}
+.viewer-material{padding-bottom:18px}.viewer-material .material-info{padding-right:62px}.viewer-material-badge{margin:14px 0 0;display:inline-flex;padding:7px 11px;border-radius:999px;background:#eef4fb;color:#52647a;font-size:12px;font-weight:800}
+.viewer-disabled{opacity:.55;pointer-events:none}.viewer-mode #order .sticky-summary{grid-template-columns:1fr 1fr}.viewer-mode #order .sticky-summary>button{display:none}
+.viewer-mode #sites .site-select small{color:#64748b}.viewer-mode #assist button:disabled,.viewer-mode #assist select:disabled,.viewer-mode #assist textarea:disabled{opacity:.55}
