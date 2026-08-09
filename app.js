@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.3.0';
+const VERTX_BUILD='7.13.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -556,8 +556,11 @@ function renderReturnLoad(){
   if(!$('#loadMaterial'))return;
   const truckSite=$('#returnTruckSite');if(truckSite){const sites=getSites();const prev=truckSite.value||state.selectedSite;truckSite.innerHTML=sites.length?sites.map(x=>`<option>${escapeHtml(x)}</option>`).join(''):'<option>現場未登録</option>';if(prev&&sites.includes(prev))truckSite.value=prev;}
   if($('#returnTruckDate')&&!$('#returnTruckDate').value)$('#returnTruckDate').value=todayIso();
-  const visible=MATERIALS.filter(m=>!isMaterialHidden(m)).sort((a,b)=>String(a.category||'').localeCompare(String(b.category||''),'ja')||String(a.name).localeCompare(String(b.name),'ja'));
-  if(!$('#loadMaterial').options.length)$('#loadMaterial').innerHTML=visible.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}｜${Number(m.weight||0).toFixed(2)}kg/${escapeHtml(m.unit||'')}</option>`).join('');
+  const visible=MATERIALS.filter(m=>!m.hidden).sort((a,b)=>String(a.category||'').localeCompare(String(b.category||''),'ja')||String(a.name).localeCompare(String(b.name),'ja'));
+  const materialSelect=$('#loadMaterial');
+  const prevMaterial=materialSelect.value;
+  materialSelect.innerHTML=visible.length?visible.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}｜${Number(m.weight||0).toFixed(2)}kg/${escapeHtml(m.unit||'')}</option>`).join(''):'<option value="">資材がありません</option>';
+  if(prevMaterial&&visible.some(m=>String(m.id)===String(prevMaterial)))materialSelect.value=prevMaterial;
   const rows=getReturnLoad();
   let total=0,qty=0;rows.forEach(r=>{total+=(Number(r.weight)||0)*(Number(r.qty)||0);qty+=Number(r.qty)||0});
   const cap=returnLoadCapacity(),remaining=cap-total,ratio=cap?total/cap:0;
