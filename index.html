@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v7.27 VIEWER NAV FIX</title>
-  <link rel="stylesheet" href="style.css?v=7.27.0">
+  <title>VERTX CORE v7.28 FIELD CLEAN</title>
+  <link rel="stylesheet" href="style.css?v=7.28.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate">
@@ -25,7 +25,7 @@
   <div id="companyGate" class="company-gate hidden">
     <div class="company-gate-card setup-card">
       <div class="setup-brand"><span class="setup-mark">V</span><div><p class="eyebrow">VERTX CORE</p><b>NOVA WORKSPACE</b></div><span class="setup-live">CLOUD</span></div>
-      <div class="setup-copy"><span class="setup-step">NEW WORKSPACE</span><h2>現場を動かす、<br><em>新しいCORE。</em></h2><p>注文・在庫・配車・AI・原価まで。会社の現場情報をひとつに。</p></div>
+      <div class="setup-copy"><span class="setup-step">NEW WORKSPACE</span><h2>現場を動かす、<br><em>新しいCORE。</em></h2><p>注文・返却・配車・AI・KYまで。現場の資材情報をひとつに。</p></div>
       <div class="setup-fields">
         <label><span>会社名 <em>必須</em></span><input id="tenantCompanyName" type="text" placeholder="例：〇〇建設"></label>
         <label><span>担当者名</span><input id="tenantUserName" type="text" placeholder="例：〇〇太郎"></label>
@@ -40,7 +40,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.27 VIEWER NAV FIX</span></h1>
+        <h1>CORE <span>v7.28 FIELD CLEAN</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -61,36 +61,16 @@
         </div>
         <div id="adminOpsSummary" class="admin-ops-summary hidden"></div>
 
-        <div class="section-head"><h3>クイックメニュー</h3></div>
-        <div class="menu-grid">
-          <button class="menu-card" data-go="sites"><span class="app-icon">📍</span><b>現場から注文</b><small>現場を選んですぐ発注</small></button>
-          <button class="menu-card" data-go="order"><span class="app-icon">📦</span><b>資材注文</b><small>資材から直接作成</small></button>
-          <button class="menu-card" data-go="history"><span class="app-icon">📋</span><b>注文履歴</b><small>再注文にも対応</small></button>
-          <button class="menu-card" data-go="favorites"><span class="app-icon">★</span><b>お気に入り</b><small>よく使う資材だけ表示</small></button>
-          
-          <button class="menu-card" data-go="drawings"><span class="app-icon">▧</span><b>図面アップロード</b><small>PDF・写真を保存して注文に添付</small></button>
-          <button class="menu-card featured" data-go="assist"><span class="app-icon">✦</span><b>AI図面解析</b><small>PDF・写真をAIが読んで資材候補を作成</small></button>
-          <button class="menu-card" data-go="siteStock"><span class="app-icon">▤</span><b>現場在庫</b><small>納品済み注文を自動反映</small></button>
-          <button class="menu-card" data-go="shortage"><span class="app-icon">＋</span><b>不足材</b><small>不足分だけすぐ追加注文</small></button>
-          <button class="menu-card" data-go="sets"><span class="app-icon">▦</span><b>よく使うセット</b><small>セットを保存して一発入力</small></button>
-          <button class="menu-card" data-go="dispatch"><span class="app-icon">🚚</span><b>配車予定</b><small>搬入日・車両・進捗を確認</small></button>
-          <button class="menu-card featured" data-go="compare"><span class="app-icon">⇄</span><b>AI図面比較</b><small>新旧図面の変更点をAI確認</small></button>
-          <button class="menu-card featured" data-go="voiceOrder"><span class="app-icon">🎙</span><b>音声オーダー</b><small>現場の呼び方で喋って注文入力</small></button>
-          <button class="menu-card featured" data-go="photoAi"><span class="app-icon">📷</span><b>写真AI</b><small>現場写真から資材候補を抽出</small></button>
-          <button class="menu-card" data-go="siteDashboard"><span class="app-icon">📊</span><b>現場ダッシュボード</b><small>在庫・重量・注文・搬入を集約</small></button>
-          <button class="menu-card field-new" data-go="dailyReport"><span class="app-icon">🦺</span><b>職長日報・KY</b><small>作業者・KY・引継ぎ・搬入搬出を1画面</small></button>
-          <button class="menu-card field-new" data-go="siteAlbum"><span class="app-icon">📸</span><b>現場アルバム</b><small>施工状況を写真で共有・整理</small></button>
-          <button class="menu-card field-new" data-go="clientShare"><span class="app-icon">🔗</span><b>元請け共有</b><small>現状・写真5枚・搬入返却予定を共有</small></button>
-          <button class="menu-card ops-new" data-go="returns"><span class="app-icon">↩</span><b>返却管理</b><small>返却数を記録して現場在庫を自動減算</small></button>
-          <button class="menu-card ops-new" data-go="returnLoad"><span class="app-icon">⚖</span><b>返却重量計算</b><small>返却材の総重量と3t・4t車の積載目安</small></button>
-          <button class="menu-card ops-new" data-go="siteCosts"><span class="app-icon">¥</span><b>現場原価</b><small>売上・人件費・運搬・外注から粗利確認</small></button>
-          <button class="menu-card ops-new" data-go="siteQr"><span class="app-icon">▦</span><b>現場QR</b><small>現場ページへ一発アクセス</small></button>
-          <button class="menu-card ops-new" data-go="suppliers"><span class="app-icon">⇧</span><b>発注先管理</b><small>資材屋・リース会社と送信テンプレを登録</small></button>
-          <button class="menu-card" data-go="analytics"><span class="app-icon">📈</span><b>分析</b><small>注文量・重量・配車を集計</small></button>
-          <button class="menu-card" data-go="members"><span class="app-icon">👷</span><b>メンバー・権限</b><small>社長・管理者・職長・閲覧</small></button>
-          <button class="menu-card" data-go="plans"><span class="app-icon">💳</span><b>プラン</b><small>Free / Standard / Pro</small></button>
-          <button class="menu-card" data-go="companySettings"><span class="app-icon">🏢</span><b>会社設定</b><small>会社コード・招待URL・切替</small></button>
-          <button class="menu-card manual-card" data-go="manual"><span class="app-icon">?</span><b>使い方マニュアル</b><small>初期設定からAI・注文まで確認</small></button>
+        <div class="section-head home-section-head"><div><p class="eyebrow">FIELD TOOLS</p><h3>よく使う機能</h3></div><button class="text-btn" data-go="more">すべて見る →</button></div>
+        <div class="menu-grid clean-grid">
+          <button class="menu-card core-card core-primary" data-go="sites"><span class="app-icon">📍</span><b>現場から注文</b><small>現場を選んですぐ資材注文</small></button>
+          <button class="menu-card core-card" data-go="history"><span class="app-icon">📋</span><b>注文履歴</b><small>過去の注文・再確認</small></button>
+          <button class="menu-card core-card ai-card" data-go="assist"><span class="app-icon">✦</span><b>AI図面解析</b><small>図面から資材候補を作成</small></button>
+          <button class="menu-card core-card" data-go="returnLoad"><span class="app-icon">⚖</span><b>返却重量</b><small>3t・4tの積載目安まで確認</small></button>
+          <button class="menu-card core-card" data-go="dispatch"><span class="app-icon">🚚</span><b>搬入・返却予定</b><small>今日のトラック予定を確認</small></button>
+          <button class="menu-card core-card" data-go="dailyReport"><span class="app-icon">🦺</span><b>職長日報・KY</b><small>引継ぎまで1画面</small></button>
+          <button class="menu-card core-card" data-go="siteStock"><span class="app-icon">▤</span><b>現場在庫</b><small>納品・返却後の残数確認</small></button>
+          <button class="menu-card core-card" data-go="clientShare"><span class="app-icon">🔗</span><b>元請け共有</b><small>現状・写真・KY・搬入返却</small></button>
         </div>
       </section>
 
@@ -456,7 +436,7 @@
       <section id="clientShare" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">CLIENT VIEW</p><h2>元請け向け共有</h2></div></div>
         <div class="card share-builder client-share-builder">
-          <div class="client-share-intro"><span>SHARE SETUP</span><h3>元請けに見せる現場情報を更新</h3><p>現場とお知らせを入力するだけ。KY・社内メモ・原価・社員情報は外部に出ません。</p></div>
+          <div class="client-share-intro"><span>SHARE SETUP</span><h3>元請けに見せる現場情報を更新</h3><p>現場とお知らせを入力するだけ。現場状況・写真・KY・搬入返却を見やすく共有します。</p></div>
           <div class="client-share-field">
             <label for="shareSite">共有する現場</label>
             <select id="shareSite"></select>
@@ -466,7 +446,7 @@
             <textarea id="shareNotice" rows="3" placeholder="例：北面5段まで完了。明日は南面を施工予定です。"></textarea>
             <small>元請けに伝えたい「現場の今」を短く入力</small>
           </div>
-          <div class="share-checklist"><span>共有される内容</span><b>現場の現状</b><b>最新写真5枚</b><b>搬入予定</b><b>搬出・返却予定</b><b>注文内容</b><small>KY、社内メモ、原価、社員向け情報は共有しません。</small></div>
+          <div class="share-checklist"><span>共有される内容</span><b>現場の現状</b><b>最新写真5枚</b><b>搬入予定</b><b>搬出・返却予定</b><b>注文内容</b><b>KY・重点安全目標</b><small>社内メモ・原価・社員情報・引継ぎ先は共有しません。</small></div>
           <button id="publishShareBtn" class="primary-btn full client-share-publish">共有ページを更新・URL発行</button>
           <div id="shareUrlBox" class="share-url-box hidden"></div>
         </div>
@@ -559,7 +539,7 @@
           <details id="g07" class="manual-step"><summary><span>07</span><b>元請けへ現場を共有する</b></summary><div>
             <ol><li>MORE →「元請け向け共有」</li><li>現場とお知らせを選ぶ</li><li>URLを発行して元請けへ送る</li></ol>
             <p>現場状況・最新写真5枚・搬入予定・返却予定・注文内容を見せられます。</p>
-            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>外に出さない情報：</b>KY、社内メモ、原価、社員向け情報。</p><p>URLを更新すれば、元請けは同じ共有ページで最新状況を確認できます。</p></div></details>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>共有するKY：</b>最新日報の重点安全目標・危険ポイント・対策だけを表示します。</p><p><b>外に出さない情報：</b>社内メモ、原価、作業者名、引継ぎ先。</p><p>URLを更新すれば、元請けは同じ共有ページで最新状況を確認できます。</p></div></details>
           </div></details>
         </div>
 
@@ -598,10 +578,33 @@
       </section>
       <section id="more" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">CONTROL CENTER</p><h2>その他</h2></div></div>
-        <div class="control-stack">
-          <div class="control-section"><span>TEAM</span><button data-go="members"><b>メンバー・権限</b><small>権限別の招待URL・承認権限</small><em>›</em></button><button data-go="companySettings"><b>会社設定</b><small>会社コード・招待・切替</small><em>›</em></button></div>
-          <div class="control-section"><span>OPERATIONS</span><button data-go="returns"><b>返却管理</b><small>返却履歴・現場在庫の自動減算</small><em>›</em></button><button data-go="returnLoad"><b>返却重量計算</b><small>返却材の総重量・積載目安</small><em>›</em></button><button data-go="siteCosts"><b>現場原価</b><small>売上・原価・粗利率</small><em>›</em></button><button data-go="siteQr"><b>現場QR</b><small>現場ページへ一発アクセス</small><em>›</em></button><button data-go="suppliers"><b>発注先管理</b><small>資材屋・リース会社・送信テンプレ</small><em>›</em></button><button data-go="materialsMaster"><b>資材マスタ</b><small>追加・単重・詳細設定</small><em>›</em></button><button data-go="sets"><b>よく使うセット</b><small>定番注文をワンタップ化</small><em>›</em></button><button data-go="dispatch"><b>配車予定</b><small>搬入・返却を同じタイムラインで確認</small><em>›</em></button><button data-go="dailyReport"><b>職長日報・KY</b><small>作業者・KY・引継ぎ・搬入搬出</small><em>›</em></button><button data-go="siteAlbum"><b>現場アルバム</b><small>施工状況の写真を現場別に保存</small><em>›</em></button><button data-go="clientShare"><b>元請け向け共有</b><small>現状・写真5枚・搬入返却予定を共有</small><em>›</em></button><button data-go="auditLog"><b>操作履歴</b><small>誰がいつ何を変更したか確認</small><em>›</em></button></div>
-          <div class="control-section"><span>CORE</span><button data-go="analytics"><b>利用分析</b><small>注文量・重量・利用状況</small><em>›</em></button><button data-go="plans"><b>プラン</b><small>Free / Standard / Pro</small><em>›</em></button><button data-go="devTest"><b>🧪 開発者テスト</b><small>iPhone1台で社長・管理者・職長・閲覧を確認</small><em>›</em></button><button data-go="manual"><b>使い方マニュアル</b><small>初期設定から注文・AIまで</small><em>›</em></button></div>
+        <div class="more-hero card"><span>FIELD CONTROL</span><h3>必要な機能だけ、すぐ開く。</h3><p>注文・返却・KY・共有を中心に整理しました。</p></div>
+        <div class="control-stack clean-control">
+          <div class="control-section"><span>FIELD</span>
+            <button data-go="returnLoad"><b>⚖ 返却重量計算</b><small>積載量確認 → 返却車手配</small><em>›</em></button>
+            <button data-go="dispatch"><b>🚚 搬入・返却予定</b><small>トラック予定をタイムライン表示</small><em>›</em></button>
+            <button data-go="dailyReport"><b>🦺 職長日報・KY</b><small>作業・危険予知・引継ぎ</small><em>›</em></button>
+            <button data-go="siteAlbum"><b>📸 現場アルバム</b><small>写真を現場ごとに整理</small><em>›</em></button>
+            <button data-go="clientShare"><b>🔗 元請け向け共有</b><small>現状・写真5枚・KY・搬入返却</small><em>›</em></button>
+            <button data-go="siteStock"><b>▤ 現場在庫</b><small>納品・返却後の資材残数</small><em>›</em></button>
+            <button data-go="sets"><b>▦ よく使うセット</b><small>定番資材を一発入力</small><em>›</em></button>
+            <button data-go="materialsMaster"><b>🧱 資材設定</b><small>追加・単重・詳細設定</small><em>›</em></button>
+          </div>
+          <div class="control-section"><span>AI & ORDER</span>
+            <button data-go="assist"><b>✦ AI図面解析</b><small>図面から資材候補</small><em>›</em></button>
+            <button data-go="photoAi"><b>📷 写真AI</b><small>写真から資材候補</small><em>›</em></button>
+            <button data-go="voiceOrder"><b>🎙 音声オーダー</b><small>現場語で注文入力</small><em>›</em></button>
+            <button data-go="history"><b>📋 注文履歴</b><small>過去注文を確認</small><em>›</em></button>
+          </div>
+          <div class="control-section"><span>TEAM & SETTINGS</span>
+            <button data-go="members"><b>👷 メンバー・権限</b><small>社長・管理者・職長・閲覧</small><em>›</em></button>
+            <button data-go="companySettings"><b>🏢 会社設定</b><small>会社コード・招待・切替</small><em>›</em></button>
+            <button data-go="suppliers"><b>⇧ 発注先管理</b><small>資材屋・リース会社・送信テンプレ</small><em>›</em></button>
+            <button data-go="siteQr"><b>▦ 現場QR</b><small>現場ページへ一発アクセス</small><em>›</em></button>
+            <button data-go="plans"><b>💳 プラン</b><small>Free / Standard / Pro</small><em>›</em></button>
+            <button data-go="manual"><b>💬 使い方</b><small>画面ごとのヘルプも利用できます</small><em>›</em></button>
+            <button data-go="devTest"><b>🧪 開発者テスト</b><small>Ownerのみ権限表示を確認</small><em>›</em></button>
+          </div>
         </div>
       </section>
     <nav class="bottom-nav" aria-label="メインナビゲーション">
