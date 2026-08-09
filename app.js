@@ -731,44 +731,57 @@ function makeAutoCompanyCode(){
   return `VX${tail}`;
 }
 async function companyLogin(){
-  const company=$('#tenantCompanyName').value.trim();
-  const rawCode=$('#tenantCompanyCode').value.trim();
+  const company=$('#tenantCompanyName')?.value.trim()||'';
+  const rawCode=$('#tenantCompanyCode')?.value.trim()||'';
   let code=normalizeCompanyCode(rawCode);
-  const user=$('#tenantUserName').value.trim();
+  const user=$('#tenantUserName')?.value.trim()||'';
   const st=$('#companyGateStatus');
-  if(!company){if(st)st.textContent='会社名を入力してください。';return toast('会社名を入力してください')}
-  // 会社コードは任意。日本語しか入力されていない場合も止めず、自動発行する。
+  const btn=$('#tenantLoginBtn');
+  const setGateStatus=(msg,type='')=>{if(!st)return;st.classList.remove('error','success');if(type)st.classList.add(type);st.textContent=msg};
+  if(!company){setGateStatus('会社名を入力してください。','error');return toast('会社名を入力してください')}
+  if(!supabaseClient||!cloudUser){setGateStatus('ログイン情報を確認できません。画面を更新して、もう一度ログインしてください。','error');return}
+  // 会社コードは完全任意。日本語・空欄・記号だけの場合も自動発行して止めない。
   if(!code)code=makeAutoCompanyCode();
-  if(st){st.classList.remove('error','success');st.textContent=`会社を作成中… 会社コード：${code}`}
-  if($('#tenantLoginBtn')){$('#tenantLoginBtn').disabled=true;$('#tenantLoginBtn').textContent='作成しています…'}
+  setGateStatus(`会社ワークスペースを作成しています… ${code}`);
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="btn-spinner"></span> 作成中…'}
   try{
-    let result=await supabaseClient.rpc('create_organization',{p_name:company,p_code:code});
-    // コード重複だけは自動で別コードを発行して再試行。
+    const createOnce=(nextCode)=>supabaseClient.rpc('create_organization',{p_name:company,p_code:nextCode});
+    const withTimeout=(promise,ms=15000)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('通信がタイムアウトしました。電波を確認してもう一度押してください。')),ms))]);
+    let result=await withTimeout(createOnce(code));
     if(result.error && /duplicate|unique|already exists/i.test(result.error.message||'')){
       code=makeAutoCompanyCode();
-      result=await supabaseClient.rpc('create_organization',{p_name:company,p_code:code});
+      result=await withTimeout(createOnce(code));
     }
-    const {data,error}=result;
+    const {data,error}=result||{};
     if(error)throw error;
-    let memberships=await getMemberships();
-    let hit=memberships.find(m=>m.organizations.id===data||m.organizations.code===code);
-    if(!hit){
-      await new Promise(r=>setTimeout(r,500));
-      memberships=await getMemberships();
-      hit=memberships.find(m=>m.organizations.id===data||m.organizations.code===code);
-    }
-    if(!hit)throw new Error('会社作成は完了しましたが、会社情報の読込に失敗しました。画面を更新してください。');
-    const sess=sessionFromMembership(hit);sess.user=user||cloudUser?.email||'';nativeSet(VERTX_SESSION_KEY,JSON.stringify(sess));
-    await hydrateCloudStore();cloudReady=true;reloadTenantState();
-    if(st){st.classList.add('success');st.textContent='会社を作成しました。VERTX COREを開きます…'}
-    renderCompanyIdentity();startApp();
+    if(!data)throw new Error('会社IDを取得できませんでした。');
+
+    // RPCが成功した時点でOwnerセッションを作成する。
+    // membershipsの反映待ちで入口に取り残されないようにする。
+    const sess={
+      orgId:data,company,code,user:user||cloudUser?.email||'',role:'owner',inviteToken:null,
+      plan:'free',subscriptionStatus:'trial',trialEndsAt:null,billingCustomerId:null,
+      billingSubscriptionId:null,billingPeriodEnd:null,cancelAtPeriodEnd:false,loginAt:new Date().toISOString()
+    };
+    nativeSet(VERTX_SESSION_KEY,JSON.stringify(sess));
+    cloudReady=true;
+    reloadTenantState();
+    setGateStatus('作成完了。COREを起動します。','success');
+    renderCompanyIdentity();
+    startApp();
+
+    // 画面を先に開いた後で、DB側の正式なmembership情報を同期。
+    getMemberships().then(async memberships=>{
+      const hit=memberships.find(m=>m.organizations.id===data||m.organizations.code===code);
+      if(hit){nativeSet(VERTX_SESSION_KEY,JSON.stringify({...sessionFromMembership(hit),user:user||cloudUser?.email||''}));renderCompanyIdentity()}
+    }).catch(()=>{});
   }catch(error){
     console.error('company create',error);
     const msg=error?.message||'不明なエラー';
-    if(st){st.classList.add('error');st.textContent='作成できません：'+msg}
+    setGateStatus('作成できません：'+msg,'error');
     toast('会社を作成できませんでした');
   }finally{
-    if($('#tenantLoginBtn')){$('#tenantLoginBtn').disabled=false;$('#tenantLoginBtn').textContent='VERTX COREを開始'}
+    if(btn){btn.disabled=false;btn.innerHTML='COREを起動 <span>→</span>'}
   }
 }
 async function switchCompany(){nativeRemove(VERTX_SESSION_KEY);location.reload()}
