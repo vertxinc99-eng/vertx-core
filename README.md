@@ -1,13 +1,24 @@
-# VERTX CORE v2.3 AI
+# VERTX CORE v3.1 CLOUD
 
-## 追加
-- AI図面解析で複数図面を同時選択（最大8枚）
-- 平面・立面・断面・詳細図をまとめてAI解析
-- アルミ足場板 1m / 2m / 3m / 4m を追加
-- 階段・昇降に「ハッチアンチ 1.8」を追加
-- ハッチアンチ1.8は日建リースの全開閉式床付き布板 ALTH518S（L1829×W500、13.5kg）を参考
-- 既存の自動在庫・現場在庫重量・注文・重量・トラック判定・AI比較を維持
+会社別クラウド共有版。
 
-## 注意
-AI解析は候補作成です。図面・施工計画・現場条件を人が最終確認してください。
-大きな図面を複数選ぶとVercel送信上限に達するため、合計サイズを抑える制御を入れています。
+## 追加機能
+- Supabase Auth（メール＋パスワード）
+- 会社作成 / 会社招待URL
+- Row Level Securityで会社データを分離
+- 現場 / 注文 / 在庫 / 資材マスタ / お気に入り / セット等をクラウド同期
+- 図面PDF/JPG/PNGをSupabase Storageへクラウド保存
+- 同じ会社ならスマホ・PC間でデータ共有
+- 既存のAI図面解析、複数図面、AI比較、重量・トラック判定を維持
+
+## 初回セットアップ
+1. Supabaseでプロジェクトを作成
+2. `SUPABASE_SETUP.sql` を SQL Editor で実行
+3. Vercel > Environment Variables に追加
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - 既存の `OPENAI_API_KEY`
+4. GitHubへこのZIPの中身を上書きしてRedeploy
+5. アプリで新規登録 → 会社作成
+
+詳細は `SETUP_GUIDE.md`。

@@ -4,17 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v2.0 AI</title>
+  <title>VERTX CORE v3.1 CLOUD</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="cloudAuthGate" class="company-gate">
+    <div class="company-gate-card">
+      <p class="eyebrow">VERTX CORE CLOUD</p>
+      <h2>ログイン</h2>
+      <p class="muted">同じ会社の現場・注文・在庫・資材マスタ・図面を、スマホやPCで共有します。</p>
+      <label>メールアドレス<input id="authEmail" type="email" placeholder="name@example.com" autocomplete="email"></label>
+      <label>パスワード<input id="authPassword" type="password" placeholder="8文字以上" autocomplete="current-password"></label>
+      <div class="action-grid">
+        <button id="authLoginBtn" class="primary-btn full">ログイン</button>
+        <button id="authSignupBtn" class="secondary-btn full">新規登録</button>
+      </div>
+      <small id="authStatus">初回は新規登録してください。</small>
+    </div>
+  </div>
+  <div id="companyGate" class="company-gate hidden">
+    <div class="company-gate-card">
+      <p class="eyebrow">VERTX CORE</p>
+      <h2>会社を作成 / 参加</h2>
+      <p class="muted">会社を作成するとクラウドでデータを共有できます。招待URLから開いた場合は、その会社へ参加できます。</p>
+      <label>会社名<input id="tenantCompanyName" type="text" placeholder="例：株式会社〇〇架設"></label>
+      <label>会社コード<input id="tenantCompanyCode" type="text" placeholder="例：VERTX / YKAS"></label>
+      <label>担当者名<input id="tenantUserName" type="text" placeholder="例：山田太郎"></label>
+      <button id="tenantLoginBtn" class="primary-btn full">この会社を作成</button>
+      <button id="joinInviteBtn" class="secondary-btn full hidden">招待された会社に参加</button>
+      <small id="companyGateStatus">会社ごとにデータを完全分離して保存します。</small>
+    </div>
+  </div>
   <div class="app-shell">
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v2.0 AI</span></h1>
+        <h1>CORE <span>v3.1 CLOUD</span></h1>
       </div>
-      <button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button>
+      <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
 
     <main>
@@ -44,6 +71,7 @@
           <button class="menu-card" data-go="sets"><span>▦</span><b>よく使うセット</b><small>セットを保存して一発入力</small></button>
           <button class="menu-card" data-go="dispatch"><span>🚚</span><b>配車予定</b><small>搬入日・車両・進捗を確認</small></button>
           <button class="menu-card featured" data-go="compare"><span>⇄</span><b>AI図面比較</b><small>新旧図面の変更点をAI確認</small></button>
+          <button class="menu-card" data-go="companySettings"><span>🏢</span><b>会社設定</b><small>会社コード・招待URL・切替</small></button>
         </div>
       </section>
 
@@ -136,6 +164,7 @@
         <div class="card assist-note ai-note"><b>図面をAIが読んで資材候補を作る</b><p>保存済みのPDF・JPG・PNGをAIへ送信し、枠組・単管を中心に図面上で確認できる情報から資材候補を作ります。AI結果は発注確定ではありません。数量・納まりは必ず人が確認してください。</p></div>
 
         <div class="card form-card">
+          <div class="ai-direct-upload"><b>ここから図面を追加</b><p class="muted">先に「図面アップロード」へ戻らなくても、AI解析画面からPDF・JPG・PNGを複数追加できます。</p><label class="secondary-btn upload-btn">＋ 解析する図面を追加<input id="aiDrawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label></div>
           <div class="drawing-pick-wrap"><div class="drawing-pick-head"><b>解析する図面</b><span>複数選択OK</span></div><div id="assistDrawingList" class="drawing-check-list"><div class="muted">図面を読み込み中…</div></div><div class="drawing-pick-actions"><button type="button" id="selectAllDrawings" class="mini-btn">すべて選択</button><button type="button" id="clearAllDrawings" class="mini-btn">選択解除</button></div><small class="muted">平面・立面・断面・詳細図をまとめて選ぶと、AIが相互に見比べて資材候補を作ります。</small></div>
           <label>解析モード<select id="aiMode"><option value="auto">自動判定</option><option value="frame">枠組足場を優先</option><option value="pipe">単管足場を優先</option></select></label>
           <label>現場メモ（任意）<textarea id="aiContext" rows="3" placeholder="例：解体足場、防音パネル養生、道路面に朝顔あり"></textarea></label>
@@ -200,6 +229,18 @@
         <div class="section-head"><h3>比較結果</h3></div><div id="compareResult" class="card assist-result empty">旧図面と新図面を選択してください</div>
       </section>
 
+      <section id="companySettings" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">COMPANY</p><h2>会社設定</h2></div></div>
+        <div class="card form-card">
+          <div class="company-profile"><span>会社名</span><strong id="companyNameView">-</strong></div>
+          <div class="company-profile"><span>会社コード</span><strong id="companyCodeView">-</strong></div>
+          <div class="company-profile"><span>担当者</span><strong id="companyUserView">-</strong></div>
+          <button id="copyInviteBtn" class="secondary-btn full">招待URLをコピー</button>
+          <button id="switchCompanyBtn" class="secondary-btn full">会社を切り替える</button><button id="signOutBtn" class="secondary-btn full">ログアウト</button>
+        </div>
+        <div class="card assist-note"><b>クラウド共有</b><p>ログインした会社の現場・注文履歴・在庫・お気に入り・資材マスタ・図面をクラウド同期します。会社が違えばデータは見えません。</p></div>
+      </section>
+
       <section id="success" class="screen success-screen">
         <div class="success-mark">✓</div><p class="eyebrow">COMPLETE</p><h2>注文を保存しました</h2>
         <p class="muted center">履歴からいつでも確認・再注文できます。</p>
@@ -217,6 +258,7 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="printArea" class="print-area"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>
