@@ -128,7 +128,7 @@
         <div id="missingCheck" class="card missing-check"></div>
         <button class="secondary-btn full" data-go="drawings">＋ 図面を選ぶ / アップロード</button>
         <span id="selectedDrawingName" class="selected-drawing-name"></span>
-        <div class="action-grid"><button id="printDraftBtn" class="secondary-btn full">PDF / 印刷</button><button id="lineDraftBtn" class="secondary-btn full">LINEで共有</button></div>
+        <div class="action-grid"><button id="printDraftBtn" class="secondary-btn full">PDF作成</button><button id="lineDraftBtn" class="secondary-btn full">LINEで共有</button></div>
         <button id="submitOrderBtn" class="primary-btn full">この内容で注文を保存</button>
       </section>
 
@@ -250,7 +250,7 @@
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ANALYTICS</p><h2>利用分析</h2></div></div><div id="analyticsBody"></div>
       </section>
       <section id="members" class="screen">
-        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MEMBERS</p><h2>メンバー・権限</h2></div></div><div class="card assist-note"><b>会社招待と権限</b><p>招待URLで同じ会社へ参加できます。現在のクラウドDBでは owner / admin / member を保持します。v4.0では画面上で「社長・管理者・職長・閲覧」の運用ルールを確認できます。</p></div><div id="memberRoleBody" class="card"></div><button id="memberInviteBtn" class="primary-btn full">招待URLをコピー</button>
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MEMBERS</p><h2>メンバー・権限</h2></div></div><div class="card assist-note"><b>会社招待と権限</b><p>招待URLで同じ会社へ参加できます。社長・管理者・職長・閲覧の4段階で権限を設定できます。社長・管理者はこの画面からメンバー権限を変更できます。</p></div><div id="memberRoleBody" class="card"></div><button id="memberInviteBtn" class="primary-btn full">招待URLをコピー</button>
       </section>
       <section id="plans" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SUBSCRIPTION</p><h2>プラン</h2></div></div><div class="plan-grid"><article class="card plan-card"><b>Free</b><strong>¥0</strong><small>基本注文・重量計算</small></article><article class="card plan-card recommended"><b>Standard</b><strong>価格設定前</strong><small>クラウド・在庫・複数ユーザー・配車</small></article><article class="card plan-card"><b>Pro</b><strong>価格設定前</strong><small>AI図面・写真AI・分析</small></article></div><div class="card assist-note"><b>サブスク準備モード</b><p>会社ごとにプランを持てる土台です。実際のカード課金は決済サービス接続後に有効化します。今は勝手に課金されません。</p></div>
@@ -285,6 +285,8 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="printArea" class="print-area"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

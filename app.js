@@ -62,8 +62,8 @@ const FRIENDLY_MATERIAL_MIGRATION="v1.1.1";
 const state={cart:{},category:'すべて',search:'',selectedSite:'',selectedDrawingId:null,favorites:new Set(JSON.parse(lsGet('vertx_core_favorites')||'[]'))};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function applyV4MaterialCleanup(){
-  const removeIds=new Set(['nk_043']);
-  MATERIALS=MATERIALS.filter(m=>!removeIds.has(m.id) && !/^軽量足場板/.test(m.name));
+  const removeIds=new Set(['nk_043','nk_065','nk_068','nk_071','nk_074','nk_075']);
+  MATERIALS=MATERIALS.filter(m=>!removeIds.has(m.id) && !/^軽量足場板/.test(m.name) && !/^ロック付連結ピン/.test(m.name));
   const seen=new Set();
   MATERIALS=MATERIALS.filter(m=>{const key=(m.name||'').trim();if(seen.has(key))return false;seen.add(key);return true});
   lsSet('vertx_core_materials',JSON.stringify(MATERIALS));
@@ -73,6 +73,7 @@ let photoAiFiles=[],photoAiCandidates=[];
 
 
 function go(screenId){
+  if(screenId!=='home'&&!canOpenScreen(screenId)){toast('この機能を使う権限がありません');return false}
   $$('.screen').forEach(el=>el.classList.toggle('active',el.id===screenId));
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.go===screenId || (screenId==='confirm'&&el.dataset.go==='order')));
   if(screenId==='history')renderHistory(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();if(screenId==='siteStock')renderSiteStock();if(screenId==='shortage')renderShortage();if(screenId==='sets')renderSets();if(screenId==='dispatch')renderDispatch();if(screenId==='compare')loadCompareDrawings();if(screenId==='siteDashboard')renderSiteDashboard();if(screenId==='analytics')renderAnalytics();if(screenId==='members')renderMembers();if(screenId==='plans')renderPlans();
@@ -170,7 +171,26 @@ function shareDraft(){const o=currentDraft();if(!o.items.length)return toast('�
 function shareToLine(o){window.open(`https://line.me/R/share?text=${encodeURIComponent(orderText(o))}`,'_blank')}
 function printOrderById(id){const o=getHistory().find(x=>x.id===id);if(o)printOrder(o)}
 function printDraft(){const o=currentDraft();if(!o.items.length)return toast('資材を選択してください');printOrder(o)}
-function printOrder(o){const area=$('#printArea');area.innerHTML=`<div class="print-sheet"><h1>VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計重量：<b>${formatWeight(o.weight)}</b>　乗る車：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table><thead><tr><th>資材名</th><th>数量</th><th>単重</th><th>重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${escapeHtml(i.name)}</td><td>${i.qty}${escapeHtml(i.unit)}</td><td>${Number(i.weight).toFixed(2)}kg</td><td>${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p>メモ：${escapeHtml(o.memo)}</p>`:''}<p class="print-note">VERTX CORE v2.3.1 AI</p></div>`;window.print()}
+async function printOrder(o){
+  const area=$('#printArea');
+  area.innerHTML=`<div class="print-sheet" style="display:block;background:#fff;color:#111;width:794px;min-height:1123px;padding:48px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Yu Gothic',sans-serif"><h1 style="font-size:28px;margin:0 0 28px">VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計：<b>${o.qty}点</b>　合計重量：<b>${formatWeight(o.weight)}</b></p><p>推奨車両：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:24px"><thead><tr><th style="border:1px solid #999;padding:9px;text-align:left">資材名</th><th style="border:1px solid #999;padding:9px">数量</th><th style="border:1px solid #999;padding:9px">単重</th><th style="border:1px solid #999;padding:9px">重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td style="border:1px solid #bbb;padding:9px">${escapeHtml(i.name)}</td><td style="border:1px solid #bbb;padding:9px;text-align:center">${i.qty}${escapeHtml(i.unit)}</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${Number(i.weight).toFixed(2)}kg</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p style="margin-top:24px">メモ：${escapeHtml(o.memo)}</p>`:''}<p style="margin-top:32px;font-size:11px;color:#666">VERTX CORE v4.0.2</p></div>`;
+  const sheet=area.firstElementChild;
+  try{
+    if(!window.html2canvas||!window.jspdf?.jsPDF)throw new Error('PDF機能の読み込みに失敗しました');
+    area.style.cssText='display:block!important;position:fixed;left:-10000px;top:0;width:794px;z-index:-1;';
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const canvas=await html2canvas(sheet,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
+    const {jsPDF}=window.jspdf; const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const img=canvas.toDataURL('image/jpeg',0.92), pw=210, ph=297, ih=canvas.height*pw/canvas.width;
+    let y=0, left=ih; pdf.addImage(img,'JPEG',0,y,pw,ih,undefined,'FAST'); left-=ph;
+    while(left>0){y=left-ih;pdf.addPage();pdf.addImage(img,'JPEG',0,y,pw,ih,undefined,'FAST');left-=ph}
+    const safe=(o.site||'注文書').replace(/[\/:*?"<>|]/g,'_').slice(0,40); const name=`VERTX_注文書_${safe}_${new Date().toISOString().slice(0,10)}.pdf`;
+    const blob=pdf.output('blob'); const file=new File([blob],name,{type:'application/pdf'});
+    if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'VERTX 資材注文書'});toast('PDFを作成しました')}
+    else{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);toast('PDFを作成しました')}
+  }catch(e){console.error(e);toast('PDF作成に失敗しました：'+(e?.message||e))}
+  finally{area.style.cssText='';area.innerHTML=''}
+}
 
 
 // v1.0 不足チェック
@@ -263,6 +283,15 @@ function matchMaterialByAiName(name){
   const tokens=String(name).toLowerCase().split(/[\s　・･()（）\-_/]+/).filter(x=>x.length>1);
   let scored=MATERIALS.map(m=>({m,score:tokens.reduce((s,t)=>s+(String(m.name).toLowerCase().includes(t)?1:0),0)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
   return scored[0]?.m||null;
+}
+async function compressImageForAi(blob,mimeType='image/jpeg'){
+  if(!blob || String(mimeType).includes('pdf')) return blob;
+  if(blob.size<=1800000) return blob;
+  const bitmap=await createImageBitmap(blob);
+  const maxSide=1800, scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+  canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
+  return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('写真の圧縮に失敗しました')),'image/jpeg',0.82));
 }
 function blobToBase64(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]||'');r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
 function setAiStatus(msg,type=''){const el=$('#aiStatus');if(!el)return;el.textContent=msg;el.className='ai-status'+(type?' '+type:'');el.classList.toggle('hidden',!msg)}
@@ -424,16 +453,96 @@ async function loadCompareDrawings(){const a=await drawingList();const opts='<op
 async function runCompare(){const oldId=Number($('#compareOld').value),newId=Number($('#compareNew').value);if(!oldId||!newId||oldId===newId)return toast('旧図面と新図面を別々に選んでください');const oldD=await drawingGet(oldId),newD=await drawingGet(newId);if(!oldD||!newD)return toast('図面が見つかりません');const st=$('#compareStatus');st.classList.remove('hidden');st.textContent='AIが新旧図面を比較しています…';$('#compareResult').innerHTML='';try{let oldBlob=oldD.blob,newBlob=newD.blob;if(!String(oldD.type).includes('pdf'))oldBlob=await compressImageForAi(oldBlob,oldD.type);if(!String(newD.type).includes('pdf'))newBlob=await compressImageForAi(newBlob,newD.type);const body={old:{filename:oldD.name,mimeType:oldD.type,dataBase64:await blobToBase64(oldBlob)},newer:{filename:newD.name,mimeType:newD.type,dataBase64:await blobToBase64(newBlob)},context:$('#compareContext').value.trim()};const r=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.error||'比較に失敗しました');const a=data.analysis;$('#compareResult').innerHTML=`<h3>${escapeHtml(a.summary||'比較結果')}</h3>${(a.changes||[]).map(x=>`<div class="compare-change"><b>${escapeHtml(x.area||'変更')}</b><p>${escapeHtml(x.change||'')}</p><small>${escapeHtml(x.impact||'')}</small></div>`).join('')}${(a.warnings||[]).length?`<div class="ai-warning"><b>注意</b>${a.warnings.map(x=>`<p>${escapeHtml(x)}</p>`).join('')}</div>`:''}`;st.textContent='比較完了'}catch(e){st.textContent=e.message;$('#compareResult').textContent='AI比較に失敗しました'} }
 
 
-function findMaterialBySpeech(raw){const q=String(raw).toLowerCase().replace(/\s/g,'').replace(/ｍ/g,'m');return MATERIALS.find(m=>{const hay=`${m.name} ${m.aliases||''}`.toLowerCase().replace(/\s/g,'').replace(/ｍ/g,'m');return hay.includes(q)||q.includes(m.name.toLowerCase().replace(/\s/g,''))})}
-function parseVoiceOrder(){const text=$('#voiceText').value.trim();if(!text)return toast('内容を入力してください');let hits=[];for(const m of MATERIALS){const names=[m.name,...String(m.aliases||'').split('/')].map(x=>x.trim()).filter(Boolean);for(const name of names){const esc=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s*');const re=new RegExp(esc+'(?:を|\\s)*(\\d+)(?:枚|本|個|台|点)?','i');const mm=text.match(re);if(mm){hits.push({m,qty:Number(mm[1])});break}}}hits.forEach(x=>state.cart[x.m.id]=(state.cart[x.m.id]||0)+x.qty);$('#voiceResult').innerHTML=hits.length?hits.map(x=>`<div class="history-item-row"><span>${escapeHtml(x.m.name)}</span><strong>${x.qty}${escapeHtml(x.m.unit)}</strong></div>`).join(''):'資材名と数量を認識できませんでした。例：アンチ 1.8を50枚';if(hits.length)toast(`${hits.length}種類を注文候補に追加しました`)}
-function startVoiceOrder(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return toast('このブラウザは音声認識に未対応です。文字入力は使えます');const r=new SR();r.lang='ja-JP';r.interimResults=false;r.onresult=e=>{$('#voiceText').value=e.results[0][0].transcript;parseVoiceOrder()};r.onerror=()=>toast('音声認識できませんでした');r.start();toast('話してください')}
+function normalizeVoiceText(v=''){
+  return String(v).toLowerCase()
+    .replace(/[，、]/g,',').replace(/[。]/g,' ')
+    .replace(/点/g,'.').replace(/ｍ/g,'m').replace(/メートル/g,'m')
+    .replace(/枚|本|個|台|点/g,m=>m).replace(/\s+/g,' ')
+    .trim();
+}
+function voiceMaterialNames(m){
+  const a=[m.name,...String(m.aliases||'').split('/')].map(x=>normalizeVoiceText(x).trim()).filter(Boolean);
+  // 現場でよく使う短縮名も追加
+  if(m.name.startsWith('アンチ '))a.push(m.name.replace('アンチ ','アンチ'));
+  if(m.name.startsWith('ハーフアンチ '))a.push(m.name.replace('ハーフアンチ ','ハーフアンチ'));
+  if(m.name.startsWith('ブレス '))a.push(m.name.replace('ブレス ','ブレス'));
+  if(m.name.startsWith('枠 '))a.push(m.name.replace('枠 ','枠'));
+  if(m.name.startsWith('下さん '))a.push(m.name.replace('下さん ','下さん'));
+  return [...new Set(a)].sort((x,y)=>y.length-x.length);
+}
+function parseVoiceOrder(){
+  const raw=$('#voiceText').value.trim();if(!raw)return toast('内容を入力してください');
+  const text=normalizeVoiceText(raw);const found=new Map();
+  for(const m of MATERIALS){
+    for(const name of voiceMaterialNames(m)){
+      const esc=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s*');
+      const patterns=[
+        new RegExp(esc+'\\s*(?:を|が|は)?\\s*(\\d+)\\s*(?:枚|本|個|台|点)?','i'),
+        new RegExp('(\\d+)\\s*(?:枚|本|個|台|点)?\\s*(?:の)?\\s*'+esc,'i')
+      ];
+      let mm=null;for(const re of patterns){mm=text.match(re);if(mm)break}
+      if(mm){found.set(m.id,{m,qty:Number(mm[1])});break}
+    }
+  }
+  const hits=[...found.values()];
+  hits.forEach(x=>state.cart[x.m.id]=(state.cart[x.m.id]||0)+x.qty);
+  $('#voiceResult').innerHTML=hits.length?hits.map(x=>`<div class="history-item-row"><span>${escapeHtml(x.m.name)}</span><strong>${x.qty}${escapeHtml(x.m.unit)}</strong></div>`).join(''):'資材名と数量を認識できませんでした。例：アンチ1.8を50枚、枠600を30枚';
+  if(hits.length){renderMaterials();toast(`${hits.length}種類を注文候補に追加しました`)}
+}
+let voiceRecorder=null,voiceChunks=[],voiceStream=null;
+async function transcribeRecordedAudio(blob){
+  if(blob.size>3.2*1024*1024)throw new Error('録音が長すぎます。短く区切って話してください');
+  const dataBase64=await blobToBase64(blob);
+  const r=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mimeType:blob.type||'audio/webm',dataBase64})});
+  const data=await r.json();if(!r.ok)throw new Error(data.error||'音声変換に失敗しました');return data.text||'';
+}
+async function startRecordedVoice(){
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)return toast('この端末ではマイク録音を利用できません');
+  const btn=$('#voiceStartBtn');
+  if(voiceRecorder&&voiceRecorder.state==='recording'){voiceRecorder.stop();btn.textContent='⏳ 音声を変換中…';btn.disabled=true;return}
+  try{
+    voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});voiceChunks=[];
+    const types=['audio/mp4','audio/webm;codecs=opus','audio/webm'];const type=types.find(t=>MediaRecorder.isTypeSupported?.(t))||'';
+    voiceRecorder=new MediaRecorder(voiceStream,type?{mimeType:type}:undefined);
+    voiceRecorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data)};
+    voiceRecorder.onerror=()=>toast('録音に失敗しました');
+    voiceRecorder.onstop=async()=>{try{voiceStream?.getTracks().forEach(t=>t.stop());const blob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||'audio/webm'});const text=await transcribeRecordedAudio(blob);$('#voiceText').value=text;if(text)parseVoiceOrder();else toast('音声を認識できませんでした')}catch(e){toast('音声入力エラー：'+(e.message||e))}finally{btn.disabled=false;btn.textContent='🎙 音声入力を開始'}};
+    voiceRecorder.start();btn.textContent='■ 録音停止して注文に変換';toast('話してください。終わったらもう一度ボタンを押してください');
+  }catch(e){toast(e?.name==='NotAllowedError'?'マイクの使用を許可してください':'マイクを開始できませんでした')}
+}
+function startVoiceOrder(){
+  // Chrome/Edge等は端末内Web Speechを優先。iPhone/Safari等は録音→OpenAI文字起こしへフォールバック。
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return startRecordedVoice();
+  try{
+    const r=new SR();r.lang='ja-JP';r.interimResults=true;r.continuous=false;
+    const btn=$('#voiceStartBtn');btn.textContent='🎙 聞き取り中…';btn.disabled=true;
+    r.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;$('#voiceText').value=t};
+    r.onend=()=>{btn.disabled=false;btn.textContent='🎙 音声入力を開始';if($('#voiceText').value.trim())parseVoiceOrder()};
+    r.onerror=e=>{btn.disabled=false;btn.textContent='🎙 音声入力を開始';if(['not-allowed','service-not-allowed'].includes(e.error))toast('マイクの使用を許可してください');else startRecordedVoice()};
+    r.start();toast('話してください');
+  }catch(e){startRecordedVoice()}
+}
 function renderSiteDashboard(){const sites=getSites();$('#dashSite').innerHTML='<option value="">現場を選択</option>'+sites.map(s=>`<option>${escapeHtml(s)}</option>`).join('');$('#dashSite').onchange=renderSiteDashboardBody;renderSiteDashboardBody()}
 function renderSiteDashboardBody(){const site=$('#dashSite')?.value||getSites()[0]||'';if($('#dashSite')&&site)$('#dashSite').value=site;const stock=getStock().filter(x=>x.site===site),orders=getHistory().filter(x=>x.site===site);let w=0,q=0;stock.forEach(r=>{const m=MATERIALS.find(x=>x.id===r.materialId);q+=Number(r.qty)||0;w+=(Number(r.qty)||0)*(Number(m?.weight)||0)});$('#siteDashboardBody').innerHTML=site?`<div class="stats-grid"><article class="card stat"><span>現場在庫</span><strong>${q.toLocaleString()}点</strong></article><article class="card stat"><span>在庫重量</span><strong>${(w/1000).toFixed(2)}t</strong></article><article class="card stat"><span>注文回数</span><strong>${orders.length}</strong></article><article class="card stat"><span>最新搬入</span><strong>${escapeHtml(orders[0]?.date||'-')}</strong></article></div><div class="card"><h3>${escapeHtml(site)}</h3>${stock.slice(0,12).map(r=>`<div class="history-item-row"><span>${escapeHtml(r.materialName)}</span><strong>${Number(r.qty).toLocaleString()}</strong></div>`).join('')||'<p class="muted">在庫なし</p>'}</div>`:'<div class="card empty">現場を登録すると表示されます</div>'}
 function renderAnalytics(){const h=getHistory();const totalW=h.reduce((a,o)=>a+(Number(o.weight)||0),0),items=h.reduce((a,o)=>a+(o.items||[]).reduce((s,i)=>s+(Number(i.qty)||0),0),0);const sites=new Set(h.map(x=>x.site).filter(Boolean)).size;$('#analyticsBody').innerHTML=`<div class="stats-grid"><article class="card stat"><span>注文</span><strong>${h.length}件</strong></article><article class="card stat"><span>注文数量</span><strong>${items.toLocaleString()}点</strong></article><article class="card stat"><span>搬入重量</span><strong>${(totalW/1000).toFixed(2)}t</strong></article><article class="card stat"><span>稼働現場</span><strong>${sites}</strong></article></div><div class="card"><h3>車両目安</h3>${Object.entries(h.reduce((a,o)=>{const t=o.truck||truckFor(o.weight||0);a[t]=(a[t]||0)+1;return a},{})).map(([k,v])=>`<div class="history-item-row"><span>${escapeHtml(k)}</span><strong>${v}回</strong></div>`).join('')||'<p class="muted">データなし</p>'}</div>`}
-function renderMembers(){const s=getCompanySession();$('#memberRoleBody').innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(s?.role||'member')}</strong></div><div class="history-item-row"><span>社長 / Owner</span><small>全管理</small></div><div class="history-item-row"><span>管理者 / Admin</span><small>会社運用</small></div><div class="history-item-row"><span>職長 / Member</span><small>現場・注文</small></div><div class="history-item-row"><span>閲覧</span><small>本格権限制御は次回DB更新で追加可能</small></div>`}
+async function renderMembers(){
+  const s=getCompanySession(),root=$('#memberRoleBody');if(!root)return;
+  root.innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(roleLabel(s?.role))}</strong></div><p class="muted">読み込み中…</p>`;
+  if(!supabaseClient||!s?.orgId)return;
+  const {data,error}=await supabaseClient.rpc('list_organization_members',{p_org:s.orgId});
+  if(error){root.innerHTML+=`<p class="muted">メンバー取得エラー：${escapeHtml(error.message)}</p>`;return}
+  const canManage=['owner','admin'].includes(s.role);
+  root.innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(roleLabel(s.role))}</strong></div>`+(data||[]).map(m=>`<div class="history-item-row"><span>${escapeHtml(m.email||'メンバー')}<small>${escapeHtml(roleLabel(m.role))}</small></span>${canManage&&m.role!=='owner'?`<select data-member-user="${m.user_id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理者</option><option value="member" ${m.role==='member'?'selected':''}>職長</option><option value="viewer" ${m.role==='viewer'?'selected':''}>閲覧</option></select>`:`<strong>${escapeHtml(roleLabel(m.role))}</strong>`}</div>`).join('');
+  root.querySelectorAll('[data-member-user]').forEach(sel=>sel.onchange=async()=>{const {error}=await supabaseClient.rpc('set_organization_member_role',{p_org:s.orgId,p_user:sel.dataset.memberUser,p_role:sel.value});if(error){toast('権限変更失敗：'+error.message);await renderMembers()}else toast('権限を変更しました')});
+}
+function roleLabel(r){return ({owner:'社長 / Owner',admin:'管理者 / Admin',member:'職長 / Member',viewer:'閲覧'})[r]||r||'職長 / Member'}
+function canOpenScreen(screenId){const r=getCompanySession()?.role||'member';if(r==='owner')return true;if(r==='admin')return !['plans'].includes(screenId);if(r==='member')return !['materialsMaster','members','plans','analytics','companySettings'].includes(screenId);if(r==='viewer')return ['home','history','favorites','drawings','siteStock','siteDashboard','companySettings'].includes(screenId);return false}
+function applyRoleUi(){document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(!target||target==='home')return;const allowed=canOpenScreen(target);if(el.classList.contains('menu-card'))el.style.display=allowed?'':'none';});const r=getCompanySession()?.role||'member';if($('#memberInviteBtn'))$('#memberInviteBtn').style.display=['owner','admin'].includes(r)?'':'none';}
+
 function renderPlans(){const s=getCompanySession();document.querySelectorAll('.plan-card').forEach(x=>x.classList.remove('current'));document.querySelector('.plan-card.recommended')?.classList.add('current')}
-async function runPhotoAi(){if(!photoAiFiles.length)return toast('写真を選択してください');const st=$('#photoAiStatus');st.classList.remove('hidden');st.textContent='AIが現場写真を確認しています…';try{const drawings=[];for(const f of photoAiFiles.slice(0,6)){const b=await compressImageForAi(f,f.type);drawings.push({filename:f.name,mimeType:f.type,dataBase64:await blobToBase64(b)})}const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({drawings,mode:'photo',context:$('#photoAiContext').value.trim()+' 現場写真です。写っている足場資材を候補として抽出してください。'})});const data=await r.json();if(!r.ok)throw new Error(data.error||'写真解析に失敗しました');const a=data.analysis||data;photoAiCandidates=a.materials||a.candidates||[];$('#photoAiResult').innerHTML=`<h3>${escapeHtml(a.summary||'写真AI結果')}</h3>`+photoAiCandidates.map(x=>`<div class="history-item-row"><span>${escapeHtml(x.name||x.material||'資材')}</span><strong>${Number(x.qty||x.quantity||0)||'?'} </strong></div>`).join('');$('#applyPhotoAiBtn').classList.toggle('hidden',!photoAiCandidates.length);st.textContent='解析完了'}catch(e){st.textContent=e.message;$('#photoAiResult').textContent='解析できませんでした'}}
-function applyPhotoAi(){let n=0;for(const x of photoAiCandidates){const name=x.name||x.material||'';const m=MATERIALS.find(y=>y.name===name)||findMaterialBySpeech(name);const q=Number(x.qty||x.quantity||0);if(m&&q>0){state.cart[m.id]=(state.cart[m.id]||0)+q;n++}}renderMaterials();go('order');toast(`${n}種類を注文へ追加しました`)}
+async function runPhotoAi(){if(!photoAiFiles.length)return toast('写真を選択してください');const st=$('#photoAiStatus');st.classList.remove('hidden');st.textContent='AIが現場写真を確認しています…';try{const drawings=[];for(const f of photoAiFiles.slice(0,6)){const b=await compressImageForAi(f,f.type);drawings.push({filename:f.name,mimeType:f.type,dataBase64:await blobToBase64(b)})}const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files:drawings,materialNames:MATERIALS.map(m=>m.name),mode:'photo',context:$('#photoAiContext').value.trim()+' 現場写真です。写っている足場資材を候補として抽出してください。'})});const data=await r.json();if(!r.ok)throw new Error(data.error||'写真解析に失敗しました');const a=data.analysis||data;photoAiCandidates=a.materials||a.candidates||[];$('#photoAiResult').innerHTML=`<h3>${escapeHtml(a.summary||'写真AI結果')}</h3>`+photoAiCandidates.map(x=>`<div class="history-item-row"><span>${escapeHtml(x.material_name||x.name||x.material||'資材')}</span><strong>${Number(x.qty||x.quantity||0)||'?'} </strong></div>`).join('');$('#applyPhotoAiBtn').classList.toggle('hidden',!photoAiCandidates.length);st.textContent='解析完了'}catch(e){st.textContent=e.message;$('#photoAiResult').textContent='解析できませんでした'}}
+function applyPhotoAi(){let n=0;for(const x of photoAiCandidates){const name=x.material_name||x.name||x.material||'';const m=MATERIALS.find(y=>y.name===name)||findMaterialBySpeech(name);const q=Number(x.qty||x.quantity||0);if(m&&q>0){state.cart[m.id]=(state.cart[m.id]||0)+q;n++}}renderMaterials();go('order');toast(`${n}種類を注文へ追加しました`)}
 
 function formatDate(v){return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(v))}
 function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
@@ -449,6 +558,7 @@ function renderCompanyIdentity(){
   if($('#companyNameView'))$('#companyNameView').textContent=s.company||'-';
   if($('#companyCodeView'))$('#companyCodeView').textContent=s.code||'-';
   if($('#companyUserView'))$('#companyUserView').textContent=s.user||cloudUser?.email||'-';
+  document.body.dataset.role=s.role||'member';applyRoleUi();
   return true;
 }
 function setAuthStatus(msg){const el=$('#authStatus');if(el)el.textContent=msg}
