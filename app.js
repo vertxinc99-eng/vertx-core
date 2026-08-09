@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.1.0';
+const VERTX_BUILD='7.2.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -340,13 +340,21 @@ async function getAiLearningContext(){
 function aiCacheKey(drawings,mode,context){return JSON.stringify({ids:drawings.map(d=>[d.id,d.createdAt||'',d.size||0]),mode,context,learning:lsGet('vertx_core_ai_learning_version')||'0',build:VERTX_BUILD})}
 function getAiCache(key){try{const all=JSON.parse(nativeGet(tenantKey('vertx_core_ai_cache'))||'{}');const hit=all[key];if(hit&&Date.now()-hit.ts<7*24*3600*1000)return hit.analysis}catch{}return null}
 function setAiCache(key,analysis){try{let all=JSON.parse(nativeGet(tenantKey('vertx_core_ai_cache'))||'{}');all[key]={ts:Date.now(),analysis};const trimmed=Object.entries(all).sort((a,b)=>b[1].ts-a[1].ts).slice(0,5);nativeSet(tenantKey('vertx_core_ai_cache'),JSON.stringify(Object.fromEntries(trimmed)))}catch{}}
+async function fetchJsonWithTimeout(url,options={},timeoutMs=70000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+    const r=await fetch(url,{...options,signal:controller.signal});
+    const data=await r.json().catch(()=>({}));
+    return {r,data};
+  }finally{clearTimeout(timer)}
+}
 async function runAiAnalysis(){
   const ids=selectedAiDrawingIds();if(!ids.length)return toast('解析する図面を1枚以上選んでください');
   if(ids.length>8)return toast('一度に解析できる図面は8枚までです');
   const drawings=(await Promise.all(ids.map(id=>drawingGet(id)))).filter(Boolean);if(!drawings.length)return toast('図面が見つかりません');
   const mode=$('#aiMode').value,context=$('#aiContext').value.trim(),cacheKey=aiCacheKey(drawings,mode,context),cached=getAiCache(cacheKey);
   $('#runAiBtn').disabled=true;$('#applyAiBtn').classList.add('hidden');
-  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),150000);
   try{
     if(cached){renderAiResult(cached,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});setAiStatus('学習済みキャッシュから即時表示しました。条件を変えた場合は再解析してください。');return}
     const maxSide=drawings.length>=5?1050:drawings.length>=3?1250:1450;
@@ -354,18 +362,34 @@ async function runAiAnalysis(){
     setAiStatus(`CORE AIが${drawings.length}枚を最適化中…`);
     const prepared=await Promise.all(drawings.map(async d=>{let aiBlob=d.blob;if((d.type||'').startsWith('image/')&&Number(d.size)>350*1024)aiBlob=await compressImageBlob(d.blob,maxSide,quality);return {d,aiBlob,bytes:Number(aiBlob.size||d.size||0)}}));
     const totalBytes=prepared.reduce((s,x)=>s+x.bytes,0);if(totalBytes>2.55*1024*1024)throw new Error('図面の合計サイズが大きすぎます。必要な立面・断面だけに絞ってください。');
-    setAiStatus(`CORE AIが平面・立面・断面を照合中…`);
     const [files,learningExamples]=await Promise.all([Promise.all(prepared.map(async({d,aiBlob})=>({filename:d.name,mimeType:d.type,dataBase64:await blobToBase64(aiBlob)}))),getAiLearningContext()]);
     const materialNames=MATERIALS.map(m=>m.name);
-    let r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files,mode,context,materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),speedMode:'fast'})});
-    let data=await r.json().catch(()=>({}));
-    if(!r.ok&&r.status>=500){setAiStatus('AIを軽量モードで自動再試行しています…');const retryFiles=files.slice(0,Math.min(files.length,4));r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files:retryFiles,mode,context:context+'\n初回解析が失敗したため重要図面を優先して再解析。',materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),speedMode:'fallback'})});data=await r.json().catch(()=>({}));}
+    const common={method:'POST',headers:{'Content-Type':'application/json'}};
+    setAiStatus('CORE AIが図面を照合中… 失敗時は自動で軽量解析に切り替えます。');
+    let r,data;
+    try{
+      ({r,data}=await fetchJsonWithTimeout('/api/analyze',{...common,body:JSON.stringify({files,mode,context,materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),speedMode:'fast'})},70000));
+    }catch(e){
+      if(e?.name!=='AbortError'&&!/load failed|fetch failed|failed to fetch/i.test(String(e?.message||'')))throw e;
+      r=null;data={error:'初回解析がタイムアウトしました'};
+    }
+    if(!r||!r.ok){
+      setAiStatus('軽量モードで自動再解析しています…');
+      const retryFiles=files.slice(0,Math.min(files.length,4));
+      try{
+        ({r,data}=await fetchJsonWithTimeout('/api/analyze',{...common,body:JSON.stringify({files:retryFiles,mode,context:context+'\n初回解析が失敗または時間超過したため、重要図面を優先して軽量再解析。',materialNames,learningExamples,companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),speedMode:'fallback'})},70000));
+      }catch(e){
+        if(e?.name==='AbortError')throw new Error('AI解析が混雑しています。図面を1〜4枚に絞ってもう一度お試しください。');
+        throw e;
+      }
+    }
     if(!r.ok)throw new Error(data.error||`AI解析エラー (${r.status})`);
     setAiCache(cacheKey,data.analysis);renderAiResult(data.analysis,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});
     setAiStatus(`解析完了。会社の確定例${learningExamples.length}件と資材呼称を参照しました。`);
-  }catch(e){const msg=e?.name==='AbortError'?'AI解析が150秒を超えたため停止しました。図面枚数を減らすか、必要な立面・断面に絞って再試行してください。':(e?.message||'AI解析に失敗しました');const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。必要な断面・立面だけを選んで再試行してください。':msg;setAiStatus(friendly,'error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
-  finally{clearTimeout(timeout);$('#runAiBtn').disabled=false}
+  }catch(e){const msg=e?.message||'AI解析に失敗しました';const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。図面を1〜4枚に絞って再試行してください。':msg;setAiStatus(friendly,'error');$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
+  finally{$('#runAiBtn').disabled=false}
 }
+
 function renderAiResult(a,d){
   const rows=(a.materials||[]).filter(x=>Number(x.quantity)>0).map(x=>{const matched=matchMaterialByAiName(x.material_name);return {...x,matched}});
   aiCandidate=rows.filter(x=>x.matched).map(x=>({id:x.matched.id,name:x.matched.name,unit:x.matched.unit,weight:Number(x.matched.weight||0),qty:Math.max(0,Math.round(Number(x.quantity)||0)),confidence:Number(x.confidence||0),sourceName:x.material_name}));

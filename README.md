@@ -12,3 +12,6 @@
 3. Wait for Vercel Production deployment, then refresh the app.
 
 App: https://vertx-core.vercel.app/
+
+## v7.2
+最新版は VERTX CORE v7.2 NOVA BLACKLINE AI。GitHubルートへ本ZIPの中身を上書きし、Vercel Productionで反映してください。

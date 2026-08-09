@@ -338,3 +338,25 @@ body,.screen,.card,.menu-card,.material,.form-card,.history-item,.site-card,.pla
 .card,.menu-card,.material{box-shadow:0 12px 34px rgba(26,58,101,.09)!important}
 .menu-card,.material{transition:transform .16s ease,box-shadow .16s ease}.menu-card:active,.material-more:active,.fav-btn:active{transform:scale(.97)!important}
 @media(max-width:430px){.material-info{padding-right:102px!important}.material-info b{font-size:17px!important}.material-actions{right:10px!important;top:10px!important}.fav-btn{width:39px!important;height:39px!important}.material-more{width:47px!important;height:39px!important}.qty-control{grid-template-columns:54px minmax(68px,1fr) 54px!important}}
+
+/* ===== VERTX CORE v7.2 NOVA BLACKLINE AI — final cache-safe visual layer ===== */
+:root{--v72-ink:#07162b;--v72-sub:#33465e;--v72-line:#d7e2ed;--v72-blue:#0a7cff;--v72-bg:#eef5fc}
+body{background:linear-gradient(180deg,#edf5ff 0%,#f8fbff 44%,#eef4fb 100%)!important;color:var(--v72-ink)!important;overflow-x:hidden!important}
+.app-shell,.screen,main{max-width:100%!important;overflow-x:hidden!important}
+.card,.menu-card,.material,.form-card,.site-card,.history-item,.plan-card,.assist-result,.ai-direct-upload,.ai-material,.ai-result-head>div,.ai-dimensions{background:#fff!important;color:var(--v72-ink)!important;border-color:var(--v72-line)!important}
+.card h1,.card h2,.card h3,.card b,.card strong,.menu-card b,.material-info b,.form-card label,.plan-card b,.plan-card strong,.assist-result h3,.ai-material b{color:var(--v72-ink)!important;-webkit-text-fill-color:var(--v72-ink)!important}
+.card p,.card small,.menu-card small,.material-info small,.muted,.form-card p,.plan-card p,.plan-card li,.assist-result p,.ai-material small{color:var(--v72-sub)!important;-webkit-text-fill-color:var(--v72-sub)!important}
+.menu-card.featured{background:#fff!important;color:var(--v72-ink)!important}
+.menu-card.featured b,.menu-card.featured small{color:inherit!important;-webkit-text-fill-color:currentColor!important}
+.material{overflow:visible!important;padding-top:16px!important}
+.material-actions{display:flex!important;position:absolute!important;right:12px!important;top:12px!important;gap:8px!important;z-index:10!important}
+.material-more{display:grid!important;visibility:visible!important;opacity:1!important;width:52px!important;height:40px!important;background:#0b1d35!important;color:#fff!important;border-radius:13px!important}
+.material-more span,.material-more small{display:block!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+.material-info{padding-right:112px!important}
+.sticky-summary{z-index:40!important;bottom:calc(92px + env(safe-area-inset-bottom))!important;background:rgba(255,255,255,.97)!important;color:var(--v72-ink)!important;border:1px solid #d5e2ef!important;box-shadow:0 14px 36px rgba(31,69,116,.15)!important}
+.sticky-summary span,.sticky-summary strong{color:var(--v72-ink)!important;-webkit-text-fill-color:var(--v72-ink)!important}
+.bottom-nav{z-index:50!important;background:rgba(255,255,255,.97)!important;border:1px solid #d6e2ee!important;box-shadow:0 12px 34px rgba(29,63,108,.15)!important}
+.nav-item{color:#596a80!important}.nav-item.active{background:#0b1a2d!important;color:#2d8cff!important}.nav-order{background:#f1f5fa!important;color:#263b55!important}.nav-order.active{background:#0b1a2d!important;color:#2d8cff!important}
+.screen{padding-bottom:calc(240px + env(safe-area-inset-bottom))!important}
+.ai-status.error{color:#9b2020!important;-webkit-text-fill-color:#9b2020!important;background:#fff0f0!important}
+@media(max-width:430px){.material-info{padding-right:110px!important}.sticky-summary{left:12px!important;right:12px!important}.bottom-nav{left:12px!important;right:12px!important}}

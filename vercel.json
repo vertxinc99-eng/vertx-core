@@ -2,30 +2,11 @@
   "headers": [
     {
       "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
+      "headers": [{"key":"Cache-Control","value":"no-store, max-age=0"}]
     },
     {
       "source": "/",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/(index.html|app.js|style.css)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
+      "headers": [{"key":"Cache-Control","value":"no-store, max-age=0"}]
     }
   ]
 }
