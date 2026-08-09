@@ -1,0 +1,33 @@
+-- VERTX CORE v5.1 REQUIRED DB FIX -- run once in Supabase SQL Editor
+alter table public.memberships drop constraint if exists memberships_role_check;
+alter table public.memberships add constraint memberships_role_check check (role in ('owner','admin','member','viewer'));
+
+create or replace function public.list_organization_members(p_org uuid)
+returns table(user_id uuid,email text,role text,created_at timestamptz)
+language sql security definer set search_path=public,auth as $$
+  select m.user_id,u.email::text,m.role,m.created_at
+  from public.memberships m join auth.users u on u.id=m.user_id
+  where m.organization_id=p_org and public.is_org_member(p_org)
+  order by case m.role when 'owner' then 0 when 'admin' then 1 when 'member' then 2 else 3 end,m.created_at;
+$$;
+
+create or replace function public.set_organization_member_role(p_org uuid,p_user uuid,p_role text)
+returns void language plpgsql security definer set search_path=public as $$
+declare caller_role text; target_role text;
+begin
+  select role into caller_role from public.memberships where organization_id=p_org and user_id=auth.uid();
+  select role into target_role from public.memberships where organization_id=p_org and user_id=p_user;
+  if caller_role not in ('owner','admin') then raise exception 'permission denied'; end if;
+  if p_role not in ('admin','member','viewer') then raise exception 'invalid role'; end if;
+  if target_role='owner' then raise exception 'owner role cannot be changed here'; end if;
+  if caller_role='admin' and (target_role='admin' or p_role='admin') then raise exception 'only owner can manage admins'; end if;
+  update public.memberships set role=p_role where organization_id=p_org and user_id=p_user;
+end;$$;
+
+grant execute on function public.list_organization_members(uuid) to authenticated;
+grant execute on function public.set_organization_member_role(uuid,uuid,text) to authenticated;
+
+delete from public.materials
+where name ~ 'ロック[[:space:]]*付?[[:space:]]*連結ピン'
+   or name ~ '軽量足場板'
+   or name ~ '^手摺[[:space:]]*(0[.．]6|0[.．]9|1[.．]2|1[.．]5|1[.．]8)$';

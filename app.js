@@ -1,4 +1,4 @@
-// VERTX CORE v3.1 CLOUD MODE
+// VERTX CORE v5.1 VERIFIED
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
 let cloudReady=false;
@@ -55,11 +55,12 @@ function loadMaterialMaster(){
       const byId=new Map(saved.map(x=>[x.id,x]));
       const merged=DEFAULT_MATERIALS.map(d=>byId.has(d.id)?{...d,...byId.get(d.id)}:{...d});
       saved.forEach(s=>{if(!DEFAULT_MATERIALS.some(d=>d.id===s.id))merged.push(s)});
-      lsSet('vertx_core_materials',JSON.stringify(merged));
-      return merged;
+      const cleaned=cleanMaterialMaster(merged);
+      lsSet('vertx_core_materials',JSON.stringify(cleaned));
+      return cleaned;
     }
   }catch(e){}
-  return DEFAULT_MATERIALS.map(x=>({...x}));
+  return cleanMaterialMaster(DEFAULT_MATERIALS.map(x=>({...x})));
 }
 let MATERIALS=cleanMaterialMaster(loadMaterialMaster());
 const FRIENDLY_MATERIAL_MIGRATION="v1.1.1";
@@ -188,7 +189,7 @@ function printOrderById(id){const o=getHistory().find(x=>x.id===id);if(o)printOr
 function printDraft(){const o=currentDraft();if(!o.items.length)return toast('資材を選択してください');printOrder(o)}
 async function printOrder(o){
   const area=$('#printArea');
-  area.innerHTML=`<div class="print-sheet" style="display:block;background:#fff;color:#111;width:794px;min-height:1123px;padding:48px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Yu Gothic',sans-serif"><h1 style="font-size:28px;margin:0 0 28px">VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計：<b>${o.qty}点</b>　合計重量：<b>${formatWeight(o.weight)}</b></p><p>推奨車両：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:24px"><thead><tr><th style="border:1px solid #999;padding:9px;text-align:left">資材名</th><th style="border:1px solid #999;padding:9px">数量</th><th style="border:1px solid #999;padding:9px">単重</th><th style="border:1px solid #999;padding:9px">重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td style="border:1px solid #bbb;padding:9px">${escapeHtml(i.name)}</td><td style="border:1px solid #bbb;padding:9px;text-align:center">${i.qty}${escapeHtml(i.unit)}</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${Number(i.weight).toFixed(2)}kg</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p style="margin-top:24px">メモ：${escapeHtml(o.memo)}</p>`:''}<p style="margin-top:32px;font-size:11px;color:#666">VERTX CORE v5.0</p></div>`;
+  area.innerHTML=`<div class="print-sheet" style="display:block;background:#fff;color:#111;width:794px;min-height:1123px;padding:48px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Yu Gothic',sans-serif"><h1 style="font-size:28px;margin:0 0 28px">VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計：<b>${o.qty}点</b>　合計重量：<b>${formatWeight(o.weight)}</b></p><p>推奨車両：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:24px"><thead><tr><th style="border:1px solid #999;padding:9px;text-align:left">資材名</th><th style="border:1px solid #999;padding:9px">数量</th><th style="border:1px solid #999;padding:9px">単重</th><th style="border:1px solid #999;padding:9px">重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td style="border:1px solid #bbb;padding:9px">${escapeHtml(i.name)}</td><td style="border:1px solid #bbb;padding:9px;text-align:center">${i.qty}${escapeHtml(i.unit)}</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${Number(i.weight).toFixed(2)}kg</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p style="margin-top:24px">メモ：${escapeHtml(o.memo)}</p>`:''}<p style="margin-top:32px;font-size:11px;color:#666">VERTX CORE v5.1</p></div>`;
   const sheet=area.firstElementChild;
   try{
     if(!window.html2canvas||!window.jspdf?.jsPDF)throw new Error('PDF機能の読み込みに失敗しました');
@@ -546,7 +547,7 @@ async function renderMembers(){
   root.innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(roleLabel(s?.role))}</strong></div><p class="muted">読み込み中…</p>`;
   if(!supabaseClient||!s?.orgId)return;
   const {data,error}=await supabaseClient.rpc('list_organization_members',{p_org:s.orgId});
-  if(error){root.innerHTML+=`<p class="muted">メンバー取得エラー：${escapeHtml(error.message)}</p>`;return}
+  if(error){root.innerHTML+=`<div class="member-error"><b>メンバー機能のDB更新が必要です</b><p>SUPABASE_V5_1_MIGRATION.sql をSupabase SQL Editorで1回実行してください。</p><small>${escapeHtml(error.message)}</small></div>`;return}
   const canManage=['owner','admin'].includes(s.role);
   root.innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(roleLabel(s.role))}</strong></div>`+(data||[]).map(m=>`<div class="history-item-row"><span>${escapeHtml(m.email||'メンバー')}<small>${escapeHtml(roleLabel(m.role))}</small></span>${canManage&&m.role!=='owner'?`<select data-member-user="${m.user_id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理者</option><option value="member" ${m.role==='member'?'selected':''}>職長</option><option value="viewer" ${m.role==='viewer'?'selected':''}>閲覧</option></select>`:`<strong>${escapeHtml(roleLabel(m.role))}</strong>`}</div>`).join('');
   root.querySelectorAll('[data-member-user]').forEach(sel=>sel.onchange=async()=>{const {error}=await supabaseClient.rpc('set_organization_member_role',{p_org:s.orgId,p_user:sel.dataset.memberUser,p_role:sel.value});if(error){toast('権限変更失敗：'+error.message);await renderMembers()}else toast('権限を変更しました')});
@@ -624,7 +625,8 @@ async function getMemberships(){
 function sessionFromMembership(m){return {orgId:m.organizations.id,company:m.organizations.name,code:m.organizations.code,user:cloudUser?.email||'',role:m.role,inviteToken:m.organizations.invite_token,loginAt:new Date().toISOString()}}
 async function activateMembership(m){nativeSet(VERTX_SESSION_KEY,JSON.stringify(sessionFromMembership(m)));await hydrateCloudStore();cloudReady=true;reloadTenantState();renderCompanyIdentity();startApp()}
 function reloadTenantState(){
-  MATERIALS=loadMaterialMaster();
+  MATERIALS=cleanMaterialMaster(loadMaterialMaster());
+  lsSet('vertx_core_materials',JSON.stringify(MATERIALS));
   state.cart={};state.category='すべて';state.search='';state.selectedSite='';state.selectedDrawingId=null;
   try{state.favorites=new Set(JSON.parse(lsGet('vertx_core_favorites')||'[]'))}catch{state.favorites=new Set()}
 }

@@ -80,3 +80,14 @@ body{background:radial-gradient(900px 520px at 50% -180px,#14365a 0,#080d14 52%,
 .nav-item{border-radius:14px!important}.nav-item.active{background:rgba(22,135,255,.12)!important;color:#8ecaff!important}
 .plan-card{padding:20px;position:relative}.plan-card.current{border-color:#1687ff;box-shadow:0 0 0 1px #1687ff inset,0 20px 50px rgba(22,135,255,.12)}
 .learning-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid rgba(123,193,255,.25);border-radius:999px;color:#a8d6ff;background:rgba(22,135,255,.08);font-size:12px;font-weight:800}
+
+/* v5.1 visual refresh */
+:root{--radius:26px}
+.screen-head h2{font-size:clamp(2rem,7vw,3.2rem);letter-spacing:-.045em}
+.material{border:1px solid rgba(123,193,255,.16)!important;background:linear-gradient(145deg,rgba(17,28,42,.96),rgba(7,13,21,.98))!important;border-radius:26px!important}
+.material:hover{border-color:rgba(123,193,255,.34)!important}
+.material button,.qty-btn{border-radius:18px!important}
+.category-tabs button{border-radius:999px!important}
+.order-summary{background:linear-gradient(145deg,rgba(19,43,67,.96),rgba(9,20,32,.97))!important;border:1px solid rgba(94,174,255,.25)!important;box-shadow:0 24px 60px rgba(0,0,0,.34)!important}
+.primary-btn{font-weight:900;letter-spacing:.02em;background:linear-gradient(135deg,#38a4ff 0%,#0878f3 55%,#075ecb 100%)!important}
+.member-error{padding:16px;border-radius:16px;border:1px solid rgba(255,170,70,.35);background:rgba(255,140,40,.08);color:#ffd7aa}.member-error p{margin:8px 0}.member-error small{opacity:.72}
