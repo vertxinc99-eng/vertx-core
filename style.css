@@ -70,3 +70,13 @@
 
 /* v4.0 SaaS */
 .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}.plan-card{display:flex;flex-direction:column;gap:8px}.plan-card strong{font-size:1.25rem}.plan-card.recommended{outline:2px solid currentColor}.plan-card.current:after{content:"現在の推奨";font-size:.75rem;font-weight:700}.assist-result{white-space:normal}@media(max-width:640px){.plan-grid{grid-template-columns:1fr}}
+/* v5.0 Product UI */
+:root{--bg:#05080d;--panel:#0b1119;--panel2:#101925;--line:#1c2a39;--blue:#1687ff;--blue2:#7bc1ff;--text:#f8fafc;--muted:#8493a5;--radius:22px}
+body{background:radial-gradient(900px 520px at 50% -180px,#14365a 0,#080d14 52%,#05080d 100%);letter-spacing:.005em}
+.card,.menu-card,.material{box-shadow:0 18px 45px rgba(0,0,0,.18);backdrop-filter:blur(14px)}
+.menu-card{transition:transform .15s ease,border-color .15s ease}.menu-card:active{transform:scale(.985)}
+.primary-btn{border-radius:16px;background:linear-gradient(135deg,#2495ff,#0874e6);box-shadow:0 10px 28px rgba(22,135,255,.28)}
+.secondary-btn{border-radius:16px}.bottom-nav{background:rgba(5,8,13,.88)!important;backdrop-filter:blur(22px);border-top:1px solid rgba(255,255,255,.08)!important}
+.nav-item{border-radius:14px!important}.nav-item.active{background:rgba(22,135,255,.12)!important;color:#8ecaff!important}
+.plan-card{padding:20px;position:relative}.plan-card.current{border-color:#1687ff;box-shadow:0 0 0 1px #1687ff inset,0 20px 50px rgba(22,135,255,.12)}
+.learning-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid rgba(123,193,255,.25);border-radius:999px;color:#a8d6ff;background:rgba(22,135,255,.08);font-size:12px;font-weight:800}

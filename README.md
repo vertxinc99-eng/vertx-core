@@ -1,29 +1,18 @@
-# VERTX CORE v4.0.3 SaaS
+# VERTX CORE v5.0
 
-足場会社向けクラウド業務アプリ v4.0。v3.1の会社別Supabaseクラウドを引き継ぎます。
+会社別クラウド、注文、重量/トラック、自動在庫、PDF、複数図面AI、写真AI、音声オーダー、権限、配車、分析に加え、v5.0では会社別AI修正履歴（学習メモリ）とサブスク基盤を追加。
 
-## v4.0追加
-- 音声オーダー（対応ブラウザではWeb Speech API、文字入力でも利用可）
-- 現場写真AI（既存OpenAI API接続を利用）
-- 現場ダッシュボード
-- 注文・重量・配車の分析画面
-- メンバー/権限画面
-- Free / Standard / Pro のサブスク基盤UI
-- organizations に plan / subscription_status / trial_ends_at を追加するSQL
-- 資材重複整理：軽量足場板をアルミ足場板へ統一、ロック付連結ピンを初期一覧から除外
-- 既存の複数図面AI、自動在庫、現場在庫重量、配車、PDF/LINE、会社別クラウドを維持
+## 更新時
+1. GitHubへこのフォルダの中身を上書き
+2. Supabase SQL Editorで `SUPABASE_V4_MIGRATION.sql` を実行（再実行可）
+3. VercelのDeploy完了後にアプリを再読み込み
 
-## 更新方法
-1. GitHubへZIPの中身をフォルダ構成ごと上書き
-2. Supabase SQL Editorで `SUPABASE_V4_MIGRATION.sql` を1回実行
-3. Vercelが自動デプロイ（またはRedeploy）
+## v5.0の重要修正
+- ロック付連結ピンを既存DBから削除
+- 軽量足場板を削除しアルミ足場板へ統一
+- 手摺 0.6/0.9/1.2/1.5/1.8 を削除し下さんへ統一
+- AI確定注文を会社別 `ai_learning_examples` に保存
+- Free / Standard / Pro と契約状態・AI利用枠のDB項目を用意
+- 写真AI / 音声 / PDF / メンバー権限の既存修正を継承
 
-## サブスクについて
-このv4.0は契約状態を持てる土台まで。実際のカード課金はまだ接続していないため、勝手に課金されません。
-
-
-## v4.0.3 音声入力修正
-- Chrome/Edge等: Web Speech APIで日本語認識
-- iPhone/Safari等: マイク録音 → `/api/transcribe` → OpenAI文字起こしへ自動フォールバック
-- 認識後、資材名＋数量を注文候補へ自動反映
-- `アンチ1.8を50枚、枠600を30枚` 等の現場表現に対応
+※ AIの候補は安全上、自動発注確定しません。人が確認して注文確定した内容を学習メモリとして保存します。
