@@ -67,3 +67,6 @@
 .org-choice-list>b{font-size:.86rem;color:#9cc8ff;margin-bottom:2px}
 .org-choice-list button{display:flex;justify-content:space-between;align-items:center;text-align:left}
 .org-choice-list small{opacity:.65}
+
+/* v4.0 SaaS */
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}.plan-card{display:flex;flex-direction:column;gap:8px}.plan-card strong{font-size:1.25rem}.plan-card.recommended{outline:2px solid currentColor}.plan-card.current:after{content:"現在の推奨";font-size:.75rem;font-weight:700}.assist-result{white-space:normal}@media(max-width:640px){.plan-grid{grid-template-columns:1fr}}

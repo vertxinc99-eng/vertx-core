@@ -180,3 +180,9 @@ using (
   bucket_id='drawings'
   and public.is_org_member(((storage.foldername(name))[1])::uuid)
 );
+
+
+-- v4.0 SaaS subscription-ready fields (no payment is charged by this schema)
+alter table public.organizations add column if not exists plan text not null default 'standard' check (plan in ('free','standard','pro'));
+alter table public.organizations add column if not exists subscription_status text not null default 'trial' check (subscription_status in ('trial','active','past_due','canceled'));
+alter table public.organizations add column if not exists trial_ends_at timestamptz default (now() + interval '30 days');

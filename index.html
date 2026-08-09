@@ -39,7 +39,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v3.1 CLOUD</span></h1>
+        <h1>CORE <span>v4.0 SaaS</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -71,6 +71,12 @@
           <button class="menu-card" data-go="sets"><span>▦</span><b>よく使うセット</b><small>セットを保存して一発入力</small></button>
           <button class="menu-card" data-go="dispatch"><span>🚚</span><b>配車予定</b><small>搬入日・車両・進捗を確認</small></button>
           <button class="menu-card featured" data-go="compare"><span>⇄</span><b>AI図面比較</b><small>新旧図面の変更点をAI確認</small></button>
+          <button class="menu-card featured" data-go="voiceOrder"><span>🎙</span><b>音声オーダー</b><small>現場の呼び方で喋って注文入力</small></button>
+          <button class="menu-card featured" data-go="photoAi"><span>📷</span><b>写真AI</b><small>現場写真から資材候補を抽出</small></button>
+          <button class="menu-card" data-go="siteDashboard"><span>📊</span><b>現場ダッシュボード</b><small>在庫・重量・注文・搬入を集約</small></button>
+          <button class="menu-card" data-go="analytics"><span>📈</span><b>分析</b><small>注文量・重量・配車を集計</small></button>
+          <button class="menu-card" data-go="members"><span>👷</span><b>メンバー・権限</b><small>社長・管理者・職長・閲覧</small></button>
+          <button class="menu-card" data-go="plans"><span>💳</span><b>プラン</b><small>Free / Standard / Pro</small></button>
           <button class="menu-card" data-go="companySettings"><span>🏢</span><b>会社設定</b><small>会社コード・招待URL・切替</small></button>
         </div>
       </section>
@@ -229,6 +235,26 @@
         <div class="section-head"><h3>比較結果</h3></div><div id="compareResult" class="card assist-result empty">旧図面と新図面を選択してください</div>
       </section>
 
+      <section id="voiceOrder" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">VOICE ORDER</p><h2>音声オーダー</h2></div></div>
+        <div class="card form-card"><p class="muted">例：「アンチ1.8を50枚、ブレス1.8を25本、枠600を30枚」</p><button id="voiceStartBtn" class="primary-btn full">🎙 音声入力を開始</button><label>認識した内容<textarea id="voiceText" rows="4" placeholder="ここに音声または文字で入力"></textarea></label><button id="voiceParseBtn" class="secondary-btn full">注文候補に変換</button><div id="voiceResult" class="assist-result empty">まだ入力されていません</div></div>
+      </section>
+      <section id="photoAi" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">PHOTO AI</p><h2>現場写真AI</h2></div></div>
+        <div class="card form-card"><label class="primary-btn upload-btn">＋ 現場写真を選択<input id="photoAiInput" type="file" accept="image/*" multiple hidden></label><div id="photoAiFiles" class="muted">写真未選択</div><label>確認したいこと<textarea id="photoAiContext" rows="3" placeholder="例：不足しそうな資材、写っている足場材を確認"></textarea></label><button id="runPhotoAiBtn" class="primary-btn full">✦ 写真をAI解析</button><div id="photoAiStatus" class="ai-status hidden"></div></div><div id="photoAiResult" class="card assist-result empty">写真を選択してください</div><button id="applyPhotoAiBtn" class="primary-btn full hidden">候補を注文へ入れる</button>
+      </section>
+      <section id="siteDashboard" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE DASHBOARD</p><h2>現場ダッシュボード</h2></div></div><div class="card form-card"><label>現場<select id="dashSite"></select></label></div><div id="siteDashboardBody"></div>
+      </section>
+      <section id="analytics" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ANALYTICS</p><h2>利用分析</h2></div></div><div id="analyticsBody"></div>
+      </section>
+      <section id="members" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MEMBERS</p><h2>メンバー・権限</h2></div></div><div class="card assist-note"><b>会社招待と権限</b><p>招待URLで同じ会社へ参加できます。現在のクラウドDBでは owner / admin / member を保持します。v4.0では画面上で「社長・管理者・職長・閲覧」の運用ルールを確認できます。</p></div><div id="memberRoleBody" class="card"></div><button id="memberInviteBtn" class="primary-btn full">招待URLをコピー</button>
+      </section>
+      <section id="plans" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SUBSCRIPTION</p><h2>プラン</h2></div></div><div class="plan-grid"><article class="card plan-card"><b>Free</b><strong>¥0</strong><small>基本注文・重量計算</small></article><article class="card plan-card recommended"><b>Standard</b><strong>価格設定前</strong><small>クラウド・在庫・複数ユーザー・配車</small></article><article class="card plan-card"><b>Pro</b><strong>価格設定前</strong><small>AI図面・写真AI・分析</small></article></div><div class="card assist-note"><b>サブスク準備モード</b><p>会社ごとにプランを持てる土台です。実際のカード課金は決済サービス接続後に有効化します。今は勝手に課金されません。</p></div>
+      </section>
       <section id="companySettings" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">COMPANY</p><h2>会社設定</h2></div></div>
         <div class="card form-card">

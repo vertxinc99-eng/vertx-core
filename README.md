@@ -1,24 +1,22 @@
-# VERTX CORE v3.1 CLOUD
+# VERTX CORE v4.0 SaaS
 
-会社別クラウド共有版。
+足場会社向けクラウド業務アプリ v4.0。v3.1の会社別Supabaseクラウドを引き継ぎます。
 
-## 追加機能
-- Supabase Auth（メール＋パスワード）
-- 会社作成 / 会社招待URL
-- Row Level Securityで会社データを分離
-- 現場 / 注文 / 在庫 / 資材マスタ / お気に入り / セット等をクラウド同期
-- 図面PDF/JPG/PNGをSupabase Storageへクラウド保存
-- 同じ会社ならスマホ・PC間でデータ共有
-- 既存のAI図面解析、複数図面、AI比較、重量・トラック判定を維持
+## v4.0追加
+- 音声オーダー（対応ブラウザではWeb Speech API、文字入力でも利用可）
+- 現場写真AI（既存OpenAI API接続を利用）
+- 現場ダッシュボード
+- 注文・重量・配車の分析画面
+- メンバー/権限画面
+- Free / Standard / Pro のサブスク基盤UI
+- organizations に plan / subscription_status / trial_ends_at を追加するSQL
+- 資材重複整理：軽量足場板をアルミ足場板へ統一、ロック付連結ピンを初期一覧から除外
+- 既存の複数図面AI、自動在庫、現場在庫重量、配車、PDF/LINE、会社別クラウドを維持
 
-## 初回セットアップ
-1. Supabaseでプロジェクトを作成
-2. `SUPABASE_SETUP.sql` を SQL Editor で実行
-3. Vercel > Environment Variables に追加
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - 既存の `OPENAI_API_KEY`
-4. GitHubへこのZIPの中身を上書きしてRedeploy
-5. アプリで新規登録 → 会社作成
+## 更新方法
+1. GitHubへZIPの中身をフォルダ構成ごと上書き
+2. Supabase SQL Editorで `SUPABASE_V4_MIGRATION.sql` を1回実行
+3. Vercelが自動デプロイ（またはRedeploy）
 
-詳細は `SETUP_GUIDE.md`。
+## サブスクについて
+このv4.0は契約状態を持てる土台まで。実際のカード課金はまだ接続していないため、勝手に課金されません。
