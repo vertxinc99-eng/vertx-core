@@ -339,7 +339,7 @@ body,.screen,.card,.menu-card,.material,.form-card,.history-item,.site-card,.pla
 .menu-card,.material{transition:transform .16s ease,box-shadow .16s ease}.menu-card:active,.material-more:active,.fav-btn:active{transform:scale(.97)!important}
 @media(max-width:430px){.material-info{padding-right:102px!important}.material-info b{font-size:17px!important}.material-actions{right:10px!important;top:10px!important}.fav-btn{width:39px!important;height:39px!important}.material-more{width:47px!important;height:39px!important}.qty-control{grid-template-columns:54px minmax(68px,1fr) 54px!important}}
 
-/* ===== VERTX CORE v7.2 NOVA BLACKLINE AI — final cache-safe visual layer ===== */
+/* ===== VERTX CORE v7.3 MATERIAL PACK — final cache-safe visual layer ===== */
 :root{--v72-ink:#07162b;--v72-sub:#33465e;--v72-line:#d7e2ed;--v72-blue:#0a7cff;--v72-bg:#eef5fc}
 body{background:linear-gradient(180deg,#edf5ff 0%,#f8fbff 44%,#eef4fb 100%)!important;color:var(--v72-ink)!important;overflow-x:hidden!important}
 .app-shell,.screen,main{max-width:100%!important;overflow-x:hidden!important}

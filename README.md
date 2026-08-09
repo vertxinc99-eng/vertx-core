@@ -15,3 +15,7 @@ App: https://vertx-core.vercel.app/
 
 ## v7.2
 最新版は VERTX CORE v7.2 NOVA BLACKLINE AI。GitHubルートへ本ZIPの中身を上書きし、Vercel Productionで反映してください。
+
+
+## v7.3
+単管ベースと朝顔材カテゴリを追加。既存の会社別資材名編集機能で名称・単重・カテゴリーを注文画面から変更できます。
