@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v5.3 SaaS</title>
+  <title>VERTX CORE v5.7 FIELD OPS</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,7 +39,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v5.3 SaaS</span></h1>
+        <h1>CORE <span>v5.7 FIELD OPS</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -63,7 +63,7 @@
           <button class="menu-card" data-go="order"><span>📦</span><b>資材注文</b><small>資材から直接作成</small></button>
           <button class="menu-card" data-go="history"><span>📋</span><b>注文履歴</b><small>再注文にも対応</small></button>
           <button class="menu-card" data-go="favorites"><span>★</span><b>お気に入り</b><small>よく使う資材だけ表示</small></button>
-          <button class="menu-card" data-go="materialsMaster"><span>⚙</span><b>資材マスタ</b><small>名前・単重を後から変更</small></button>
+          
           <button class="menu-card" data-go="drawings"><span>▧</span><b>図面アップロード</b><small>PDF・写真を保存して注文に添付</small></button>
           <button class="menu-card featured" data-go="assist"><span>✦</span><b>AI図面解析</b><small>PDF・写真をAIが読んで資材候補を作成</small></button>
           <button class="menu-card" data-go="siteStock"><span>▤</span><b>現場在庫</b><small>納品済み注文を自動反映</small></button>
@@ -74,6 +74,10 @@
           <button class="menu-card featured" data-go="voiceOrder"><span>🎙</span><b>音声オーダー</b><small>現場の呼び方で喋って注文入力</small></button>
           <button class="menu-card featured" data-go="photoAi"><span>📷</span><b>写真AI</b><small>現場写真から資材候補を抽出</small></button>
           <button class="menu-card" data-go="siteDashboard"><span>📊</span><b>現場ダッシュボード</b><small>在庫・重量・注文・搬入を集約</small></button>
+          <button class="menu-card ops-new" data-go="returns"><span>↩</span><b>返却管理</b><small>返却数を記録して現場在庫を自動減算</small></button>
+          <button class="menu-card ops-new" data-go="siteCosts"><span>¥</span><b>現場原価</b><small>売上・人件費・運搬・外注から粗利確認</small></button>
+          <button class="menu-card ops-new" data-go="siteQr"><span>▦</span><b>現場QR</b><small>現場ページへ一発アクセス</small></button>
+          <button class="menu-card ops-new" data-go="suppliers"><span>⇧</span><b>発注先管理</b><small>資材屋・リース会社と送信テンプレを登録</small></button>
           <button class="menu-card" data-go="analytics"><span>📈</span><b>分析</b><small>注文量・重量・配車を集計</small></button>
           <button class="menu-card" data-go="members"><span>👷</span><b>メンバー・権限</b><small>社長・管理者・職長・閲覧</small></button>
           <button class="menu-card" data-go="plans"><span>💳</span><b>プラン</b><small>Free / Standard / Pro</small></button>
@@ -94,7 +98,7 @@
 
       <section id="order" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ORDER</p><h2>資材注文</h2></div></div>
-        <div id="selectedSiteBanner" class="site-banner hidden"></div>
+        <div id="selectedSiteBanner" class="site-banner hidden"></div><div class="order-command"><div><span>FIELD ORDER</span><b>資材名の「•••」から、この会社だけの呼び方に変更できます</b></div><button type="button" data-go="voiceOrder">🎙 音声</button></div>
         <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="資材を検索"></label>
         <div class="chips" id="categoryChips"></div>
         <div id="materialList" class="material-list"></div>
@@ -125,7 +129,12 @@
           <div><span>乗る車</span><strong id="truckRecommendation">軽トラ</strong></div>
           <div id="confirmDrawing"><span>添付図面</span><strong>なし</strong></div>
         </div>
-        <div class="section-head mini"><h3>不足チェック</h3></div>
+        <div class="card supplier-send-card">
+          <div class="section-head mini"><h3>発注先</h3><button type="button" class="text-btn" data-go="suppliers">管理</button></div>
+          <label>送信先<select id="confirmSupplier"><option value="">未選択</option></select></label>
+          <button id="copySupplierOrderBtn" class="secondary-btn full" type="button">発注先用文面をコピー</button>
+        </div>
+        <div class="section-head mini core-check-head"><div><span>CORE CHECK</span><h3>注文漏れチェック</h3></div><b>自動</b></div>
         <div id="missingCheck" class="card missing-check"></div>
         <button class="secondary-btn full" data-go="drawings">＋ 図面を選ぶ / アップロード</button>
         <span id="selectedDrawingName" class="selected-drawing-name"></span>
@@ -263,13 +272,15 @@
       </section>
       <section id="plans" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SUBSCRIPTION</p><h2>プラン</h2></div></div>
-        <div class="subscription-hero card"><span>VERTX CORE MEMBERSHIP</span><h3>会社に合う機能だけ選ぶ。</h3><p>今はテスト切替モードです。決済接続後は契約完了時に自動でプランが切り替わります。</p></div>
-        <div class="plan-grid modern-plans">
-          <article class="card plan-card" data-plan="free"><span class="plan-kicker">START</span><b>Free</b><strong>¥0</strong><small>基本注文・重量計算</small><ul><li>資材注文</li><li>重量・トラック判定</li><li>基本履歴</li></ul><button type="button">Freeを選ぶ</button></article>
-          <article class="card plan-card recommended" data-plan="standard"><span class="plan-kicker">TEAM</span><b>Standard</b><strong>価格設定前</strong><small>現場運用をクラウド化</small><ul><li>自動在庫</li><li>複数ユーザー</li><li>配車・現場管理</li></ul><button type="button">Standardを選ぶ</button></article>
-          <article class="card plan-card pro" data-plan="pro"><span class="plan-kicker">AI</span><b>Pro</b><strong>価格設定前</strong><small>AIまでフル活用</small><ul><li>図面・写真AI</li><li>自社学習AI</li><li>高度分析</li></ul><span class="learning-chip">学習済み <b data-learning-count>0</b> 件</span><button type="button">Proを選ぶ</button></article>
+        <div class="subscription-hero card"><span>VERTX CORE MEMBERSHIP</span><h3>契約までCOREの中で完結。</h3><p>Standard / Pro はStripe Checkoutへ接続。支払い完了後、会社プランを自動更新します。</p></div>
+        <div class="plan-grid modern-plans billing-plans">
+          <article class="card plan-card" data-plan="free"><span class="plan-kicker">START</span><b>Free</b><strong>¥0</strong><small>基本注文・重量計算</small><ul><li>資材注文</li><li>重量・トラック判定</li><li>基本履歴</li></ul><button type="button">Free</button></article>
+          <article class="card plan-card recommended" data-plan="standard"><span class="plan-kicker">TEAM</span><b>Standard</b><strong id="standardPrice">¥4,980/月</strong><small>現場運用をクラウド化</small><ul><li>自動在庫</li><li>複数ユーザー</li><li>配車・現場管理</li></ul><button type="button">Standardを申し込む</button></article>
+          <article class="card plan-card pro" data-plan="pro"><span class="plan-kicker">AI</span><b>Pro</b><strong id="proPrice">¥9,800/月</strong><small>14日間無料トライアル・AIまでフル活用</small><ul><li>図面・写真AI</li><li>自社学習AI</li><li>高度分析</li></ul><span class="learning-chip">学習済み <b data-learning-count>0</b> 件</span><button type="button">Proを申し込む</button></article>
         </div>
-        <div id="planChangeStatus" class="plan-change-status">現在のプランを確認中…</div>
+        <div id="planChangeStatus" class="plan-change-status">現在の契約を確認中…</div>
+        <button id="billingPortalBtn" class="secondary-btn full hidden" type="button">支払い方法・解約・契約変更</button>
+        <div id="billingSetupNote" class="card billing-setup-note hidden"><b>決済設定が必要</b><small>VercelにStripeキーとPrice ID、Supabase Service Role Keyを設定すると本番決済が有効になります。</small></div>
       </section>
       <section id="companySettings" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">COMPANY</p><h2>会社設定</h2></div></div>
@@ -284,18 +295,70 @@
       </section>
 
 
+      <section id="returns" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">RETURN CONTROL</p><h2>返却管理</h2></div></div>
+        <div class="ops-hero card"><span>RETURN FLOW</span><h3>返した分だけ在庫から減らす。</h3><p>現場・資材・数量を選ぶだけ。返却履歴も残ります。</p></div>
+        <div class="card form-card">
+          <label>現場<select id="returnSite"></select></label>
+          <label>資材<select id="returnMaterial"></select></label>
+          <div id="returnAvailable" class="inline-kpi">現在庫 <strong>0</strong></div>
+          <div class="master-grid"><label>返却数<input id="returnQty" type="number" min="1" value="1"></label><label>返却日<input id="returnDate" type="date"></label></div>
+          <label>メモ<input id="returnMemo" placeholder="例：1便目 / 一部残し"></label>
+          <button id="saveReturnBtn" class="primary-btn full">返却を記録</button>
+        </div>
+        <div class="section-head"><h3>返却履歴</h3></div><div id="returnList" class="history-list"></div>
+      </section>
+
+      <section id="siteCosts" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE PROFIT</p><h2>現場原価</h2></div></div>
+        <div class="card form-card">
+          <label>現場<select id="costSite"></select></label>
+          <label>売上 / 請負金額<input id="costRevenue" type="number" min="0" placeholder="0"></label>
+          <div class="master-grid"><label>項目<select id="costCategory"><option>人件費</option><option>運搬費</option><option>資材・リース</option><option>外注費</option><option>経費</option><option>その他</option></select></label><label>金額<input id="costAmount" type="number" min="0" placeholder="0"></label></div>
+          <label>内容<input id="costMemo" placeholder="例：4人 × 2日"></label>
+          <div class="action-grid"><button id="saveRevenueBtn" class="secondary-btn full">売上を保存</button><button id="addCostBtn" class="primary-btn full">原価を追加</button></div>
+        </div>
+        <div id="costSummary" class="profit-summary"></div>
+        <div class="section-head"><h3>原価明細</h3></div><div id="costList" class="history-list"></div>
+      </section>
+
+      <section id="siteQr" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE ACCESS</p><h2>現場QR</h2></div></div>
+        <div class="ops-hero card"><span>ONE SCAN</span><h3>QRを現場ごとに。</h3><p>読み込むとその現場を選択した状態でVERTX COREを開きます。</p></div>
+        <div class="card form-card"><label>現場<select id="qrSite"></select></label><button id="makeQrBtn" class="primary-btn full">QRを作成</button></div>
+        <div id="qrResult" class="card qr-result empty">現場を選んでQRを作成してください</div>
+      </section>
+
+      <section id="suppliers" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="more">‹</button><div><p class="eyebrow">SUPPLIERS</p><h2>発注先管理</h2></div></div>
+        <div class="card form-card">
+          <label>会社名<input id="supplierName" placeholder="例：〇〇リース"></label>
+          <div class="master-grid"><label>送信方法<select id="supplierChannel"><option value="line">LINE / 共有</option><option value="email">メール</option><option value="phone">電話</option></select></label><label>宛先<input id="supplierContact" placeholder="メール・電話など"></label></div>
+          <label>文面テンプレート<textarea id="supplierTemplate" rows="4" placeholder="例：お疲れ様です。{site}の注文です。
+{items}
+希望日：{date}"></textarea></label>
+          <small class="muted">使える項目：{site} {date} {items} {weight} {truck} {memo}</small>
+          <button id="addSupplierBtn" class="primary-btn full">発注先を保存</button>
+        </div>
+        <div class="section-head"><h3>登録済み</h3></div><div id="supplierList" class="history-list"></div>
+      </section>
+
       <section id="manual" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MANUAL</p><h2>使い方マニュアル</h2></div></div>
         <div class="manual-hero card"><span>QUICK START</span><h3>迷ったらここだけ見ればOK。</h3><p>会社登録から注文、AI、在庫、メンバー招待まで順番にまとめています。</p></div>
         <div class="manual-steps">
           <details class="manual-step" open><summary><span>01</span><b>最初の設定</b></summary><div><p>会社を作成して、社長アカウントでログインします。会社設定で会社名・コードを確認してください。</p></div></details>
           <details class="manual-step"><summary><span>02</span><b>現場を登録</b></summary><div><p>「現場」→「＋現場を追加」。注文・在庫・図面は現場ごとにまとめられます。</p></div></details>
-          <details class="manual-step"><summary><span>03</span><b>資材を注文</b></summary><div><p>「注文」で資材を選び、数量を＋－で入力。重量と必要トラックを確認して注文を保存します。PDFも注文確認・履歴から作成できます。</p></div></details>
+          <details class="manual-step"><summary><span>03</span><b>資材を注文・呼び方を変更</b></summary><div><p>「注文」で資材を選び、数量を＋－で入力します。資材カード右上の「•••」から、その会社だけの資材名・単重・カテゴリー・表示/非表示を変更できます。重量と必要トラックを確認して注文を保存します。</p></div></details>
           <details class="manual-step"><summary><span>04</span><b>図面AI・写真AI</b></summary><div><p>複数の平面・立面・断面図をアップロードしてAI解析できます。写真AIは現場写真から資材候補を出します。AI結果は必ず人が確認してから注文へ反映してください。</p></div></details>
           <details class="manual-step"><summary><span>05</span><b>音声オーダー</b></summary><div><p>「アンチ1.8を50枚、枠600を30枚」のように話して注文候補へ変換できます。マイク許可が必要です。</p></div></details>
           <details class="manual-step"><summary><span>06</span><b>自動在庫</b></summary><div><p>注文を「納品済」にすると、その現場の在庫へ自動加算。現場在庫画面では数量と総重量を確認・補正できます。</p></div></details>
+          <details class="manual-step"><summary><span>07</span><b>返却管理</b></summary><div><p>「返却管理」で現場・資材・返却数を入力。記録した分だけ現場在庫から減算されます。</p></div></details>
+          <details class="manual-step"><summary><span>08</span><b>現場原価</b></summary><div><p>現場ごとに売上を保存し、人件費・運搬費・資材・外注などを追加。粗利と粗利率を自動計算します。</p></div></details>
+          <details class="manual-step"><summary><span>09</span><b>現場QR</b></summary><div><p>現場QRを作成して共有。読み込むと対象現場を選んだ状態でアプリが開きます。</p></div></details>
+          <details class="manual-step"><summary><span>10</span><b>発注先管理</b></summary><div><p>リース会社や資材屋と文面テンプレートを登録。注文確認から発注先用の文面をワンタップで作れます。</p></div></details>
           <details class="manual-step"><summary><span>07</span><b>社員を招待</b></summary><div><p>「メンバー・権限」で、人事・管理者用／社員・職長用／閲覧専用のURLをコピーして送ります。URLごとに参加時の権限が自動で分かれます。</p></div></details>
-          <details class="manual-step"><summary><span>08</span><b>プラン変更</b></summary><div><p>現在はテストモードなので社長だけFree・Standard・Proを切替できます。本番課金開始後は決済結果と連動させます。</p></div></details>
+          <details class="manual-step"><summary><span>08</span><b>注文承認</b></summary><div><p>社員・職長が作った注文は「承認待ち」になります。社長・管理者は注文履歴から「承認して発注」を押して確定できます。</p></div></details><details class="manual-step"><summary><span>09</span><b>プラン変更</b></summary><div><p>社長アカウントからStandard（月額4,980円） / Pro（月額9,800円・14日無料）を申し込めます。決済はStripeで行い、契約状態はCOREへ自動反映されます。支払い方法変更や解約は「契約管理」から行います。</p></div></details>
         </div>
         <div class="card support-note"><b>困ったとき</b><p>画面にエラー文が出たら、そのままスクリーンショットを残してください。設定・DB・AIのどこで止まったか切り分けやすくなります。</p></div>
       </section>
@@ -307,12 +370,35 @@
       </section>
     </main>
 
+
+      <section id="more" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">CONTROL CENTER</p><h2>その他</h2></div></div>
+        <div class="control-stack">
+          <div class="control-section"><span>TEAM</span><button data-go="members"><b>メンバー・権限</b><small>権限別の招待URL・承認権限</small><em>›</em></button><button data-go="companySettings"><b>会社設定</b><small>会社コード・招待・切替</small><em>›</em></button></div>
+          <div class="control-section"><span>OPERATIONS</span><button data-go="returns"><b>返却管理</b><small>返却履歴・現場在庫の自動減算</small><em>›</em></button><button data-go="siteCosts"><b>現場原価</b><small>売上・原価・粗利率</small><em>›</em></button><button data-go="siteQr"><b>現場QR</b><small>現場ページへ一発アクセス</small><em>›</em></button><button data-go="suppliers"><b>発注先管理</b><small>資材屋・リース会社・送信テンプレ</small><em>›</em></button><button data-go="materialsMaster"><b>資材マスタ</b><small>追加・単重・詳細設定</small><em>›</em></button><button data-go="sets"><b>よく使うセット</b><small>定番注文をワンタップ化</small><em>›</em></button><button data-go="dispatch"><b>配車予定</b><small>搬入・車両・進捗</small><em>›</em></button></div>
+          <div class="control-section"><span>CORE</span><button data-go="analytics"><b>利用分析</b><small>注文量・重量・利用状況</small><em>›</em></button><button data-go="plans"><b>プラン</b><small>Free / Standard / Pro</small><em>›</em></button><button data-go="manual"><b>使い方マニュアル</b><small>初期設定から注文・AIまで</small><em>›</em></button></div>
+        </div>
+      </section>
     <nav class="bottom-nav" aria-label="メインナビゲーション">
-      <button data-go="home" class="nav-item active"><span>⌂</span><small>ホーム</small></button>
-      <button data-go="sites" class="nav-item"><span>⌖</span><small>現場</small></button>
-      <button data-go="order" class="nav-item"><span>▣</span><small>注文</small></button>
-      <button data-go="history" class="nav-item"><span>☷</span><small>履歴</small></button>
+      <button data-go="home" class="nav-item active"><span>⌂</span><small>HOME</small></button>
+      <button data-go="sites" class="nav-item"><span>⌖</span><small>SITES</small></button>
+      <button data-go="order" class="nav-item nav-order"><span>＋</span><small>ORDER</small></button>
+      <button data-go="assist" class="nav-item"><span>✦</span><small>AI</small></button>
+      <button data-go="more" class="nav-item"><span>•••</span><small>MORE</small></button>
     </nav>
+  </div>
+
+  <div id="materialQuickEdit" class="quick-edit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="quickEditTitle">
+    <div class="quick-edit-sheet">
+      <div class="sheet-handle"></div>
+      <div class="quick-edit-head"><div><span>COMPANY MATERIAL</span><h3 id="quickEditTitle">この会社での呼び方</h3></div><button id="closeQuickMaterialBtn" aria-label="閉じる">×</button></div>
+      <p id="quickMaterialOriginal" class="quick-original"></p>
+      <label>表示する資材名<input id="quickMaterialName" type="text" placeholder="例：1800アンチ"></label>
+      <div class="quick-edit-grid"><label>単重 kg<input id="quickMaterialWeight" type="number" step="0.01" min="0"></label><label>カテゴリー<input id="quickMaterialCategory" type="text"></label></div>
+      <label class="switch-row"><span><b>注文画面で非表示</b><small>使わない資材を隠す</small></span><input id="quickMaterialHidden" type="checkbox"></label>
+      <div class="quick-edit-actions"><button id="cancelQuickMaterialBtn" class="secondary-btn">キャンセル</button><button id="saveQuickMaterialBtn" class="primary-btn">保存</button></div>
+      <small class="quick-note">変更はこの会社だけに保存され、他社の資材名には影響しません。</small>
+    </div>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="printArea" class="print-area"></div>
