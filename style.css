@@ -91,3 +91,6 @@ body{background:radial-gradient(900px 520px at 50% -180px,#14365a 0,#080d14 52%,
 .order-summary{background:linear-gradient(145deg,rgba(19,43,67,.96),rgba(9,20,32,.97))!important;border:1px solid rgba(94,174,255,.25)!important;box-shadow:0 24px 60px rgba(0,0,0,.34)!important}
 .primary-btn{font-weight:900;letter-spacing:.02em;background:linear-gradient(135deg,#38a4ff 0%,#0878f3 55%,#075ecb 100%)!important}
 .member-error{padding:16px;border-radius:16px;border:1px solid rgba(255,170,70,.35);background:rgba(255,140,40,.08);color:#ffd7aa}.member-error p{margin:8px 0}.member-error small{opacity:.72}
+
+/* v5.2 selectable subscription cards */
+.plan-card{cursor:pointer;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}.plan-card:active{transform:scale(.985)}.plan-card.current:after{content:'選択中';position:absolute;right:16px;top:16px;padding:6px 10px;border-radius:999px;background:#1687ff;color:#fff;font-size:.72rem;font-weight:800}.plan-change-status{margin:10px 0 14px;padding:14px 16px;border:1px solid #24435f;border-radius:16px;background:#091827;color:#9dc9ff;font-weight:800}

@@ -16,3 +16,6 @@
 - 写真AI / 音声 / PDF / メンバー権限の既存修正を継承
 
 ※ AIの候補は安全上、自動発注確定しません。人が確認して注文確定した内容を学習メモリとして保存します。
+
+## v5.2 IMPORTANT
+Run `SUPABASE_V5_2_MIGRATION.sql` once in Supabase SQL Editor. This migration does NOT reference a non-existent `public.materials` table, and adds member-role RPCs plus test-mode plan switching.

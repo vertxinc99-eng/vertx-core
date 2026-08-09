@@ -568,7 +568,36 @@ async function saveAiLearningExample(source='drawing'){
 }
 async function updateLearningCount(){
   try{const org=currentOrgId?.();if(!org||!cloudReady?.())return;const {count}=await supabaseClient.from('ai_learning_examples').select('*',{count:'exact',head:true}).eq('organization_id',org);document.querySelectorAll('[data-learning-count]').forEach(x=>x.textContent=String(count||0));}catch{}}
-function renderPlans(){const s=getCompanySession();const plan=s?.plan||'standard';document.querySelectorAll('.plan-card').forEach(x=>{x.classList.toggle('current',x.dataset.plan===plan)});updateLearningCount()}
+function renderPlans(){
+  const s=getCompanySession();const plan=s?.plan||'standard';
+  document.querySelectorAll('.plan-card').forEach(x=>{
+    x.classList.toggle('current',x.dataset.plan===plan);
+    x.setAttribute('role','button');x.tabIndex=0;
+    x.onclick=()=>selectPlan(x.dataset.plan);
+    x.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')selectPlan(x.dataset.plan)};
+  });
+  const note=$('#planChangeStatus');if(note)note.textContent=`現在のプラン：${planLabel(plan)}（テスト切替モード）`;
+  updateLearningCount();
+}
+function planLabel(p){return ({free:'Free',standard:'Standard',pro:'Pro'})[p]||p}
+async function selectPlan(nextPlan){
+  const s=getCompanySession();if(!s?.orgId)return toast('会社情報を取得できません');
+  if(s.role!=='owner')return toast('プラン変更は社長アカウントのみ可能です');
+  if(!['free','standard','pro'].includes(nextPlan))return;
+  if(nextPlan===s.plan)return toast(`${planLabel(nextPlan)} を利用中です`);
+  if(!confirm(`${planLabel(nextPlan)} に切り替えますか？\n現在は決済前のテスト切替です。課金は発生しません。`))return;
+  const status=$('#planChangeStatus');if(status)status.textContent='プランを変更中…';
+  const {error}=await supabaseClient.rpc('set_organization_plan',{p_org:s.orgId,p_plan:nextPlan});
+  if(error){if(status)status.textContent='変更できません：'+error.message;return toast('プラン変更失敗：'+error.message)}
+  s.plan=nextPlan;s.subscriptionStatus='trial';nativeSet(VERTX_SESSION_KEY,JSON.stringify(s));
+  if(status)status.textContent=`現在のプラン：${planLabel(nextPlan)}（テスト切替モード）`;
+  document.querySelectorAll('.plan-card').forEach(x=>x.classList.toggle('current',x.dataset.plan===nextPlan));
+  applyPlanUi();toast(`${planLabel(nextPlan)} に切り替えました`);
+}
+function applyPlanUi(){
+  const p=getCompanySession()?.plan||'standard';document.body.dataset.plan=p;
+  // 本番決済接続前は画面を消さず、プラン状態のみ反映する。決済導入時に機能ゲートへ切替可能。
+}
 async function runPhotoAi(){if(!photoAiFiles.length)return toast('写真を選択してください');const st=$('#photoAiStatus');st.classList.remove('hidden');st.textContent='AIが現場写真を確認しています…';try{const drawings=[];for(const f of photoAiFiles.slice(0,6)){const b=await compressImageForAi(f,f.type);drawings.push({filename:f.name,mimeType:f.type,dataBase64:await blobToBase64(b)})}const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files:drawings,materialNames:MATERIALS.map(m=>m.name),mode:'photo',context:$('#photoAiContext').value.trim()+' 現場写真です。写っている足場資材を候補として抽出してください。'})});const data=await r.json();if(!r.ok)throw new Error(data.error||'写真解析に失敗しました');const a=data.analysis||data;photoAiCandidates=a.materials||a.candidates||[];$('#photoAiResult').innerHTML=`<h3>${escapeHtml(a.summary||'写真AI結果')}</h3>`+photoAiCandidates.map(x=>`<div class="history-item-row"><span>${escapeHtml(x.material_name||x.name||x.material||'資材')}</span><strong>${Number(x.qty||x.quantity||0)||'?'} </strong></div>`).join('');$('#applyPhotoAiBtn').classList.toggle('hidden',!photoAiCandidates.length);st.textContent='解析完了'}catch(e){st.textContent=e.message;$('#photoAiResult').textContent='解析できませんでした'}}
 function applyPhotoAi(){let n=0;for(const x of photoAiCandidates){const name=x.material_name||x.name||x.material||'';const m=MATERIALS.find(y=>y.name===name)||findMaterialBySpeech(name);const q=Number(x.qty||x.quantity||0);if(m&&q>0){state.cart[m.id]=(state.cart[m.id]||0)+q;n++}}renderMaterials();go('order');toast(`${n}種類を注文へ追加しました`)}
 
@@ -586,7 +615,7 @@ function renderCompanyIdentity(){
   if($('#companyNameView'))$('#companyNameView').textContent=s.company||'-';
   if($('#companyCodeView'))$('#companyCodeView').textContent=s.code||'-';
   if($('#companyUserView'))$('#companyUserView').textContent=s.user||cloudUser?.email||'-';
-  document.body.dataset.role=s.role||'member';applyRoleUi();
+  document.body.dataset.role=s.role||'member';applyRoleUi();applyPlanUi();
   return true;
 }
 function setAuthStatus(msg){const el=$('#authStatus');if(el)el.textContent=msg}
@@ -618,11 +647,11 @@ async function authSignup(){
 }
 async function getMemberships(){
   if(!supabaseClient||!cloudUser)return [];
-  const {data,error}=await supabaseClient.from('memberships').select('role,organizations(id,name,code,invite_token)').eq('user_id',cloudUser.id);
+  const {data,error}=await supabaseClient.from('memberships').select('role,organizations(id,name,code,invite_token,plan,subscription_status,trial_ends_at)').eq('user_id',cloudUser.id);
   if(error){console.warn(error);return []}
   return (data||[]).filter(x=>x.organizations);
 }
-function sessionFromMembership(m){return {orgId:m.organizations.id,company:m.organizations.name,code:m.organizations.code,user:cloudUser?.email||'',role:m.role,inviteToken:m.organizations.invite_token,loginAt:new Date().toISOString()}}
+function sessionFromMembership(m){return {orgId:m.organizations.id,company:m.organizations.name,code:m.organizations.code,user:cloudUser?.email||'',role:m.role,inviteToken:m.organizations.invite_token,plan:m.organizations.plan||'standard',subscriptionStatus:m.organizations.subscription_status||'trial',trialEndsAt:m.organizations.trial_ends_at||null,loginAt:new Date().toISOString()}}
 async function activateMembership(m){nativeSet(VERTX_SESSION_KEY,JSON.stringify(sessionFromMembership(m)));await hydrateCloudStore();cloudReady=true;reloadTenantState();renderCompanyIdentity();startApp()}
 function reloadTenantState(){
   MATERIALS=cleanMaterialMaster(loadMaterialMaster());
