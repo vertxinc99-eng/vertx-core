@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v3.1 CLOUD</title>
+  <title>VERTX CORE v5.3 SaaS</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,7 +39,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v5.2 SaaS</span></h1>
+        <h1>CORE <span>v5.3 SaaS</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -78,6 +78,7 @@
           <button class="menu-card" data-go="members"><span>👷</span><b>メンバー・権限</b><small>社長・管理者・職長・閲覧</small></button>
           <button class="menu-card" data-go="plans"><span>💳</span><b>プラン</b><small>Free / Standard / Pro</small></button>
           <button class="menu-card" data-go="companySettings"><span>🏢</span><b>会社設定</b><small>会社コード・招待URL・切替</small></button>
+          <button class="menu-card manual-card" data-go="manual"><span>?</span><b>使い方マニュアル</b><small>初期設定からAI・注文まで確認</small></button>
         </div>
       </section>
 
@@ -250,10 +251,25 @@
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ANALYTICS</p><h2>利用分析</h2></div></div><div id="analyticsBody"></div>
       </section>
       <section id="members" class="screen">
-        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MEMBERS</p><h2>メンバー・権限</h2></div></div><div class="card assist-note"><b>会社招待と権限</b><p>招待URLで同じ会社へ参加できます。社長・管理者・職長・閲覧の4段階で権限を設定できます。社長・管理者はこの画面からメンバー権限を変更できます。</p></div><div id="memberRoleBody" class="card"></div><button id="memberInviteBtn" class="primary-btn full">招待URLをコピー</button>
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">TEAM ACCESS</p><h2>メンバー・権限</h2></div></div>
+        <div class="card assist-note premium-note"><b>役割ごとの招待URL</b><p>渡すURLを分けるだけで、参加時の権限を自動設定します。あとから社長・管理者が変更することもできます。</p></div>
+        <div class="invite-role-grid" id="roleInviteGrid">
+          <button class="role-invite-card admin" data-invite-role="admin"><span class="role-icon">◎</span><div><b>人事・管理者用</b><small>メンバー管理・会社運用ができる</small></div><em>URLコピー</em></button>
+          <button class="role-invite-card member" data-invite-role="member"><span class="role-icon">◆</span><div><b>社員・職長用</b><small>現場・注文を中心に利用</small></div><em>URLコピー</em></button>
+          <button class="role-invite-card viewer" data-invite-role="viewer"><span class="role-icon">◉</span><div><b>閲覧専用</b><small>確認だけ。編集・発注は不可</small></div><em>URLコピー</em></button>
+        </div>
+        <div id="memberRoleBody" class="card member-panel"></div>
+        <button id="memberInviteBtn" class="secondary-btn full legacy-invite">通常の招待URLをコピー</button>
       </section>
       <section id="plans" class="screen">
-        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SUBSCRIPTION</p><h2>プラン</h2></div></div><div class="plan-grid"><article class="card plan-card" data-plan="free"><b>Free</b><strong>¥0</strong><small>基本注文・重量計算</small></article><article class="card plan-card recommended" data-plan="standard"><b>Standard</b><strong>価格設定前</strong><small>クラウド・在庫・複数ユーザー・配車</small></article><article class="card plan-card" data-plan="pro"><b>Pro</b><strong>価格設定前</strong><small>AI図面・写真AI・自社学習AI・分析</small><span class="learning-chip">学習済み <b data-learning-count>0</b> 件</span></article></div><div id="planChangeStatus" class="plan-change-status">現在のプランを確認中…</div><div class="card assist-note"><b>サブスク準備モード</b><p>カードを押すと会社プランをテスト切替できます。現在は決済未接続のため課金は発生しません。本番では決済完了後に自動反映する方式へ切り替えます。</p></div>
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SUBSCRIPTION</p><h2>プラン</h2></div></div>
+        <div class="subscription-hero card"><span>VERTX CORE MEMBERSHIP</span><h3>会社に合う機能だけ選ぶ。</h3><p>今はテスト切替モードです。決済接続後は契約完了時に自動でプランが切り替わります。</p></div>
+        <div class="plan-grid modern-plans">
+          <article class="card plan-card" data-plan="free"><span class="plan-kicker">START</span><b>Free</b><strong>¥0</strong><small>基本注文・重量計算</small><ul><li>資材注文</li><li>重量・トラック判定</li><li>基本履歴</li></ul><button type="button">Freeを選ぶ</button></article>
+          <article class="card plan-card recommended" data-plan="standard"><span class="plan-kicker">TEAM</span><b>Standard</b><strong>価格設定前</strong><small>現場運用をクラウド化</small><ul><li>自動在庫</li><li>複数ユーザー</li><li>配車・現場管理</li></ul><button type="button">Standardを選ぶ</button></article>
+          <article class="card plan-card pro" data-plan="pro"><span class="plan-kicker">AI</span><b>Pro</b><strong>価格設定前</strong><small>AIまでフル活用</small><ul><li>図面・写真AI</li><li>自社学習AI</li><li>高度分析</li></ul><span class="learning-chip">学習済み <b data-learning-count>0</b> 件</span><button type="button">Proを選ぶ</button></article>
+        </div>
+        <div id="planChangeStatus" class="plan-change-status">現在のプランを確認中…</div>
       </section>
       <section id="companySettings" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">COMPANY</p><h2>会社設定</h2></div></div>
@@ -267,6 +283,22 @@
         <div class="card assist-note"><b>クラウド共有</b><p>ログインした会社の現場・注文履歴・在庫・お気に入り・資材マスタ・図面をクラウド同期します。会社が違えばデータは見えません。</p></div>
       </section>
 
+
+      <section id="manual" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MANUAL</p><h2>使い方マニュアル</h2></div></div>
+        <div class="manual-hero card"><span>QUICK START</span><h3>迷ったらここだけ見ればOK。</h3><p>会社登録から注文、AI、在庫、メンバー招待まで順番にまとめています。</p></div>
+        <div class="manual-steps">
+          <details class="manual-step" open><summary><span>01</span><b>最初の設定</b></summary><div><p>会社を作成して、社長アカウントでログインします。会社設定で会社名・コードを確認してください。</p></div></details>
+          <details class="manual-step"><summary><span>02</span><b>現場を登録</b></summary><div><p>「現場」→「＋現場を追加」。注文・在庫・図面は現場ごとにまとめられます。</p></div></details>
+          <details class="manual-step"><summary><span>03</span><b>資材を注文</b></summary><div><p>「注文」で資材を選び、数量を＋－で入力。重量と必要トラックを確認して注文を保存します。PDFも注文確認・履歴から作成できます。</p></div></details>
+          <details class="manual-step"><summary><span>04</span><b>図面AI・写真AI</b></summary><div><p>複数の平面・立面・断面図をアップロードしてAI解析できます。写真AIは現場写真から資材候補を出します。AI結果は必ず人が確認してから注文へ反映してください。</p></div></details>
+          <details class="manual-step"><summary><span>05</span><b>音声オーダー</b></summary><div><p>「アンチ1.8を50枚、枠600を30枚」のように話して注文候補へ変換できます。マイク許可が必要です。</p></div></details>
+          <details class="manual-step"><summary><span>06</span><b>自動在庫</b></summary><div><p>注文を「納品済」にすると、その現場の在庫へ自動加算。現場在庫画面では数量と総重量を確認・補正できます。</p></div></details>
+          <details class="manual-step"><summary><span>07</span><b>社員を招待</b></summary><div><p>「メンバー・権限」で、人事・管理者用／社員・職長用／閲覧専用のURLをコピーして送ります。URLごとに参加時の権限が自動で分かれます。</p></div></details>
+          <details class="manual-step"><summary><span>08</span><b>プラン変更</b></summary><div><p>現在はテストモードなので社長だけFree・Standard・Proを切替できます。本番課金開始後は決済結果と連動させます。</p></div></details>
+        </div>
+        <div class="card support-note"><b>困ったとき</b><p>画面にエラー文が出たら、そのままスクリーンショットを残してください。設定・DB・AIのどこで止まったか切り分けやすくなります。</p></div>
+      </section>
       <section id="success" class="screen success-screen">
         <div class="success-mark">✓</div><p class="eyebrow">COMPLETE</p><h2>注文を保存しました</h2>
         <p class="muted center">履歴からいつでも確認・再注文できます。</p>

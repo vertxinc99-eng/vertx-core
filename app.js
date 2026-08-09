@@ -1,4 +1,4 @@
-// VERTX CORE v5.1 VERIFIED
+// VERTX CORE v5.3 TEAM + MANUAL + UI
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
 let cloudReady=false;
@@ -542,24 +542,27 @@ function startVoiceOrder(){
 function renderSiteDashboard(){const sites=getSites();$('#dashSite').innerHTML='<option value="">現場を選択</option>'+sites.map(s=>`<option>${escapeHtml(s)}</option>`).join('');$('#dashSite').onchange=renderSiteDashboardBody;renderSiteDashboardBody()}
 function renderSiteDashboardBody(){const site=$('#dashSite')?.value||getSites()[0]||'';if($('#dashSite')&&site)$('#dashSite').value=site;const stock=getStock().filter(x=>x.site===site),orders=getHistory().filter(x=>x.site===site);let w=0,q=0;stock.forEach(r=>{const m=MATERIALS.find(x=>x.id===r.materialId);q+=Number(r.qty)||0;w+=(Number(r.qty)||0)*(Number(m?.weight)||0)});$('#siteDashboardBody').innerHTML=site?`<div class="stats-grid"><article class="card stat"><span>現場在庫</span><strong>${q.toLocaleString()}点</strong></article><article class="card stat"><span>在庫重量</span><strong>${(w/1000).toFixed(2)}t</strong></article><article class="card stat"><span>注文回数</span><strong>${orders.length}</strong></article><article class="card stat"><span>最新搬入</span><strong>${escapeHtml(orders[0]?.date||'-')}</strong></article></div><div class="card"><h3>${escapeHtml(site)}</h3>${stock.slice(0,12).map(r=>`<div class="history-item-row"><span>${escapeHtml(r.materialName)}</span><strong>${Number(r.qty).toLocaleString()}</strong></div>`).join('')||'<p class="muted">在庫なし</p>'}</div>`:'<div class="card empty">現場を登録すると表示されます</div>'}
 function renderAnalytics(){const h=getHistory();const totalW=h.reduce((a,o)=>a+(Number(o.weight)||0),0),items=h.reduce((a,o)=>a+(o.items||[]).reduce((s,i)=>s+(Number(i.qty)||0),0),0);const sites=new Set(h.map(x=>x.site).filter(Boolean)).size;$('#analyticsBody').innerHTML=`<div class="stats-grid"><article class="card stat"><span>注文</span><strong>${h.length}件</strong></article><article class="card stat"><span>注文数量</span><strong>${items.toLocaleString()}点</strong></article><article class="card stat"><span>搬入重量</span><strong>${(totalW/1000).toFixed(2)}t</strong></article><article class="card stat"><span>稼働現場</span><strong>${sites}</strong></article></div><div class="card"><h3>車両目安</h3>${Object.entries(h.reduce((a,o)=>{const t=o.truck||truckFor(o.weight||0);a[t]=(a[t]||0)+1;return a},{})).map(([k,v])=>`<div class="history-item-row"><span>${escapeHtml(k)}</span><strong>${v}回</strong></div>`).join('')||'<p class="muted">データなし</p>'}</div>`}
+let roleInviteTokens={admin:null,member:null,viewer:null};
 async function renderMembers(){
   const s=getCompanySession(),root=$('#memberRoleBody');if(!root)return;
   root.innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(roleLabel(s?.role))}</strong></div><p class="muted">読み込み中…</p>`;
   if(!supabaseClient||!s?.orgId)return;
+  try{const {data:toks,error:tErr}=await supabaseClient.rpc('get_organization_role_invites',{p_org:s.orgId});if(!tErr&&toks?.[0])roleInviteTokens={admin:toks[0].admin_token||null,member:toks[0].member_token||null,viewer:toks[0].viewer_token||null};}catch(e){console.warn('invite token load',e)}
   const {data,error}=await supabaseClient.rpc('list_organization_members',{p_org:s.orgId});
   if(error){root.innerHTML+=`<div class="member-error"><b>メンバー機能のDB更新が必要です</b><p>SUPABASE_V5_1_MIGRATION.sql をSupabase SQL Editorで1回実行してください。</p><small>${escapeHtml(error.message)}</small></div>`;return}
   const canManage=['owner','admin'].includes(s.role);
+  document.querySelectorAll('[data-invite-role]').forEach(btn=>{const role=btn.dataset.inviteRole;btn.style.display=(canManage&&(role!=='admin'||s.role==='owner'))?'':'none';});
   root.innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(roleLabel(s.role))}</strong></div>`+(data||[]).map(m=>`<div class="history-item-row"><span>${escapeHtml(m.email||'メンバー')}<small>${escapeHtml(roleLabel(m.role))}</small></span>${canManage&&m.role!=='owner'?`<select data-member-user="${m.user_id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理者</option><option value="member" ${m.role==='member'?'selected':''}>職長</option><option value="viewer" ${m.role==='viewer'?'selected':''}>閲覧</option></select>`:`<strong>${escapeHtml(roleLabel(m.role))}</strong>`}</div>`).join('');
   root.querySelectorAll('[data-member-user]').forEach(sel=>sel.onchange=async()=>{const {error}=await supabaseClient.rpc('set_organization_member_role',{p_org:s.orgId,p_user:sel.dataset.memberUser,p_role:sel.value});if(error){toast('権限変更失敗：'+error.message);await renderMembers()}else toast('権限を変更しました')});
 }
 function roleLabel(r){return ({owner:'社長 / Owner',admin:'管理者 / Admin',member:'職長 / Member',viewer:'閲覧'})[r]||r||'職長 / Member'}
-function canOpenScreen(screenId){const r=getCompanySession()?.role||'member';if(r==='owner')return true;if(r==='admin')return !['plans'].includes(screenId);if(r==='member')return !['materialsMaster','members','plans','analytics','companySettings'].includes(screenId);if(r==='viewer')return ['home','history','favorites','drawings','siteStock','siteDashboard','companySettings'].includes(screenId);return false}
+function canOpenScreen(screenId){const r=getCompanySession()?.role||'member';if(r==='owner')return true;if(r==='admin')return !['plans'].includes(screenId);if(r==='member')return !['materialsMaster','members','plans','analytics','companySettings'].includes(screenId);if(r==='viewer')return ['home','history','favorites','drawings','siteStock','siteDashboard','companySettings','manual'].includes(screenId);return false}
 function applyRoleUi(){document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(!target||target==='home')return;const allowed=canOpenScreen(target);if(el.classList.contains('menu-card'))el.style.display=allowed?'':'none';});const r=getCompanySession()?.role||'member';if($('#memberInviteBtn'))$('#memberInviteBtn').style.display=['owner','admin'].includes(r)?'':'none';}
 
 
 async function saveAiLearningExample(source='drawing'){
   try{
-    const org=currentOrgId?.(); if(!org||!cloudReady?.()) return;
+    const org=getCompanySession()?.orgId; if(!org||!cloudReady) return;
     const finalItems=Object.entries(state.cart||{}).map(([id,qty])=>{const m=MATERIALS.find(x=>String(x.id)===String(id));return m&&Number(qty)>0?{material_name:m.name,quantity:Number(qty),unit:m.unit}:null}).filter(Boolean);
     if(!finalItems.length) return;
     await supabaseClient.from('ai_learning_examples').insert({organization_id:org,source_type:source,context:($('#aiContext')?.value||$('#photoAiContext')?.value||'').trim(),corrected_materials:finalItems});
@@ -567,7 +570,7 @@ async function saveAiLearningExample(source='drawing'){
   }catch(e){console.warn('learning save failed',e)}
 }
 async function updateLearningCount(){
-  try{const org=currentOrgId?.();if(!org||!cloudReady?.())return;const {count}=await supabaseClient.from('ai_learning_examples').select('*',{count:'exact',head:true}).eq('organization_id',org);document.querySelectorAll('[data-learning-count]').forEach(x=>x.textContent=String(count||0));}catch{}}
+  try{const org=getCompanySession()?.orgId;if(!org||!cloudReady)return;const {count}=await supabaseClient.from('ai_learning_examples').select('*',{count:'exact',head:true}).eq('organization_id',org);document.querySelectorAll('[data-learning-count]').forEach(x=>x.textContent=String(count||0));}catch{}}
 function renderPlans(){
   const s=getCompanySession();const plan=s?.plan||'standard';
   document.querySelectorAll('.plan-card').forEach(x=>{
@@ -660,10 +663,13 @@ function reloadTenantState(){
   try{state.favorites=new Set(JSON.parse(lsGet('vertx_core_favorites')||'[]'))}catch{state.favorites=new Set()}
 }
 async function joinInviteIfPresent(){
-  const token=new URL(location.href).searchParams.get('invite');if(!token)return false;
-  const {error}=await supabaseClient.rpc('join_organization_by_invite',{p_token:token});
+  const u0=new URL(location.href);const teamToken=u0.searchParams.get('team_invite');const legacy=u0.searchParams.get('invite');
+  if(!teamToken&&!legacy)return false;
+  let error=null;
+  if(teamToken){({error}=await supabaseClient.rpc('join_organization_by_role_invite',{p_token:teamToken}));}
+  else{({error}=await supabaseClient.rpc('join_organization_by_invite',{p_token:legacy}));}
   if(error){const el=$('#companyGateStatus');if(el)el.textContent='招待参加に失敗しました：'+error.message;return false}
-  const u=new URL(location.href);u.searchParams.delete('invite');history.replaceState({},'',u.toString());return true;
+  u0.searchParams.delete('team_invite');u0.searchParams.delete('invite');history.replaceState({},'',u0.toString());return true;
 }
 async function chooseOrganization(){
   $('#cloudAuthGate')?.classList.add('hidden');
@@ -695,6 +701,8 @@ async function companyLogin(){
 }
 async function switchCompany(){nativeRemove(VERTX_SESSION_KEY);location.reload()}
 function companyInviteUrl(){const s=getCompanySession();const u=new URL(location.origin+location.pathname);if(s?.inviteToken)u.searchParams.set('invite',s.inviteToken);return u.toString()}
+function companyRoleInviteUrl(role){const token=roleInviteTokens?.[role];if(!token)return '';const u=new URL(location.origin+location.pathname);u.searchParams.set('team_invite',token);return u.toString()}
+async function copyRoleInvite(role){const s=getCompanySession();if(!['owner','admin'].includes(s?.role||''))return toast('招待URLは社長・管理者のみ発行できます');if(role==='admin'&&s.role!=='owner')return toast('人事・管理者用URLは社長のみ発行できます');const url=companyRoleInviteUrl(role);if(!url)return toast('招待URLがまだ作成されていません。V5.3のSQLを実行してください');try{await navigator.clipboard.writeText(url);toast((role==='admin'?'人事・管理者用':role==='viewer'?'閲覧用':'社員・職長用')+'URLをコピーしました')}catch{prompt('このURLをコピーしてください',url)}}
 async function copyCompanyInvite(){const s=getCompanySession();if(!s?.inviteToken)return toast('招待URLを取得できません');try{await navigator.clipboard.writeText(companyInviteUrl());toast('招待URLをコピーしました')}catch{prompt('このURLをコピーしてください',companyInviteUrl())}}
 async function signOut(){if(supabaseClient)await supabaseClient.auth.signOut();nativeRemove(VERTX_SESSION_KEY);location.reload()}
 function prefillCompanyFromUrl(){const code=normalizeCompanyCode(new URL(location.href).searchParams.get('company')||'');if(code&&$('#tenantCompanyCode'))$('#tenantCompanyCode').value=code}
@@ -710,6 +718,6 @@ async function cloudBoot(){
 }
 
 $$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#saveStockBtn').onclick=saveStockEntry;$('#addShortageBtn').onclick=addShortage;$('#saveSetBtn').onclick=saveCurrentSet;$('#runCompareBtn').onclick=runCompare;$('#searchInput').oninput=e=>{state.search=e.target.value;renderMaterials()};$('#toConfirmBtn').onclick=()=>go('confirm');$('#submitOrderBtn').onclick=submitOrder;$('#addSiteBtn').onclick=addSite;$('#newSiteName').onkeydown=e=>{if(e.key==='Enter')addSite()};$('#printDraftBtn').onclick=printDraft;$('#lineDraftBtn').onclick=shareDraft;$('#addCustomMaterialBtn').onclick=addCustomMaterial;$('#resetMaterialsBtn').onclick=resetMaterialMaster;$('#drawingInput').onchange=e=>uploadDrawings(e.target.files);if($('#aiDrawingInput'))$('#aiDrawingInput').onchange=e=>uploadAiDrawings(e.target.files);$('#assistType').onchange=toggleAssistOptions;$('#runAssistBtn').onclick=runAssist;$('#applyAssistBtn').onclick=applyAssist;$('#runAiBtn').onclick=runAiAnalysis;$('#applyAiBtn').onclick=applyAiCandidate;
-if($('#voiceStartBtn'))$('#voiceStartBtn').onclick=startVoiceOrder;if($('#voiceParseBtn'))$('#voiceParseBtn').onclick=parseVoiceOrder;if($('#photoAiInput'))$('#photoAiInput').onchange=e=>{photoAiFiles=[...e.target.files];$('#photoAiFiles').textContent=photoAiFiles.map(x=>x.name).join(' / ')||'写真未選択'};if($('#runPhotoAiBtn'))$('#runPhotoAiBtn').onclick=runPhotoAi;if($('#applyPhotoAiBtn'))$('#applyPhotoAiBtn').onclick=applyPhotoAi;if($('#memberInviteBtn'))$('#memberInviteBtn').onclick=copyCompanyInvite;if($('#tenantLoginBtn'))$('#tenantLoginBtn').onclick=companyLogin;if($('#switchCompanyBtn'))$('#switchCompanyBtn').onclick=switchCompany;if($('#copyInviteBtn'))$('#copyInviteBtn').onclick=copyCompanyInvite;if($('#companyBadge'))$('#companyBadge').onclick=()=>go('companySettings');if($('#authLoginBtn'))$('#authLoginBtn').onclick=authLogin;if($('#authSignupBtn'))$('#authSignupBtn').onclick=authSignup;if($('#signOutBtn'))$('#signOutBtn').onclick=signOut;
+document.querySelectorAll('[data-invite-role]').forEach(btn=>btn.onclick=()=>copyRoleInvite(btn.dataset.inviteRole));if($('#voiceStartBtn'))$('#voiceStartBtn').onclick=startVoiceOrder;if($('#voiceParseBtn'))$('#voiceParseBtn').onclick=parseVoiceOrder;if($('#photoAiInput'))$('#photoAiInput').onchange=e=>{photoAiFiles=[...e.target.files];$('#photoAiFiles').textContent=photoAiFiles.map(x=>x.name).join(' / ')||'写真未選択'};if($('#runPhotoAiBtn'))$('#runPhotoAiBtn').onclick=runPhotoAi;if($('#applyPhotoAiBtn'))$('#applyPhotoAiBtn').onclick=applyPhotoAi;if($('#memberInviteBtn'))$('#memberInviteBtn').onclick=copyCompanyInvite;if($('#tenantLoginBtn'))$('#tenantLoginBtn').onclick=companyLogin;if($('#switchCompanyBtn'))$('#switchCompanyBtn').onclick=switchCompany;if($('#copyInviteBtn'))$('#copyInviteBtn').onclick=copyCompanyInvite;if($('#companyBadge'))$('#companyBadge').onclick=()=>go('companySettings');if($('#authLoginBtn'))$('#authLoginBtn').onclick=authLogin;if($('#authSignupBtn'))$('#authSignupBtn').onclick=authSignup;if($('#signOutBtn'))$('#signOutBtn').onclick=signOut;
 $('#resetBtn').onclick=()=>{if(confirm('注文履歴・現場・お気に入り・選択中数量を初期化しますか？（資材マスタは残ります）')){['vertx_core_orders','vertx_core_sites','vertx_core_favorites'].forEach(k=>lsRemove(k));state.cart={};state.favorites=new Set();state.selectedSite='';renderMaterials();updateDashboard();toast('初期化しました')}};
 cloudBoot();

@@ -1,21 +1,14 @@
-# VERTX CORE v5.1
+# VERTX CORE v5.3
 
-会社別クラウド、注文、重量/トラック、自動在庫、PDF、複数図面AI、写真AI、音声オーダー、権限、配車、分析に加え、v5.0では会社別AI修正履歴（学習メモリ）とサブスク基盤を追加。
+## v5.3 changes
+- Role-specific invite URLs: HR/Admin, Employee/Foreman, View-only
+- Manual page inside the app
+- Major premium dark/glass UI refresh
+- Keeps v5.2 plan selection and existing cloud/AI/order features
 
-## 更新時
-1. GitHubへこのフォルダの中身を上書き
-2. Supabase SQL Editorで `SUPABASE_V4_MIGRATION.sql` を実行（再実行可）
-3. VercelのDeploy完了後にアプリを再読み込み
+## Update
+1. Upload all files/folders to GitHub main.
+2. Run `SUPABASE_V5_3_MIGRATION.sql` once in Supabase SQL Editor.
+3. Wait for Vercel Production deployment, then refresh the app.
 
-## v5.0の重要修正
-- ロック付連結ピンを既存DBから削除
-- 軽量足場板を削除しアルミ足場板へ統一
-- 手摺 0.6/0.9/1.2/1.5/1.8 を削除し下さんへ統一
-- AI確定注文を会社別 `ai_learning_examples` に保存
-- Free / Standard / Pro と契約状態・AI利用枠のDB項目を用意
-- 写真AI / 音声 / PDF / メンバー権限の既存修正を継承
-
-※ AIの候補は安全上、自動発注確定しません。人が確認して注文確定した内容を学習メモリとして保存します。
-
-## v5.2 IMPORTANT
-Run `SUPABASE_V5_2_MIGRATION.sql` once in Supabase SQL Editor. This migration does NOT reference a non-existent `public.materials` table, and adds member-role RPCs plus test-mode plan switching.
+App: https://vertx-core.vercel.app/
