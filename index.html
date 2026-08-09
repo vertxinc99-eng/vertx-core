@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v7.19 HANDOVER MARKUP</title>
-  <link rel="stylesheet" href="style.css?v=7.19.0">
+  <title>VERTX CORE v7.20 FIELD KY UX</title>
+  <link rel="stylesheet" href="style.css?v=7.20.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate">
@@ -40,7 +40,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.19 HANDOVER MARKUP</span></h1>
+        <h1>CORE <span>v7.20 FIELD KY UX</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -384,10 +384,35 @@
           <label>作業者名 <small>登録メンバーでも応援でもOK</small><textarea id="dailyWorkerNames" rows="2" placeholder="例：今村修太 / 沼田理央 / 応援A / 応援B"></textarea></label>
           <label>本日の作業内容<textarea id="dailyWork" rows="3" placeholder="例：北面3〜5段組立、朝顔取付"></textarea></label>
           <label>現場の現状<textarea id="dailyStatus" rows="3" placeholder="例：北面5段まで完了。南面は電線側未着手"></textarea></label>
-          <div class="ky-box ky-input-box">
-            <div class="section-head tight"><h3>KY入力</h3><span>手書きなし・入力式</span></div>
-            <label>危険ポイント<textarea id="dailyKyText" rows="3" placeholder="例：電線接触、資材荷上げ時の落下、開口部付近の作業"></textarea></label>
-            <label>対策・周知事項<textarea id="dailyKyMeasure" rows="3" placeholder="例：電線側は監視員を配置。荷上げ中は下部立入禁止。開口部は先行して養生"></textarea></label>
+          <div class="ky-box ky-risk-box">
+            <div class="section-head tight"><div><p class="eyebrow">RISK ASSESSMENT</p><h3>KY・危険予知</h3></div><span>入力式</span></div>
+            <p class="ky-guide">危険を最大3件まで入力。頻度×重大性からリスクを自動表示します。必要な項目だけでOKです。</p>
+            <label class="field-block">本日の重点安全目標<input id="dailySafetyGoal" type="text" placeholder="例：安全帯の使用 / 声掛け確認 / 荷下ろし時の立入禁止"></label>
+            <div id="kyRiskRows" class="ky-risk-list">
+              <article class="ky-risk-item" data-ky-row="0">
+                <div class="ky-risk-head"><b>危険 01</b><span class="ky-risk-score" data-ky-score="0">リスク 1</span></div>
+                <label>予測される危険<input data-ky-hazard="0" placeholder="例：鉄骨資材の搬入時に挟まれる"></label>
+                <label>なぜ起きる / どうなる<input data-ky-cause="0" placeholder="例：荷下ろし中にトラックへ近づき接触する"></label>
+                <div class="ky-score-grid"><label>頻度<select data-ky-freq="0"><option value="1">1 ほぼ無し</option><option value="2" selected>2 ときどき</option><option value="3">3 よくある</option></select></label><label>重大性<select data-ky-sev="0"><option value="1">1 軽度</option><option value="2" selected>2 中程度</option><option value="3">3 重度</option></select></label></div>
+                <label>対策・私達はこうする<input data-ky-measure="0" placeholder="例：荷下ろし中はトラック付近へ立ち入らない"></label>
+              </article>
+              <article class="ky-risk-item" data-ky-row="1">
+                <div class="ky-risk-head"><b>危険 02</b><span class="ky-risk-score" data-ky-score="1">リスク 1</span></div>
+                <label>予測される危険<input data-ky-hazard="1" placeholder="例：高所移動中に足を滑らせる"></label>
+                <label>なぜ起きる / どうなる<input data-ky-cause="1" placeholder="例：足元確認不足で踏み外し転落する"></label>
+                <div class="ky-score-grid"><label>頻度<select data-ky-freq="1"><option value="1">1 ほぼ無し</option><option value="2" selected>2 ときどき</option><option value="3">3 よくある</option></select></label><label>重大性<select data-ky-sev="1"><option value="1">1 軽度</option><option value="2" selected>2 中程度</option><option value="3">3 重度</option></select></label></div>
+                <label>対策・私達はこうする<input data-ky-measure="1" placeholder="例：安全帯を掛け、足元を確認して移動する"></label>
+              </article>
+              <article class="ky-risk-item ky-risk-optional" data-ky-row="2">
+                <div class="ky-risk-head"><b>危険 03</b><span class="ky-risk-score" data-ky-score="2">リスク 1</span></div>
+                <label>予測される危険<input data-ky-hazard="2" placeholder="例：吊荷の下へ入り落下物に当たる"></label>
+                <label>なぜ起きる / どうなる<input data-ky-cause="2" placeholder="例：玉掛け作業中の立入範囲が不明確"></label>
+                <div class="ky-score-grid"><label>頻度<select data-ky-freq="2"><option value="1">1 ほぼ無し</option><option value="2" selected>2 ときどき</option><option value="3">3 よくある</option></select></label><label>重大性<select data-ky-sev="2"><option value="1">1 軽度</option><option value="2" selected>2 中程度</option><option value="3">3 重度</option></select></label></div>
+                <label>対策・私達はこうする<input data-ky-measure="2" placeholder="例：吊荷の下は立入禁止、合図者を決める"></label>
+              </article>
+            </div>
+            <div class="ky-risk-legend"><span><b>1–2</b> 低</span><span><b>3–4</b> 注意</span><span><b>6–9</b> 高</span></div>
+            <textarea id="dailyKyText" class="hidden" aria-hidden="true"></textarea><textarea id="dailyKyMeasure" class="hidden" aria-hidden="true"></textarea>
           </div>
           <label>注意事項・引継ぎメモ<textarea id="dailyHandover" rows="3" placeholder="例：明日は自分が別現場。朝8:00の3t搬入対応をお願いします"></textarea></label>
           <div class="handover-markup-box">
@@ -482,7 +507,7 @@
           <details id="m16" class="manual-step"><summary><span>16</span><b>プラン・サブスク</b></summary><div><p>Freeは基本注文と重量計算。Standardはクラウド・在庫・複数ユーザー・配車など。ProはAI機能を含む上位プランです。Stripe本番設定完了後は、社長がプラン画面から申込・契約管理を行えます。</p></div></details>
           <details id="m17" class="manual-step"><summary><span>17</span><b>操作履歴・エラーが出た時</b></summary><div><p>社長・管理者は「その他 → 操作履歴」で、注文、返却、返却車手配、資材設定、原価、AI解析など主要操作を確認できます。注文途中や返却車の条件は自動保存されます。エラー時はまず画面を再読み込みし、バージョン表示を確認します。AIだけ失敗する場合は図面枚数を減らして再試行。DBや招待でエラーが出た場合は、表示されたエラー文が読めるスクリーンショットを残してください。</p></div></details>
         
-          <details id="m18" class="manual-step"><summary><span>18</span><b>職長日報・KY・引継ぎ</b></summary><div><p>「職長日報・KY」で現場と日付を選び、作業人数と作業者名、本日の作業内容、現場の現状、危険ポイント、注意事項、明日の予定、必要資材を入力します。KYは「危険ポイント」と「対策・周知事項」をスマホで入力するのが基本です。引継ぎ時だけ「引継ぎ写真メモ」で現場写真を選び、ペン・丸・矢印・文字を写真へ直接書き込めます。職長が別現場へ移る場合は「引継ぎ先」と引継ぎメモを入力し、受けた人は確認状態を「確認済み」にできます。</p></div></details>
+          <details id="m18" class="manual-step"><summary><span>18</span><b>職長日報・KY・引継ぎ</b></summary><div><p>「職長日報・KY」で現場と日付を選びます。作業者名を入力すると人数の目安になります。KYはリスクアセスメント式で、最大3件の「予測される危険」「なぜ起きる・どうなる」「頻度」「重大性」「対策」を入力するとリスク点を自動表示します。本日の重点安全目標も入力できます。引継ぎ時だけ「引継ぎ写真メモ」で写真を選び、ペン・丸・矢印・文字を写真へ直接書き込めます。職長が別現場へ移る場合は引継ぎ先とメモを入力し、受けた人は確認済みにできます。</p></div></details>
           <details id="m19" class="manual-step"><summary><span>19</span><b>搬入・搬出予定と現場アルバム</b></summary><div><p>日報を開くと、その現場・その日の搬入と返却予定を既存の注文・返却データから時間つきで自動表示します。注文時の搬入時間、返却車手配時の搬出時間を入力しておけば日報にそのまま表示されます。二重入力は不要です。「現場アルバム」では施工前・施工中・完了・搬入・返却などのタグを付けて写真を保存できます。元請けへ見せたくない写真は「社内のみ」を選びます。</p></div></details>
           <details id="m20" class="manual-step"><summary><span>20</span><b>元請け向け共有ページ</b></summary><div><p>「元請け向け共有」で現場を選び、「共有ページを更新・URL発行」を押します。共有ページには現場の現状、共有OKの最新写真5枚、搬入予定、搬出・返却予定、最近の注文内容、現場のお知らせ、最終更新日時だけを表示します。KY、社内メモ、原価、社員情報は表示されません。発行したURLをLINE等で元請けへ送れます。</p></div></details>
         </div>
@@ -531,6 +556,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.19.0"></script>
+  <script src="app.js?v=7.20.0"></script>
 </body>
 </html>
