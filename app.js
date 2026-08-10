@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.48.0';
+const VERTX_BUILD='7.49.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -47,7 +47,7 @@ async function runSystemCheck(){
   checks.push(['資材ID重複',new Set(ids).size===ids.length,`${ids.length}件`]);
   checks.push(['資材名重複',new Set(names).size===names.length,`${names.length}件`]);
   checks.push(['注文下書き',true,Object.keys(state.cart||{}).length?`${Object.keys(state.cart).length}種類保存中`:'空']);
-  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.48.0',`v${VERTX_BUILD}`]);
+  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.49.0',`v${VERTX_BUILD}`]);
   try{const r=await fetch('/api/config',{cache:'no-store'});const cfg=await r.json();checks.push(['クラウド設定',Boolean(cfg.configured),cfg.configured?'Supabase OK':'設定不足']);checks.push(['AI/課金API',r.ok,r.ok?'API応答OK':'API応答エラー']);}catch(e){checks.push(['API接続',false,'接続できません']) }
   out.innerHTML=checks.map(([n,ok,d])=>`<div class="dev-check-row ${ok?'ok':'ng'}"><span>${ok?'✓':'!'} ${escapeHtml(n)}</span><small>${escapeHtml(d)}</small></div>`).join('');
   audit('システム診断',checks.every(x=>x[1])?'PASS':'要確認');
@@ -1323,7 +1323,7 @@ function runCoreSelfCheck(){
   const screens=new Set(Array.from(document.querySelectorAll('section.screen[id]')).map(x=>x.id));
   document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(target&&!screens.has(target))issues.push('リンク先不足:'+target)});
   ['searchInput','toConfirmBtn','submitOrderBtn','runAiBtn','voiceStartBtn','runPhotoAiBtn','requestReturnTruckBtn','saveDailyReportBtn','publishShareBtn','openFullManual'].forEach(id=>{if(!document.getElementById(id))issues.push('操作部品不足:'+id)});
-  if(VERTX_BUILD!=='7.48.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
+  if(VERTX_BUILD!=='7.49.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
   const unique=[...new Set(issues)];
   if(unique.length)console.warn('CORE SELF CHECK',unique);else console.info('CORE SELF CHECK PASS v7.36');
   return unique;
