@@ -764,3 +764,146 @@ select option{background:#061426!important;color:#fff!important}
 /* ===== VERTX CORE v7.33 EXACT SYSTEM PASS ===== */
 .quick-action-modal{position:fixed;inset:0;z-index:1200;display:grid;align-items:end;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);padding:12px}.quick-action-modal.hidden{display:none}.quick-action-sheet{width:min(100%,680px);margin:0 auto;padding:12px 14px calc(18px + env(safe-area-inset-bottom));border-radius:28px;background:linear-gradient(180deg,#123152,#061426);border:1px solid rgba(116,171,226,.3);box-shadow:0 28px 70px rgba(0,0,0,.55);color:#fff}.quick-action-handle{width:44px;height:5px;border-radius:999px;background:#68819b;margin:0 auto 12px}.quick-action-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.quick-action-head span{display:block;color:var(--v731-gold2);font-size:9px;letter-spacing:.22em;font-weight:950}.quick-action-head h3{margin:4px 0 0;color:#fff;font-size:26px;letter-spacing:-.04em}.quick-action-head button{width:42px;height:42px;border-radius:14px;border:1px solid rgba(119,172,225,.25);background:#081a2f;color:#fff;font-size:24px}.quick-action-lead{margin:8px 0 14px;color:#aebfd1;font-size:13px}.quick-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.quick-action-grid button{min-height:105px;padding:14px;text-align:left;border-radius:20px;border:1px solid rgba(114,169,225,.22);background:linear-gradient(145deg,#16395f,#081b30);color:#fff;box-shadow:0 12px 24px rgba(0,0,0,.25)}.quick-action-grid button:active{transform:scale(.985)}.quick-action-grid span{display:grid;place-items:center;width:38px;height:38px;border-radius:13px;margin-bottom:10px;background:linear-gradient(145deg,#ffd760,#d8870a);color:#10151b;font-size:18px;font-weight:1000}.quick-action-grid b{display:block;color:#fff;font-size:16px;font-weight:950}.quick-action-grid small{display:block;margin-top:4px;color:#aebfd1;font-size:11px}.screen:not(.exact-home) button{letter-spacing:-.015em}.screen:not(.exact-home) .primary-btn,.screen:not(.exact-home) .secondary-btn{font-weight:900}.screen:not(.exact-home) .context-help-btn{flex:0 0 auto;background:linear-gradient(145deg,#ffd760,#cf8109)!important;color:#111!important;border:1px solid #ffe59a!important;box-shadow:0 8px 18px rgba(0,0,0,.24)!important}.manual-step summary,.control-section button,.history-item,.site-card,.material{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif}
 @media(max-width:420px){.quick-action-grid button{min-height:96px;padding:12px}.quick-action-head h3{font-size:24px}}
+
+/* ===== VERTX CORE v7.34 HOME SCROLL ART ===== */
+/* HOMEの参照ビジュアルは固定背景ではなく、ページ本体の一部として自然に縦スクロールする */
+body:has(.exact-home.active){
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-y:auto!important;
+  background:#020812!important;
+}
+body:has(.exact-home.active) .app-shell,
+body:has(.exact-home.active) main,
+body:has(.exact-home.active) .exact-home{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  position:relative!important;
+}
+body:has(.exact-home.active) .app-shell{
+  max-width:720px!important;
+  margin:0 auto!important;
+  padding:0!important;
+}
+.exact-home{
+  margin:0!important;
+  padding:0!important;
+  width:100%!important;
+  background:#020812!important;
+  touch-action:pan-y!important;
+}
+.exact-home-stage{
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  transform:none!important;
+  background:#020812!important;
+  touch-action:pan-y!important;
+}
+.exact-home-art{
+  position:relative!important;
+  inset:auto!important;
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  object-fit:contain!important;
+  object-position:top center!important;
+  transform:none!important;
+  will-change:auto!important;
+  background-attachment:scroll!important;
+  pointer-events:none!important;
+}
+.exact-home .home-hotspot{
+  position:absolute!important;
+  touch-action:manipulation!important;
+}
+/* iPhone SafariでHOMEを開いたままでも画面全体が通常スクロールする */
+@supports (-webkit-touch-callout:none){
+  body:has(.exact-home.active),
+  body:has(.exact-home.active) .app-shell,
+  body:has(.exact-home.active) main,
+  .exact-home,
+  .exact-home-stage{
+    -webkit-transform:none!important;
+    transform:none!important;
+  }
+}
+
+/* ============================================================
+   VERTX CORE v7.35 — FULLSCREEN HOME / REAL NAV
+   - remove rendered phone frame from HOME artwork
+   - artwork fills the app viewport width
+   - use the real interactive dock on HOME (no duplicate baked nav)
+   ============================================================ */
+body:has(.exact-home.active){
+  background:#020812!important;
+  overflow-x:hidden!important;
+}
+body:has(.exact-home.active) .topbar{display:none!important}
+body:has(.exact-home.active) .app-shell{
+  width:100%!important;
+  max-width:720px!important;
+  margin:0 auto!important;
+  padding:0 0 calc(96px + env(safe-area-inset-bottom))!important;
+  background:#020812!important;
+  overflow:visible!important;
+}
+body:has(.exact-home.active) main{width:100%!important;overflow:visible!important}
+.exact-home{
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  background:#020812!important;
+  overflow:visible!important;
+}
+.exact-home-stage{
+  position:relative!important;
+  width:100vw!important;
+  max-width:720px!important;
+  margin-left:50%!important;
+  transform:translateX(-50%)!important;
+  background:#020812!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.exact-home-art{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-width:none!important;
+  object-fit:cover!important;
+  object-position:top center!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  pointer-events:none!important;
+}
+/* Hotspots recalibrated for the cropped, bezel-free artwork. */
+.hs-order{left:5.8%!important;top:35.4%!important;width:88.3%!important;height:21.7%!important}
+.hs-sites{left:5.9%!important;top:58.9%!important;width:28.9%!important;height:20.4%!important}
+.hs-return{left:35.5%!important;top:58.9%!important;width:28.9%!important;height:20.4%!important}
+.hs-ky{left:64.6%!important;top:58.9%!important;width:29.4%!important;height:20.4%!important}
+.hs-share{left:5.9%!important;top:80.7%!important;width:43.9%!important;height:16.4%!important}
+.hs-photo{left:50.9%!important;top:80.7%!important;width:43.3%!important;height:16.4%!important}
+/* HOME now uses the actual app dock; it scrolls independently from the artwork. */
+body:has(.exact-home.active) .bottom-nav{
+  display:grid!important;
+  position:fixed!important;
+  z-index:100!important;
+  left:max(10px,calc((100vw - 700px)/2))!important;
+  right:max(10px,calc((100vw - 700px)/2))!important;
+  bottom:calc(8px + env(safe-area-inset-bottom))!important;
+}
+@media(max-width:430px){
+  body:has(.exact-home.active) .app-shell{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+  .exact-home-stage{width:100vw!important;max-width:none!important}
+  body:has(.exact-home.active) .bottom-nav{left:8px!important;right:8px!important}
+}
