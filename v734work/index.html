@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#03101f">
+  <title>VERTX CORE v7.34 HOME SCROLL ART</title>
+  <link rel="stylesheet" href="style.css?v=7.34.0">
+</head>
+<body>
+  <div id="cloudAuthGate" class="company-gate">
+    <div class="company-gate-card">
+      <p class="eyebrow">VERTX CORE CLOUD</p>
+      <h2>ログイン</h2>
+      <p class="muted">同じ会社の現場・注文・在庫・資材マスタ・図面を、スマホやPCで共有します。</p>
+      <label>メールアドレス<input id="authEmail" type="email" placeholder="name@example.com" autocomplete="email"></label>
+      <label>パスワード<input id="authPassword" type="password" placeholder="8文字以上" autocomplete="current-password"></label>
+      <div class="action-grid">
+        <button id="authLoginBtn" class="primary-btn full">ログイン</button>
+        <button id="authSignupBtn" class="secondary-btn full">新規登録</button>
+      </div>
+      <small id="authStatus">初回は新規登録してください。</small>
+    </div>
+  </div>
+  <div id="companyGate" class="company-gate hidden">
+    <div class="company-gate-card setup-card">
+      <div class="setup-brand"><span class="setup-mark">V</span><div><p class="eyebrow">VERTX CORE</p><b>NOVA WORKSPACE</b></div><span class="setup-live">CLOUD</span></div>
+      <div class="setup-copy"><span class="setup-step">NEW WORKSPACE</span><h2>現場を動かす、<br><em>新しいCORE。</em></h2><p>注文・返却・配車・AI・KYまで。現場の資材情報をひとつに。</p></div>
+      <div class="setup-fields">
+        <label><span>会社名 <em>必須</em></span><input id="tenantCompanyName" type="text" placeholder="例：〇〇建設"></label>
+        <label><span>担当者名</span><input id="tenantUserName" type="text" placeholder="例：〇〇太郎"></label>
+        <label><span>会社コード <small>任意・未入力なら自動発行</small></span><input id="tenantCompanyCode" type="text" placeholder="例：MARUMARU01"></label>
+      </div>
+      <button id="tenantLoginBtn" class="primary-btn full setup-start">COREを起動 <span>→</span></button>
+      <button id="joinInviteBtn" class="secondary-btn full hidden">招待された会社に参加</button>
+      <div class="setup-security"><span>✓</span><small id="companyGateStatus">会社ごとにデータを分離して安全に保存します。</small></div>
+    </div>
+  </div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">VERTX</p>
+        <h1>CORE <span>v7.34 HOME SCROLL ART</span></h1>
+      </div>
+      <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
+    </header>
+
+    <main>
+      <section id="home" class="screen active exact-home">
+        <div class="exact-home-stage" aria-label="VERTX CORE ホーム">
+          <img class="exact-home-art" src="vertx-core-home-reference.jpg" alt="VERTX CORE ホーム画面">
+          <button class="home-hotspot hs-order" data-go="sites" aria-label="注文を作る"></button>
+          <button class="home-hotspot hs-sites" data-go="sites" aria-label="現場一覧"></button>
+          <button class="home-hotspot hs-return" data-go="returnLoad" aria-label="返却車"></button>
+          <button class="home-hotspot hs-ky" data-go="dailyReport" aria-label="職長日報・KY"></button>
+          <button class="home-hotspot hs-share" data-go="clientShare" aria-label="元請け共有"></button>
+          <button class="home-hotspot hs-photo" data-go="siteAlbum" aria-label="写真"></button>
+          <button class="home-hotspot hs-history" data-go="history" aria-label="注文履歴"></button>
+          <button class="home-hotspot hs-center" id="homeQuickActionBtn" type="button" aria-label="クイック操作"></button>
+          <button class="home-hotspot hs-notice" data-go="more" aria-label="お知らせ"></button>
+          <button class="home-hotspot hs-menu" data-go="more" aria-label="メニュー"></button>
+        </div>
+        <div id="adminOpsSummary" class="admin-ops-summary hidden"></div>
+        <span id="todayCount" class="hidden">0</span><span id="historyCount" class="hidden">0</span>
+        <span id="homeRoleChip" class="hidden">FIELD</span><span id="homeGreeting" class="hidden">お疲れさまです</span><span id="homeHeadline" class="hidden">今日も安全第一で。</span><span id="homeRoleLead" class="hidden">現場・注文・搬入をすぐ確認できます。</span>
+      </section>
+
+      <section id="sites" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE</p><h2>現場を選択</h2></div></div>
+        <div class="card form-card compact-form">
+          <label>新しい現場名<input id="newSiteName" type="text" placeholder="例：品川〇〇ビル"></label>
+          <button id="addSiteBtn" class="secondary-btn full">＋ 現場を追加</button>
+        </div>
+        <div class="section-head"><h3>登録現場</h3></div>
+        <div id="siteList" class="history-list"></div>
+      </section>
+
+      <section id="order" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ORDER</p><h2>資材注文</h2></div></div>
+        <div id="selectedSiteBanner" class="site-banner hidden"></div><div class="order-command"><div><span>FIELD ORDER</span><b>資材名の「•••」から、この会社だけの呼び方に変更できます</b></div><button type="button" data-go="voiceOrder">🎙 音声</button></div>
+        <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="資材を検索（4板・かんざし・ラッセルブラ等）"></label>
+        <div id="recentMaterialsBar" class="recent-materials hidden"></div>
+        <div id="siteSmartSuggestions" class="smart-suggestions hidden"></div>
+        <div class="chips" id="categoryChips"></div>
+        <div id="materialList" class="material-list"></div>
+        <div class="sticky-summary card">
+          <div><span>合計</span><strong><span id="totalQty">0</span>点</strong></div>
+          <div><span>重量</span><strong><span id="totalWeight">0.0</span>kg / <span id="totalTons">0.00</span>t</strong></div>
+          <button id="toConfirmBtn" class="primary-btn">注文確認へ</button>
+        </div>
+      </section>
+
+      <section id="favorites" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">FAVORITE</p><h2>お気に入り</h2></div></div>
+        <div id="favoriteList" class="material-list"></div>
+      </section>
+
+      <section id="confirm" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="order">‹</button><div><p class="eyebrow">CONFIRM</p><h2>注文確認</h2></div></div>
+        <div class="card form-card">
+          <label>現場名<input id="siteName" type="text" placeholder="例：品川〇〇ビル"></label>
+          <div class="field-grid two"><label>希望日<input id="deliveryDate" type="date"></label><label>搬入時間<input id="deliveryTime" type="time"></label></div>
+          <label>メモ<textarea id="orderMemo" rows="3" placeholder="搬入時間・注意事項など"></textarea></label>
+        </div>
+        <div class="section-head"><h3>注文内容</h3></div>
+        <div id="confirmItems" class="card confirm-list"></div>
+        <div class="card totals-card">
+          <div><span>合計数量</span><strong id="confirmQty">0点</strong></div>
+          <div><span>推定重量</span><strong id="confirmWeight">0.0kg</strong></div>
+          <div><span>乗る車</span><strong id="truckRecommendation">軽トラ</strong></div>
+          <div id="confirmDrawing"><span>添付図面</span><strong>なし</strong></div>
+        </div>
+        <div class="card supplier-send-card">
+          <div class="section-head mini"><h3>発注先</h3><button type="button" class="text-btn" data-go="suppliers">管理</button></div>
+          <label>送信先<select id="confirmSupplier"><option value="">未選択</option></select></label>
+          <button id="copySupplierOrderBtn" class="secondary-btn full" type="button">発注先用文面をコピー</button>
+        </div>
+        <div class="section-head mini core-check-head"><div><span>CORE CHECK</span><h3>注文漏れチェック</h3></div><b>自動</b></div>
+        <div id="missingCheck" class="card missing-check"></div>
+        <button class="secondary-btn full" data-go="drawings">＋ 図面を選ぶ / アップロード</button>
+        <span id="selectedDrawingName" class="selected-drawing-name"></span>
+        <div class="action-grid"><button id="printDraftBtn" class="secondary-btn full">PDF作成</button><button id="lineDraftBtn" class="secondary-btn full">LINEで共有</button></div>
+        <button id="submitOrderBtn" class="primary-btn full">この内容で注文を保存</button>
+      </section>
+
+      <section id="history" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">HISTORY</p><h2>注文履歴</h2></div></div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+
+      <section id="materialsMaster" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MATERIAL MASTER</p><h2>資材マスタ</h2></div></div>
+        <div class="card form-card">
+          <h3>資材を追加</h3>
+          <label>資材名<input id="customName" type="text" placeholder="例：専用ブラケット"></label>
+          <div class="master-grid"><label>カテゴリー<input id="customCategory" value="その他"></label><label>単重kg<input id="customWeight" type="number" step="0.01" min="0" placeholder="0"></label><label>単位<input id="customUnit" value="個"></label></div>
+          <button id="addCustomMaterialBtn" class="secondary-btn full">＋ 資材を追加</button>
+        </div>
+        <div class="section-head"><h3>登録資材</h3><button id="resetMaterialsBtn" class="text-btn">初期値に戻す</button></div>
+        <div id="masterList" class="history-list"></div>
+      </section>
+
+
+      <section id="drawings" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">DRAWING</p><h2>図面アップロード</h2></div></div>
+        <div class="card upload-card">
+          <div class="upload-icon">▧</div>
+          <h3>図面を追加</h3>
+          <p class="muted">PDF / JPG / PNG を端末内に保存します。アップロードした図面は注文に添付できます。</p>
+          <label class="primary-btn upload-btn">＋ 図面を選択<input id="drawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label>
+          <small class="local-note">複数ファイルをまとめて選択できます。端末のブラウザ内に保存します。</small>
+        </div>
+        <div class="section-head"><h3>保存済み図面</h3></div>
+        <div id="drawingList" class="history-list"></div>
+      </section>
+
+
+      <section id="assist" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">AI DRAWING ANALYSIS</p><h2>AI図面解析</h2></div></div>
+        <div class="card assist-note ai-note"><b>図面をAIが読んで資材候補を作る</b><p>保存済みのPDF・JPG・PNGをAIへ送信し、枠組・単管を中心に図面上で確認できる情報から資材候補を作ります。AI結果は発注確定ではありません。数量・納まりは必ず人が確認してください。</p></div>
+
+        <div class="card form-card">
+          <div class="ai-direct-upload"><b>ここから図面を追加</b><p class="muted">先に「図面アップロード」へ戻らなくても、AI解析画面からPDF・JPG・PNGを複数追加できます。</p><label class="secondary-btn upload-btn">＋ 解析する図面を追加<input id="aiDrawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label></div>
+          <div class="drawing-pick-wrap"><div class="drawing-pick-head"><b>解析する図面</b><span>複数選択OK</span></div><div id="assistDrawingList" class="drawing-check-list"><div class="muted">図面を読み込み中…</div></div><div class="drawing-pick-actions"><button type="button" id="selectAllDrawings" class="mini-btn">すべて選択</button><button type="button" id="clearAllDrawings" class="mini-btn">選択解除</button></div><small class="muted">平面・立面・断面・詳細図をまとめて選ぶと、AIが相互に見比べて資材候補を作ります。</small></div>
+          <label>解析モード<select id="aiMode"><option value="auto">自動判定</option><option value="frame">枠組足場を優先</option><option value="pipe">単管足場を優先</option></select></label>
+          <label>現場メモ（任意）<textarea id="aiContext" rows="3" placeholder="例：解体足場、防音パネル養生、道路面に朝顔あり"></textarea></label>
+          <button id="runAiBtn" class="primary-btn full">✦ AIで図面を解析</button>
+          <div id="aiStatus" class="ai-status hidden"></div>
+        </div>
+
+        <div class="section-head"><h3>AI解析結果</h3></div>
+        <div id="aiResult" class="card assist-result empty">図面を選んで「AIで図面を解析」を押してください</div>
+        <button id="applyAiBtn" class="primary-btn full hidden">AI候補を注文へ入れる</button>
+
+        <details class="card manual-assist">
+          <summary>AIを使わず寸法から候補を作る</summary>
+          <div class="manual-inner">
+            <label>足場タイプ<select id="assistType"><option value="frame">枠組足場</option><option value="pipeBracket">単管ブラケット足場</option><option value="pipeSingle">単管シングル足場</option></select></label>
+            <div class="assist-grid">
+              <label>スパン数<input id="assistSpans" type="number" min="1" value="10"></label>
+              <label>段数<input id="assistLevels" type="number" min="1" value="5"></label>
+            </div>
+            <div id="frameAssistOptions">
+              <div class="assist-grid">
+                <label>枠幅<select id="assistFrameWidth"><option value="610">610枠</option><option value="914">914枠</option><option value="1219">1219枠</option></select></label>
+                <label>スパン長<select id="assistSpanLength"><option value="1829">1829</option><option value="1524">1524</option><option value="1219">1219</option><option value="914">914</option><option value="610">610</option></select></label>
+              </div>
+              <label class="check-row"><input id="assistPanels" type="checkbox"> 防音パネル養生あり</label>
+            </div>
+            <button id="runAssistBtn" class="secondary-btn full">寸法から資材候補を作る</button>
+            <div id="assistResult" class="assist-result empty manual-result">条件を入力して候補を作成できます</div>
+            <button id="applyAssistBtn" class="secondary-btn full hidden">この候補を注文へ入れる</button>
+          </div>
+        </details>
+      </section>
+
+
+      <section id="siteStock" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE STOCK</p><h2>現場在庫</h2></div></div>
+        <div class="card form-card"><label>現場<select id="stockSite"></select></label><label>資材<select id="stockMaterial"></select></label><div class="master-grid"><label>現在数<input id="stockQty" type="number" min="0" value="0"></label><label>メモ<input id="stockMemo" placeholder="例：東面残し"></label></div><button id="saveStockBtn" class="primary-btn full">在庫数を手動補正</button><small class="muted">※ 注文ステータスを「納品済」にすると、その注文資材はこの現場在庫へ自動加算されます。</small></div>
+        <div class="section-head"><h3>現場別 在庫重量</h3></div><div id="stockSummary" class="stock-summary"></div><div class="section-head"><h3>登録済み</h3></div><div id="stockList" class="history-list"></div>
+      </section>
+
+      <section id="shortage" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SHORTAGE</p><h2>不足材を追加</h2></div></div>
+        <div class="card form-card"><label>現場<select id="shortageSite"></select></label><label>不足資材<select id="shortageMaterial"></select></label><label>数量<input id="shortageQty" type="number" min="1" value="1"></label><button id="addShortageBtn" class="primary-btn full">不足分を注文へ追加</button></div>
+        <div class="card assist-note"><b>現場から最短で追加注文</b><p>資材と数量を選ぶだけで注文カートに追加します。</p></div>
+      </section>
+
+      <section id="sets" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">QUICK SET</p><h2>よく使うセット</h2></div></div>
+        <div class="card form-card"><label>セット名<input id="setName" placeholder="例：枠600 基本セット"></label><button id="saveSetBtn" class="secondary-btn full">今の注文内容をセット保存</button></div>
+        <div id="setList" class="history-list"></div>
+      </section>
+
+      <section id="dispatch" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">DISPATCH</p><h2>配車予定</h2></div></div>
+        <div class="card assist-note"><b>注文から自動作成</b><p>希望日・推奨車両・注文ステータスを一覧で確認できます。</p></div>
+        <div id="dispatchTimelineSummary" class="dispatch-timeline-summary"></div>
+        <div id="dispatchList" class="history-list"></div>
+      </section>
+
+      <section id="compare" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">AI DRAWING COMPARE</p><h2>AI図面比較</h2></div></div>
+        <div class="card form-card"><label>旧図面<select id="compareOld"></select></label><label>新図面<select id="compareNew"></select></label><label>確認メモ<textarea id="compareContext" rows="3" placeholder="例：変更された足場面・スパン・段数・養生を確認"></textarea></label><button id="runCompareBtn" class="primary-btn full">✦ 2枚の図面を比較</button><div id="compareStatus" class="ai-status hidden"></div></div>
+        <div class="section-head"><h3>比較結果</h3></div><div id="compareResult" class="card assist-result empty">旧図面と新図面を選択してください</div>
+      </section>
+
+      <section id="voiceOrder" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">VOICE ORDER</p><h2>音声オーダー</h2></div></div>
+        <div class="card form-card"><p class="muted">例：「アンチ1.8を50枚、ブレス1.8を25本、枠600を30枚」</p><button id="voiceStartBtn" class="primary-btn full">🎙 音声入力を開始</button><label>認識した内容<textarea id="voiceText" rows="4" placeholder="ここに音声または文字で入力"></textarea></label><button id="voiceParseBtn" class="secondary-btn full">注文候補に変換</button><div id="voiceResult" class="assist-result empty">まだ入力されていません</div></div>
+      </section>
+      <section id="photoAi" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">PHOTO AI</p><h2>現場写真AI</h2></div></div>
+        <div class="card form-card"><label class="primary-btn upload-btn">＋ 現場写真を選択<input id="photoAiInput" type="file" accept="image/*" multiple hidden></label><div id="photoAiFiles" class="muted">写真未選択</div><label>確認したいこと<textarea id="photoAiContext" rows="3" placeholder="例：不足しそうな資材、写っている足場材を確認"></textarea></label><button id="runPhotoAiBtn" class="primary-btn full">✦ 写真をAI解析</button><div id="photoAiStatus" class="ai-status hidden"></div></div><div id="photoAiResult" class="card assist-result empty">写真を選択してください</div><div class="action-grid"><button id="applyPhotoAiBtn" class="primary-btn full hidden">候補を注文へ入れる</button><button id="applyPhotoReturnBtn" class="secondary-btn full hidden">候補を返却重量へ入れる</button></div>
+      </section>
+      <section id="siteDashboard" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE DASHBOARD</p><h2>現場ダッシュボード</h2></div></div><div class="card form-card"><label>現場<select id="dashSite"></select></label></div><div id="siteDashboardBody"></div>
+      </section>
+      <section id="analytics" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">ANALYTICS</p><h2>利用分析</h2></div></div><div id="analyticsBody"></div>
+      </section>
+      <section id="members" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">TEAM ACCESS</p><h2>メンバー・権限</h2></div></div>
+        <div class="card assist-note premium-note"><b>役割ごとの招待URL</b><p>渡すURLを分けるだけで、参加時の権限を自動設定します。あとから社長・管理者が変更することもできます。</p></div>
+        <div class="invite-role-grid" id="roleInviteGrid">
+          <button class="role-invite-card admin" data-invite-role="admin"><span class="role-icon">◎</span><div><b>人事・管理者用</b><small>メンバー管理・会社運用ができる</small></div><em>URLコピー</em></button>
+          <button class="role-invite-card member" data-invite-role="member"><span class="role-icon">◆</span><div><b>社員・職長用</b><small>現場・注文を中心に利用</small></div><em>URLコピー</em></button>
+          <button class="role-invite-card viewer" data-invite-role="viewer"><span class="role-icon">◉</span><div><b>閲覧専用</b><small>確認だけ。編集・発注は不可</small></div><em>URLコピー</em></button>
+        </div>
+        <div id="memberRoleBody" class="card member-panel"></div>
+        <button id="memberInviteBtn" class="secondary-btn full legacy-invite">通常の招待URLをコピー</button>
+      </section>
+      <section id="plans" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SUBSCRIPTION</p><h2>プラン</h2></div></div>
+        <div class="subscription-hero card"><span>VERTX CORE MEMBERSHIP</span><h3>契約までCOREの中で完結。</h3><p>Standard / Pro はStripe Checkoutへ接続。支払い完了後、会社プランを自動更新します。</p></div>
+        <div class="plan-grid modern-plans billing-plans">
+          <article class="card plan-card" data-plan="free"><span class="plan-kicker">START</span><b>Free</b><strong>¥0</strong><small>基本注文・重量計算</small><ul><li>資材注文</li><li>重量・トラック判定</li><li>基本履歴</li></ul><button type="button">Free</button></article>
+          <article class="card plan-card recommended" data-plan="standard"><span class="plan-kicker">TEAM</span><b>Standard</b><strong id="standardPrice">¥4,980/月</strong><small>現場運用をクラウド化</small><ul><li>自動在庫</li><li>複数ユーザー</li><li>配車・現場管理</li></ul><button type="button">Standardを申し込む</button></article>
+          <article class="card plan-card pro" data-plan="pro"><span class="plan-kicker">AI</span><b>Pro</b><strong id="proPrice">¥9,800/月</strong><small>14日間無料トライアル・AIまでフル活用</small><ul><li>図面・写真AI</li><li>自社学習AI</li><li>高度分析</li></ul><span class="learning-chip">学習済み <b data-learning-count>0</b> 件</span><button type="button">Proを申し込む</button></article>
+        </div>
+        <div id="planChangeStatus" class="plan-change-status">現在の契約を確認中…</div>
+        <button id="billingPortalBtn" class="secondary-btn full hidden" type="button">支払い方法・解約・契約変更</button>
+        <div id="billingSetupNote" class="card billing-setup-note hidden"><b>決済設定が必要</b><small>VercelにStripeキーとPrice ID、Supabase Service Role Keyを設定すると本番決済が有効になります。</small></div>
+      </section>
+      <section id="companySettings" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">COMPANY</p><h2>会社設定</h2></div></div>
+        <div class="card form-card">
+          <div class="company-profile"><span>会社名</span><strong id="companyNameView">-</strong></div>
+          <div class="company-profile"><span>会社コード</span><strong id="companyCodeView">-</strong></div>
+          <div class="company-profile"><span>担当者</span><strong id="companyUserView">-</strong></div>
+          <button id="copyInviteBtn" class="secondary-btn full">招待URLをコピー</button>
+          <button id="switchCompanyBtn" class="secondary-btn full">会社を切り替える</button><button id="signOutBtn" class="secondary-btn full">ログアウト</button>
+        </div>
+        <div class="card assist-note"><b>クラウド共有</b><p>ログインした会社の現場・注文履歴・在庫・お気に入り・資材マスタ・図面をクラウド同期します。会社が違えばデータは見えません。</p></div>
+      </section>
+
+
+      <section id="returns" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">RETURN CONTROL</p><h2>返却管理</h2></div></div>
+        <div class="ops-hero card"><span>RETURN FLOW</span><h3>返した分だけ在庫から減らす。</h3><p>現場・資材・数量を選ぶだけ。返却履歴も残ります。</p></div>
+        <div class="card form-card">
+          <label>現場<select id="returnSite"></select></label>
+          <label>資材<select id="returnMaterial"></select></label>
+          <div id="returnAvailable" class="inline-kpi">現在庫 <strong>0</strong></div>
+          <div class="master-grid"><label>返却数<input id="returnQty" type="number" min="1" value="1"></label><label>返却日<input id="returnDate" type="date"></label></div>
+          <label>メモ<input id="returnMemo" placeholder="例：1便目 / 一部残し"></label>
+          <button id="saveReturnBtn" class="primary-btn full">返却を記録</button>
+        </div>
+        <div class="section-head"><h3>返却履歴</h3></div><div id="returnList" class="history-list"></div>
+      </section>
+
+      <section id="returnLoad" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="returns">‹</button><div><p class="eyebrow">LOAD CHECK</p><h2>返却重量計算</h2></div></div>
+        <div class="load-hero card"><span>RETURN LOAD</span><h3>積む前に、重量を確認。</h3><p>返却する資材と数量を入れると総重量・選択した車両の残り積載目安を自動計算します。</p></div>
+        <div class="card load-builder">
+          <label>資材<select id="loadMaterial"></select></label>
+          <div class="load-input-grid"><label>数量<input id="loadQty" type="number" min="1" value="1"></label><button id="addLoadItemBtn" class="primary-btn">＋ 追加</button></div>
+          <label>確認する最大積載量<select id="loadTruckCapacity"><option value="2000">2t車（2,000kg）</option><option value="3000" selected>3t車（3,000kg）</option><option value="4000">4t車（4,000kg）</option><option value="8000">8t車（8,000kg）</option><option value="10000">10t車（10,000kg）</option></select></label>
+          <label>実車の最大積載量を使う場合<input id="loadCustomCapacity" type="number" min="1" placeholder="例：2850 kg"></label>
+          <div class="return-truck-grid"><label>返却現場<select id="returnTruckSite"></select></label><label>返却希望日<input id="returnTruckDate" type="date"></label></div><label>返却・搬出時間<input id="returnTruckTime" type="time"></label>
+          <label>返却メモ<input id="returnTruckMemo" placeholder="例：午前中希望・長物あり"></label>
+        </div>
+        <div id="loadSummary" class="load-summary card"></div>
+        <button id="requestReturnTruckBtn" class="primary-btn full return-request-btn">🚚 この内容で返却車を手配</button>
+        <div id="returnTruckStatus" class="return-truck-status"></div>
+        <div class="section-head"><h3>積載リスト</h3><button id="clearLoadBtn" class="text-btn">クリア</button></div>
+        <div id="loadList" class="load-list"></div>
+        <div class="load-safety-note"><b>重要</b><p>ここで出るのは資材重量の計算目安です。実際に積めるかは車検証の最大積載量、荷台寸法、長物、荷重バランス、固定方法も必ず確認してください。</p></div>
+      </section>
+
+      <section id="siteCosts" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE PROFIT</p><h2>現場原価</h2></div></div>
+        <div class="card form-card">
+          <label>現場<select id="costSite"></select></label>
+          <label>売上 / 請負金額<input id="costRevenue" type="number" min="0" placeholder="0"></label>
+          <div class="master-grid"><label>項目<select id="costCategory"><option>人件費</option><option>運搬費</option><option>資材・リース</option><option>外注費</option><option>経費</option><option>その他</option></select></label><label>金額<input id="costAmount" type="number" min="0" placeholder="0"></label></div>
+          <label>内容<input id="costMemo" placeholder="例：4人 × 2日"></label>
+          <div class="action-grid"><button id="saveRevenueBtn" class="secondary-btn full">売上を保存</button><button id="addCostBtn" class="primary-btn full">原価を追加</button></div>
+        </div>
+        <div id="costSummary" class="profit-summary"></div>
+        <div class="section-head"><h3>原価明細</h3></div><div id="costList" class="history-list"></div>
+      </section>
+
+      <section id="siteQr" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE ACCESS</p><h2>現場QR</h2></div></div>
+        <div class="ops-hero card"><span>ONE SCAN</span><h3>QRを現場ごとに。</h3><p>読み込むとその現場を選択した状態でVERTX COREを開きます。</p></div>
+        <div class="card form-card"><label>現場<select id="qrSite"></select></label><button id="makeQrBtn" class="primary-btn full">QRを作成</button></div>
+        <div id="qrResult" class="card qr-result empty">現場を選んでQRを作成してください</div>
+      </section>
+
+      <section id="suppliers" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="more">‹</button><div><p class="eyebrow">SUPPLIERS</p><h2>発注先管理</h2></div></div>
+        <div class="card form-card">
+          <label>会社名<input id="supplierName" placeholder="例：〇〇リース"></label>
+          <div class="master-grid"><label>送信方法<select id="supplierChannel"><option value="line">LINE / 共有</option><option value="email">メール</option><option value="phone">電話</option></select></label><label>宛先<input id="supplierContact" placeholder="メール・電話など"></label></div>
+          <label>文面テンプレート<textarea id="supplierTemplate" rows="4" placeholder="例：お疲れ様です。{site}の注文です。
+{items}
+希望日：{date}"></textarea></label>
+          <small class="muted">使える項目：{site} {date} {items} {weight} {truck} {memo}</small>
+          <button id="addSupplierBtn" class="primary-btn full">発注先を保存</button>
+        </div>
+        <div class="section-head"><h3>登録済み</h3></div><div id="supplierList" class="history-list"></div>
+      </section>
+
+
+      <section id="dailyReport" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">FIELD BRIEF</p><h2>職長日報・KY</h2></div></div>
+        <div class="card field-brief-card">
+          <div class="field-brief-top"><span>今日の現場を1画面で引継ぎ</span><b id="dailyReportDateLabel"></b></div>
+          <label>現場<select id="dailySite"></select></label>
+          <div id="dailyTruckTimeline" class="daily-truck-timeline"></div>
+          <div class="field-grid two"><label>作業人数<input id="dailyWorkerCount" type="number" min="0" inputmode="numeric" placeholder="4"></label><label>日付<input id="dailyDate" type="date"></label></div>
+          <label>作業者名 <small>登録メンバーでも応援でもOK</small><textarea id="dailyWorkerNames" rows="2" placeholder="例：〇〇太郎 / △△次郎 / 応援1名"></textarea></label>
+          <label>本日の作業内容<textarea id="dailyWork" rows="3" placeholder="例：北面3〜5段組立、朝顔取付"></textarea></label>
+          <label>現場の現状<textarea id="dailyStatus" rows="3" placeholder="例：北面5段まで完了。南面は電線側未着手"></textarea></label>
+          <div class="ky-box ky-risk-box">
+            <div class="section-head tight"><div><p class="eyebrow">RISK ASSESSMENT</p><h3>KY・危険予知</h3></div><span>入力式</span></div>
+            <p class="ky-guide">危険を最大3件まで入力。頻度×重大性からリスクを自動表示します。必要な項目だけでOKです。</p>
+            <label class="field-block">本日の重点安全目標<input id="dailySafetyGoal" type="text" placeholder="例：安全帯の使用 / 声掛け確認 / 荷下ろし時の立入禁止"></label>
+            <div id="kyRiskRows" class="ky-risk-list">
+              <article class="ky-risk-item" data-ky-row="0">
+                <div class="ky-risk-head"><b>危険 01</b><span class="ky-risk-score" data-ky-score="0">リスク 1</span></div>
+                <label>予測される危険<input data-ky-hazard="0" placeholder="例：鉄骨資材の搬入時に挟まれる"></label>
+                <label>なぜ起きる / どうなる<input data-ky-cause="0" placeholder="例：荷下ろし中にトラックへ近づき接触する"></label>
+                <div class="ky-score-grid"><label>頻度<select data-ky-freq="0"><option value="1">1 ほぼ無し</option><option value="2" selected>2 ときどき</option><option value="3">3 よくある</option></select></label><label>重大性<select data-ky-sev="0"><option value="1">1 軽度</option><option value="2" selected>2 中程度</option><option value="3">3 重度</option></select></label></div>
+                <label>対策・私達はこうする<input data-ky-measure="0" placeholder="例：荷下ろし中はトラック付近へ立ち入らない"></label>
+              </article>
+              <article class="ky-risk-item" data-ky-row="1">
+                <div class="ky-risk-head"><b>危険 02</b><span class="ky-risk-score" data-ky-score="1">リスク 1</span></div>
+                <label>予測される危険<input data-ky-hazard="1" placeholder="例：高所移動中に足を滑らせる"></label>
+                <label>なぜ起きる / どうなる<input data-ky-cause="1" placeholder="例：足元確認不足で踏み外し転落する"></label>
+                <div class="ky-score-grid"><label>頻度<select data-ky-freq="1"><option value="1">1 ほぼ無し</option><option value="2" selected>2 ときどき</option><option value="3">3 よくある</option></select></label><label>重大性<select data-ky-sev="1"><option value="1">1 軽度</option><option value="2" selected>2 中程度</option><option value="3">3 重度</option></select></label></div>
+                <label>対策・私達はこうする<input data-ky-measure="1" placeholder="例：安全帯を掛け、足元を確認して移動する"></label>
+              </article>
+              <article class="ky-risk-item ky-risk-optional" data-ky-row="2">
+                <div class="ky-risk-head"><b>危険 03</b><span class="ky-risk-score" data-ky-score="2">リスク 1</span></div>
+                <label>予測される危険<input data-ky-hazard="2" placeholder="例：吊荷の下へ入り落下物に当たる"></label>
+                <label>なぜ起きる / どうなる<input data-ky-cause="2" placeholder="例：玉掛け作業中の立入範囲が不明確"></label>
+                <div class="ky-score-grid"><label>頻度<select data-ky-freq="2"><option value="1">1 ほぼ無し</option><option value="2" selected>2 ときどき</option><option value="3">3 よくある</option></select></label><label>重大性<select data-ky-sev="2"><option value="1">1 軽度</option><option value="2" selected>2 中程度</option><option value="3">3 重度</option></select></label></div>
+                <label>対策・私達はこうする<input data-ky-measure="2" placeholder="例：吊荷の下は立入禁止、合図者を決める"></label>
+              </article>
+            </div>
+            <div class="ky-risk-legend"><span><b>1–2</b> 低</span><span><b>3–4</b> 注意</span><span><b>6–9</b> 高</span></div>
+            <textarea id="dailyKyText" class="hidden" aria-hidden="true"></textarea><textarea id="dailyKyMeasure" class="hidden" aria-hidden="true"></textarea>
+          </div>
+          <label>注意事項・引継ぎメモ<textarea id="dailyHandover" rows="3" placeholder="例：明日は自分が別現場。朝8:00の3t搬入対応をお願いします"></textarea></label>
+          <div class="handover-markup-box">
+            <div class="section-head tight"><h3>引継ぎ写真メモ</h3><span>必要な時だけ</span></div>
+            <p class="handover-help">写真を選んで、現場の注意箇所に直接書き込めます。KYは上の入力式が基本です。</p>
+            <label class="secondary-btn full handover-photo-upload">📷 引継ぎ写真を選ぶ<input id="handoverPhotoInput" type="file" accept="image/*" hidden></label>
+            <div id="handoverMarkupEditor" class="handover-editor hidden">
+              <div class="handover-zoom-bar"><span>2本指で拡大・移動</span><b id="handoverZoomLabel">100%</b><button type="button" id="handoverZoomResetBtn">等倍に戻す</button></div>
+              <canvas id="handoverCanvas" width="720" height="480"></canvas>
+              <div class="handover-tools" role="toolbar" aria-label="引継ぎ写真の書き込みツール">
+                <button type="button" data-handover-tool="pen" class="active">✏️ ペン</button>
+                <button type="button" data-handover-tool="circle">⭕ 丸</button>
+                <button type="button" data-handover-tool="arrow">➜ 矢印</button>
+                <button type="button" data-handover-tool="text">T 文字</button>
+                <button type="button" id="handoverUndoBtn">↶ 1つ戻す</button>
+                <button type="button" id="handoverClearBtn">書込み消去</button>
+              </div>
+              <small class="handover-tip">1本指で書き込み、2本指で写真を拡大・移動できます。写真そのものは消えません。</small>
+            </div>
+          </div>
+          <div class="field-grid two"><label>引継ぎ先<input id="dailyHandoverTo" type="text" placeholder="例：△△次郎"></label><label>確認状態<select id="dailyHandoverStatus"><option value="未確認">未確認</option><option value="確認済み">確認済み</option></select></label></div>
+          <label>明日の予定<textarea id="dailyTomorrow" rows="2" placeholder="例：南面組立、朝顔4段目取付"></textarea></label>
+          <label>必要資材<textarea id="dailyNeeded" rows="2" placeholder="例：アンチ1.8×20、下さん1.8×30"></textarea></label>
+          <button id="saveDailyReportBtn" class="primary-btn full">日報・KYを保存</button>
+        </div>
+        <div class="section-head"><h3>最近の日報</h3></div><div id="dailyReportList" class="history-list"></div>
+      </section>
+
+      <section id="siteAlbum" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE ALBUM</p><h2>現場アルバム</h2></div></div>
+        <div class="card form-card">
+          <label>現場<select id="albumSite"></select></label>
+          <div class="field-grid two"><label>分類<select id="albumTag"><option>施工前</option><option>施工中</option><option>完了</option><option>搬入</option><option>返却</option><option>その他</option></select></label><label>共有設定<select id="albumShare"><option value="yes">元請け共有OK</option><option value="no">社内のみ</option></select></label></div>
+          <label>コメント<input id="albumComment" type="text" placeholder="例：北面5段まで完了"></label>
+          <label class="primary-btn upload-btn">＋ 写真を追加<input id="albumPhotoInput" type="file" accept="image/*" multiple hidden></label>
+          <small class="muted">1回最大5枚。スマホ向けに自動圧縮します。</small>
+        </div>
+        <div id="albumGrid" class="album-grid"></div>
+      </section>
+
+      <section id="clientShare" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">CLIENT VIEW</p><h2>元請け向け共有</h2></div></div>
+        <div class="card share-builder client-share-builder">
+          <div class="client-share-intro"><span>SHARE SETUP</span><h3>元請けに見せる現場情報を更新</h3><p>現場とお知らせを入力するだけ。現場状況・写真・KY・搬入返却を見やすく共有します。</p></div>
+          <div class="client-share-field">
+            <label for="shareSite">共有する現場</label>
+            <select id="shareSite"></select>
+          </div>
+          <div class="client-share-field">
+            <label for="shareNotice">現場のお知らせ</label>
+            <textarea id="shareNotice" rows="3" placeholder="例：北面5段まで完了。明日は南面を施工予定です。"></textarea>
+            <small>元請けに伝えたい「現場の今」を短く入力</small>
+          </div>
+          <div class="share-checklist"><span>共有される内容</span><b>現場の現状</b><b>最新写真5枚</b><b>搬入予定</b><b>搬出・返却予定</b><b>注文内容</b><b>KY・重点安全目標</b><small>社内メモ・原価・社員情報・引継ぎ先は共有しません。</small></div>
+          <button id="publishShareBtn" class="primary-btn full client-share-publish">共有ページを更新・URL発行</button>
+          <div id="shareUrlBox" class="share-url-box hidden"></div>
+        </div>
+        <div id="sharePreview" class="public-site-card"></div>
+      </section>
+
+      <section id="publicSiteShare" class="screen public-share-screen">
+        <div id="publicSiteShareContent" class="public-share-wrap"><div class="card empty">共有ページを読み込んでいます…</div></div>
+      </section>
+
+      <section id="auditLog" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="more">‹</button><div><p class="eyebrow">AUDIT</p><h2>操作履歴</h2></div></div>
+        <div class="ops-hero card"><span>WHO / WHEN / WHAT</span><h3>変更した人と時間を残す。</h3><p>注文・資材設定・配車・返却などの主要操作を会社ごとに記録します。</p></div>
+        <div id="auditLogList" class="history-list"></div>
+      </section>
+
+
+      <section id="devTest" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="more">‹</button><div><p class="eyebrow">OWNER TEST LAB</p><h2>開発者テスト</h2></div></div>
+        <div class="dev-test-hero"><span>SAFE ROLE PREVIEW</span><h3>1台のiPhoneで、全権限を確認。</h3><p>DB上の社長権限は変えず、画面と操作権限だけを管理者・職長・閲覧として疑似表示します。</p></div>
+        <div id="devTestPanel"></div>
+        <div class="manual-note"><b>テストモードについて</b><p>本当のメンバー権限は変更されません。テスト後は上部のTEST MODEバーから通常表示へ戻してください。</p></div>
+      </section>
+
+      <section id="manual" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">MANUAL</p><h2>使い方マニュアル</h2></div></div>
+
+        <div class="manual-hero manual-light manual-compact-hero">
+          <span>VERTX CORE GUIDE</span>
+          <h3>使いたい項目だけ開けばOK。</h3>
+          <p>最初の画面は短くしました。下の7項目から、今やりたいことだけタップしてください。</p>
+        </div>
+
+        <div class="manual-start-card manual-quickstart">
+          <div class="manual-start-head"><span>最短スタート</span><b>注文はこの3つだけ</b></div>
+          <div class="manual-start-steps">
+            <div><em>1</em><b>現場を選ぶ</b><small>SITES</small></div>
+            <div><em>2</em><b>資材を選ぶ</b><small>ORDER</small></div>
+            <div><em>3</em><b>発注する</b><small>注文確認</small></div>
+          </div>
+        </div>
+
+        <div class="manual-index manual-index-7">
+          <button data-manual-open="g01">現場</button>
+          <button data-manual-open="g02">注文</button>
+          <button data-manual-open="g03">AI</button>
+          <button data-manual-open="g04">返却</button>
+          <button data-manual-open="g05">日報/KY</button>
+          <button data-manual-open="g06">メンバー</button>
+          <button data-manual-open="g07">元請け共有</button>
+        </div>
+
+        <div class="manual-steps manual-groups">
+          <details id="g01" class="manual-step"><summary><span>01</span><b>現場を作る・選ぶ</b></summary><div>
+            <ol><li>下の「SITES」を押す</li><li>現場名を入れて「＋ 現場を追加」</li><li>使う現場をタップ</li></ol>
+            <p class="manual-example"><b>入力例：</b>〇〇ビル新築工事</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p>会社名と担当者名は最初の1回だけ登録します。同じ端末では前回の会社・現場を記憶します。</p></div></details>
+          </div></details>
+
+          <details id="g02" class="manual-step"><summary><span>02</span><b>資材を注文する</b></summary><div>
+            <ol><li>「ORDER」を押す</li><li>資材を探して「＋」で数量入力</li><li>「注文確認へ」→ 内容確認 → 発注</li></ol>
+            <p class="manual-example"><b>検索例：</b>枠610 / 4板 / かんざし / 羽子板 / ラッセルブラ</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>資材名を変える：</b>資材右上の「••• 編集」。会社ごとに名前・単重・カテゴリーを変更できます。</p><p><b>お気に入り：</b>☆を押すと上から探しやすくなります。</p><p><b>職長の注文：</b>承認待ちになり、社長・管理者が承認します。</p></div></details>
+          </div></details>
+
+          <details id="g03" class="manual-step"><summary><span>03</span><b>AIを使う</b></summary><div>
+            <ol><li>下の「AI」を押す</li><li>図面・写真を選ぶ</li><li>解析結果を確認して注文へ反映</li></ol>
+            <p class="manual-warning"><b>重要：</b>AIの数量は候補です。必ず人が確認してください。</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>図面AI：</b>平面図・立面図などから資材候補を出します。</p><p><b>写真AI：</b>現場写真から資材候補を出します。</p><p><b>音声注文：</b>「枠610を30、ブレス1829を20」のように話して入力できます。</p><p>確定時の修正内容は、その会社の次回解析の参考にします。</p></div></details>
+          </div></details>
+
+          <details id="g04" class="manual-step"><summary><span>04</span><b>返却・重量・トラック</b></summary><div>
+            <ol><li>MORE →「返却重量計算」</li><li>資材と数量を追加</li><li>3t・4tなどを選び、重量確認 → 返却車を手配</li></ol>
+            <p class="manual-example"><b>例：</b>枠610×150、ブレス1829×200、アンチ1.8×150</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p>搬入・返却予定は配車画面にまとまります。時間を入れると職長日報にも表示されます。</p><p>返却記録を間違えた時は履歴から取り消せます。</p><p class="manual-warning"><b>積載は必ず車検証の最大積載量を優先してください。</b></p></div></details>
+          </div></details>
+
+          <details id="g05" class="manual-step"><summary><span>05</span><b>職長日報・KY・引継ぎ</b></summary><div>
+            <ol><li>MORE →「職長日報・KY」</li><li>作業者・作業内容・現場状況を入力</li><li>KYと引継ぎを入れて保存</li></ol>
+            <p class="manual-example"><b>作業者例：</b>〇〇太郎 / △△次郎 / 応援1名</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>KY：</b>危険・原因・頻度・重大性・対策を入力。最大3件。</p><p><b>引継ぎ写真：</b>写真を選び、2本指でズーム・移動。ペン・丸・矢印・文字で書き込めます。</p><p><b>搬入搬出：</b>その日の配車予定が日報に自動表示されます。</p></div></details>
+          </div></details>
+
+          <details id="g06" class="manual-step"><summary><span>06</span><b>社員・職長を招待する</b></summary><div>
+            <ol><li>MORE →「メンバー・権限」</li><li>使わせたい権限のURLをコピー</li><li>本人へLINE等で送る</li></ol>
+            <p class="manual-tip">社長のiPhone1台で確認する時は「開発者テスト」で権限を疑似切替できます。</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>管理者：</b>管理・承認も可能。</p><p><b>職長：</b>現場・注文中心。</p><p><b>閲覧：</b>基本見るだけ。</p><p>職長の注文は社長・管理者の承認待ちになります。</p></div></details>
+          </div></details>
+
+          <details id="g07" class="manual-step"><summary><span>07</span><b>元請けへ現場を共有する</b></summary><div>
+            <ol><li>MORE →「元請け向け共有」</li><li>現場とお知らせを選ぶ</li><li>URLを発行して元請けへ送る</li></ol>
+            <p>現場状況・最新写真5枚・搬入予定・返却予定・注文内容を見せられます。</p>
+            <details class="manual-more"><summary>詳しく見る</summary><div><p><b>共有するKY：</b>最新日報の重点安全目標・危険ポイント・対策だけを表示します。</p><p><b>外に出さない情報：</b>社内メモ、原価、作業者名、引継ぎ先。</p><p>URLを更新すれば、元請けは同じ共有ページで最新状況を確認できます。</p></div></details>
+          </div></details>
+        </div>
+
+        <details class="manual-step manual-all-tools">
+          <summary><span>＋</span><b>その他の機能も見る</b></summary>
+          <div class="manual-tool-grid">
+            <div><b>お気に入り</b><p>ORDERの☆を押す。よく使う資材を探しやすくできます。</p></div>
+            <div><b>注文履歴・再注文</b><p>HOME → 注文履歴。過去注文を見て、同じ内容をもう一度使えます。</p></div>
+            <div><b>現場在庫</b><p>MORE/HOME → 現場在庫。納品済み資材の残数を確認します。</p></div>
+            <div><b>不足材</b><p>不足している資材だけ追加して、そのまま注文へ進めます。</p></div>
+            <div><b>よく使うセット</b><p>毎回同じ組み合わせをセット保存して、次から一発で呼び出します。</p></div>
+            <div><b>配車予定</b><p>搬入と返却の日時・車両を1つの一覧で確認します。</p></div>
+            <div><b>現場アルバム</b><p>施工前・施工中・完了・搬入・返却の写真を現場ごとに保存します。</p></div>
+            <div><b>現場QR</b><p>現場専用QRを作り、読み取るとその現場をすぐ開けます。</p></div>
+            <div><b>発注先管理</b><p>リース会社・資材屋と送信用テンプレを登録します。</p></div>
+            <div><b>資材マスタ</b><p>新しい資材の追加や単重の確認に使います。普段の名前変更はORDERの「••• 編集」が早いです。</p></div>
+            <div><b>図面比較</b><p>複数図面をAIで見比べて、変更点や資材候補を確認します。</p></div>
+            <div><b>写真AI</b><p>現場写真から資材候補を出します。結果は必ず人が確認してください。</p></div>
+            <div><b>音声注文</b><p>例「枠610を20、ブレス1829を30」のように話して数量候補を作ります。</p></div>
+            <div><b>会社設定</b><p>会社情報・会社切替・招待関連を確認します。</p></div>
+            <div><b>操作履歴</b><p>誰がいつ何を変更したか確認できます。</p></div>
+            <div><b>開発者テスト</b><p>Ownerだけ。iPhone1台で管理者・職長・閲覧の見え方を試せます。</p></div>
+            <div><b>プラン</b><p>Free / Standard / Proの契約状態を確認します。</p></div>
+          </div>
+        </details>
+
+        <div class="manual-help-box manual-help-compact">
+          <b>困った時</b>
+          <p><strong>各ページ右上の「💬」</strong>を押すと、その画面だけの使い方が出ます。</p>
+          <p><strong>資材名変更：</strong>ORDER → 資材右上「••• 編集」</p>
+          <p><strong>返却：</strong>MORE → 返却重量計算</p>
+          <p><strong>日報：</strong>MORE → 職長日報・KY</p>
+        </div>
+
+        <div class="manual-note"><b>最後に1つだけ</b><p>AI・重量・車両判定は補助です。発注数量・施工・安全・積載の最終確認は人が行ってください。</p></div>
+      </section>
+      <section id="more" class="screen">
+        <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">CONTROL CENTER</p><h2>その他</h2></div></div>
+        <div class="more-hero card"><span>FIELD CONTROL</span><h3>必要な機能だけ、すぐ開く。</h3><p>注文・返却・KY・共有を中心に整理しました。</p></div>
+        <div class="control-stack clean-control">
+          <div class="control-section"><span>FIELD</span>
+            <button data-go="returnLoad"><b>⚖ 返却重量計算</b><small>積載量確認 → 返却車手配</small><em>›</em></button>
+            <button data-go="dispatch"><b>🚚 搬入・返却予定</b><small>トラック予定をタイムライン表示</small><em>›</em></button>
+            <button data-go="dailyReport"><b>🦺 職長日報・KY</b><small>作業・危険予知・引継ぎ</small><em>›</em></button>
+            <button data-go="siteAlbum"><b>📸 現場アルバム</b><small>写真を現場ごとに整理</small><em>›</em></button>
+            <button data-go="clientShare"><b>🔗 元請け向け共有</b><small>現状・写真5枚・KY・搬入返却</small><em>›</em></button>
+            <button data-go="siteStock"><b>▤ 現場在庫</b><small>納品・返却後の資材残数</small><em>›</em></button>
+            <button data-go="sets"><b>▦ よく使うセット</b><small>定番資材を一発入力</small><em>›</em></button>
+            <button data-go="materialsMaster"><b>🧱 資材設定</b><small>追加・単重・詳細設定</small><em>›</em></button>
+          </div>
+          <div class="control-section"><span>AI & ORDER</span>
+            <button data-go="assist"><b>✦ AI図面解析</b><small>図面から資材候補</small><em>›</em></button>
+            <button data-go="photoAi"><b>📷 写真AI</b><small>写真から資材候補</small><em>›</em></button>
+            <button data-go="voiceOrder"><b>🎙 音声オーダー</b><small>現場語で注文入力</small><em>›</em></button>
+            <button data-go="history"><b>📋 注文履歴</b><small>過去注文を確認</small><em>›</em></button>
+          </div>
+          <div class="control-section"><span>TEAM & SETTINGS</span>
+            <button data-go="members"><b>👷 メンバー・権限</b><small>社長・管理者・職長・閲覧</small><em>›</em></button>
+            <button data-go="companySettings"><b>🏢 会社設定</b><small>会社コード・招待・切替</small><em>›</em></button>
+            <button data-go="suppliers"><b>⇧ 発注先管理</b><small>資材屋・リース会社・送信テンプレ</small><em>›</em></button>
+            <button data-go="siteQr"><b>▦ 現場QR</b><small>現場ページへ一発アクセス</small><em>›</em></button>
+            <button data-go="plans"><b>💳 プラン</b><small>Free / Standard / Pro</small><em>›</em></button>
+            <button data-go="manual"><b>💬 使い方</b><small>画面ごとのヘルプも利用できます</small><em>›</em></button>
+            <button data-go="devTest"><b>🧪 開発者テスト</b><small>Ownerのみ権限表示を確認</small><em>›</em></button>
+          </div>
+        </div>
+      </section>
+    <nav class="bottom-nav" aria-label="メインナビゲーション">
+      <button data-go="home" class="nav-item active"><span class="nav-icon">⌂</span><small>HOME</small></button>
+      <button data-go="sites" class="nav-item"><span class="nav-icon">⌖</span><small>SITES</small></button>
+      <button data-go="order" class="nav-item nav-order"><span class="app-icon">＋</span><small>ORDER</small></button>
+      <button data-go="assist" class="nav-item"><span class="app-icon">✦</span><small>AI</small></button>
+      <button data-go="more" class="nav-item"><span class="nav-icon">•••</span><small>MORE</small></button>
+    </nav>
+  </div>
+
+  <div id="materialQuickEdit" class="quick-edit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="quickEditTitle">
+    <div class="quick-edit-sheet">
+      <div class="sheet-handle"></div>
+      <div class="quick-edit-head"><div><span>COMPANY MATERIAL</span><h3 id="quickEditTitle">この会社での呼び方</h3></div><button id="closeQuickMaterialBtn" aria-label="閉じる">×</button></div>
+      <p id="quickMaterialOriginal" class="quick-original"></p>
+      <label>表示する資材名<input id="quickMaterialName" type="text" placeholder="例：1800アンチ"></label>
+      <div class="quick-edit-grid"><label>単重 kg<input id="quickMaterialWeight" type="number" step="0.01" min="0"></label><label>カテゴリー<input id="quickMaterialCategory" type="text"></label></div>
+      <label class="switch-row"><span><b>注文画面で非表示</b><small>使わない資材を隠す</small></span><input id="quickMaterialHidden" type="checkbox"></label>
+      <div class="quick-edit-actions"><button id="cancelQuickMaterialBtn" class="secondary-btn">キャンセル</button><button id="saveQuickMaterialBtn" class="primary-btn">保存</button></div>
+      <small class="quick-note">変更はこの会社だけに保存され、他社の資材名には影響しません。</small>
+    </div>
+  </div>
+
+
+  <div id="quickActionModal" class="quick-action-modal hidden" role="dialog" aria-modal="true" aria-labelledby="quickActionTitle">
+    <div class="quick-action-sheet">
+      <div class="quick-action-handle"></div>
+      <div class="quick-action-head"><div><span>QUICK ACTION</span><h3 id="quickActionTitle">すぐ使う</h3></div><button id="closeQuickActionBtn" type="button" aria-label="閉じる">×</button></div>
+      <p class="quick-action-lead">現場でよく使う操作だけ、ここから一発で開けます。</p>
+      <div class="quick-action-grid">
+        <button type="button" data-quick-go="order"><span>🛒</span><b>新規注文</b><small>資材をすぐ入力</small></button>
+        <button type="button" data-quick-go="shortage"><span>＋</span><b>不足材</b><small>足りない分だけ追加</small></button>
+        <button type="button" data-quick-go="returnLoad"><span>⚖</span><b>返却重量</b><small>積載確認→返却車</small></button>
+        <button type="button" data-quick-go="assist"><span>✦</span><b>図面AI</b><small>図面から資材候補</small></button>
+        <button type="button" data-quick-go="dailyReport"><span>KY</span><b>職長日報</b><small>KY・引継ぎ</small></button>
+        <button type="button" data-quick-go="dispatch"><span>🚚</span><b>配車予定</b><small>搬入・返却を確認</small></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="contextHelpModal" class="context-help-modal hidden" role="dialog" aria-modal="true" aria-labelledby="contextHelpTitle">
+    <div class="context-help-sheet">
+      <div class="context-help-handle"></div>
+      <div class="context-help-head"><div><span>QUICK HELP</span><h3 id="contextHelpTitle">この画面の使い方</h3></div><button id="closeContextHelp" aria-label="閉じる">×</button></div>
+      <div id="contextHelpBody" class="context-help-body"></div>
+      <button id="openFullManual" class="secondary-btn full">使い方マニュアルを開く</button>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="printArea" class="print-area"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <script src="app.js?v=7.34.0"></script>
+</body>
+</html>
