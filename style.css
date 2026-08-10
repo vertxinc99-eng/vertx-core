@@ -1665,3 +1665,10 @@ body:has(.exact-home.active) .exact-home-art{
   .exact-home .home-live-notice{top:5.1%!important}
   .exact-home .home-live-account{top:12.0%!important}
 }
+
+
+/* ===== VERTX CORE v7.50 AVATAR FACE FILL ===== */
+.exact-home .home-live-account{overflow:hidden!important;padding:0!important;background:#0a2139!important;border:1px solid rgba(173,211,247,.42)!important}
+.exact-home .home-live-account>span{position:absolute!important;inset:0!important;border-radius:inherit!important;overflow:hidden!important;background:#0a2139!important}
+.exact-home .home-live-account>span img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center 35%!important;border-radius:inherit!important;transform:scale(1.12)!important;transform-origin:center!important}
+.exact-home .home-live-account i{z-index:4!important;right:-1px!important;top:-1px!important}
