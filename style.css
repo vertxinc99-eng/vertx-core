@@ -835,75 +835,120 @@ body:has(.exact-home.active) .app-shell{
   }
 }
 
-/* ============================================================
-   VERTX CORE v7.35 — FULLSCREEN HOME / REAL NAV
-   - remove rendered phone frame from HOME artwork
-   - artwork fills the app viewport width
-   - use the real interactive dock on HOME (no duplicate baked nav)
-   ============================================================ */
-body:has(.exact-home.active){
-  background:#020812!important;
-  overflow-x:hidden!important;
-}
-body:has(.exact-home.active) .topbar{display:none!important}
+/* ===== VERTX CORE v7.35 FULLBLEED HOME FIX ===== */
+/* 1) 参照画像のiPhone外枠と焼き込みナビを画像側で除去済み。画面幅いっぱいに表示する。 */
+body:has(.exact-home.active){background:#020812!important;overflow-y:auto!important;}
+body:has(.exact-home.active) .topbar{display:none!important;}
 body:has(.exact-home.active) .app-shell{
   width:100%!important;
-  max-width:720px!important;
-  margin:0 auto!important;
-  padding:0 0 calc(96px + env(safe-area-inset-bottom))!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0 0 calc(98px + env(safe-area-inset-bottom))!important;
   background:#020812!important;
-  overflow:visible!important;
+  box-shadow:none!important;
 }
-body:has(.exact-home.active) main{width:100%!important;overflow:visible!important}
-.exact-home{
+body:has(.exact-home.active) main,
+body:has(.exact-home.active) .exact-home,
+body:has(.exact-home.active) .exact-home-stage{
   width:100%!important;
+  max-width:none!important;
   margin:0!important;
   padding:0!important;
-  background:#020812!important;
   overflow:visible!important;
-}
-.exact-home-stage{
-  position:relative!important;
-  width:100vw!important;
-  max-width:720px!important;
-  margin-left:50%!important;
-  transform:translateX(-50%)!important;
   background:#020812!important;
-  overflow:hidden!important;
-  border:0!important;
-  border-radius:0!important;
-  box-shadow:none!important;
 }
 .exact-home-art{
   display:block!important;
-  width:100%!important;
-  height:auto!important;
+  width:100vw!important;
   max-width:none!important;
+  height:auto!important;
+  margin:0!important;
   object-fit:cover!important;
   object-position:top center!important;
   border:0!important;
   border-radius:0!important;
   box-shadow:none!important;
-  pointer-events:none!important;
 }
-/* Hotspots recalibrated for the cropped, bezel-free artwork. */
-.hs-order{left:5.8%!important;top:35.4%!important;width:88.3%!important;height:21.7%!important}
-.hs-sites{left:5.9%!important;top:58.9%!important;width:28.9%!important;height:20.4%!important}
-.hs-return{left:35.5%!important;top:58.9%!important;width:28.9%!important;height:20.4%!important}
-.hs-ky{left:64.6%!important;top:58.9%!important;width:29.4%!important;height:20.4%!important}
-.hs-share{left:5.9%!important;top:80.7%!important;width:43.9%!important;height:16.4%!important}
-.hs-photo{left:50.9%!important;top:80.7%!important;width:43.3%!important;height:16.4%!important}
-/* HOME now uses the actual app dock; it scrolls independently from the artwork. */
+/* 2) 画像に焼き込まれていた下部Dockは削除し、本物のナビを同じ位置に固定 */
 body:has(.exact-home.active) .bottom-nav{
   display:grid!important;
   position:fixed!important;
-  z-index:100!important;
-  left:max(10px,calc((100vw - 700px)/2))!important;
-  right:max(10px,calc((100vw - 700px)/2))!important;
+  z-index:900!important;
+  left:10px!important;
+  right:10px!important;
   bottom:calc(8px + env(safe-area-inset-bottom))!important;
+  width:auto!important;
+  height:78px!important;
+  margin:0!important;
 }
-@media(max-width:430px){
-  body:has(.exact-home.active) .app-shell{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
-  .exact-home-stage{width:100vw!important;max-width:none!important}
-  body:has(.exact-home.active) .bottom-nav{left:8px!important;right:8px!important}
+/* 3) HOME画像内カードのタップ領域をクロップ後の座標に合わせる */
+.hs-order{left:4.25%!important;top:34.77%!important;width:91.38%!important;height:22.22%!important}
+.hs-sites{left:4.36%!important;top:58.82%!important;width:29.91%!important;height:20.88%!important}
+.hs-return{left:34.94%!important;top:58.82%!important;width:29.91%!important;height:20.88%!important}
+.hs-ky{left:65.06%!important;top:58.82%!important;width:30.46%!important;height:20.88%!important}
+.hs-share{left:4.36%!important;top:81.16%!important;width:45.42%!important;height:16.76%!important}
+.hs-photo{left:50.55%!important;top:81.16%!important;width:44.86%!important;height:16.76%!important}
+/* 画像側から下部ナビを消したので旧ナビ用hotspotは無効化 */
+.exact-home .hs-history,.exact-home .hs-center,.exact-home .hs-notice,.exact-home .hs-menu{display:none!important}
+@media(min-width:721px){
+  body:has(.exact-home.active) .exact-home-stage,
+  body:has(.exact-home.active) .exact-home-art{width:min(100vw,720px)!important;margin-left:auto!important;margin-right:auto!important}
+  body:has(.exact-home.active) .app-shell{max-width:720px!important;margin:0 auto!important}
 }
+
+
+/* ===== VERTX CORE v7.36 LIVE HOME + READABILITY ===== */
+:root{--v736-text:#f7fbff;--v736-sub:#d4e2f1;--v736-dim:#a9bed3;--v736-deep:#03101f}
+/* dark-page readability: no low-contrast legacy text */
+.screen:not(.exact-home),.screen:not(.exact-home) .card,.screen:not(.exact-home) .form-card,.screen:not(.exact-home) .control-section,.screen:not(.exact-home) .material,.screen:not(.exact-home) .history-item,.screen:not(.exact-home) .site-card{color:var(--v736-text)!important}
+.screen:not(.exact-home) h1,.screen:not(.exact-home) h2,.screen:not(.exact-home) h3,.screen:not(.exact-home) h4,.screen:not(.exact-home) h5,.screen:not(.exact-home) b,.screen:not(.exact-home) strong,.screen:not(.exact-home) summary{color:var(--v736-text)!important;text-shadow:none!important}
+.screen:not(.exact-home) p,.screen:not(.exact-home) small,.screen:not(.exact-home) label,.screen:not(.exact-home) li,.screen:not(.exact-home) .muted,.screen:not(.exact-home) .history-meta,.screen:not(.exact-home) .material-info small{color:var(--v736-sub)!important;opacity:1!important}
+.screen:not(.exact-home) .eyebrow,.screen:not(.exact-home) .control-section>span{color:#ffd55d!important}
+.screen:not(.exact-home) .primary-btn,.screen:not(.exact-home) .chip.active{color:#08111c!important;-webkit-text-fill-color:#08111c!important}
+.screen:not(.exact-home) .secondary-btn,.screen:not(.exact-home) .text-btn,.screen:not(.exact-home) button:not(.primary-btn):not(.chip.active){-webkit-text-fill-color:currentColor}
+/* kill remaining white legacy islands that caused black-on-white/black-on-dark mixes */
+.smart-suggestions,.recent-materials,.ai-upload-panel,.ai-file-drop,.assist-upload,.assist-source,.material-group-head,.share-preview,.manual-example,.field-control-intro{background:linear-gradient(145deg,#102b49,#06172a)!important;border-color:rgba(112,168,226,.26)!important;color:var(--v736-text)!important}
+.smart-suggestions *,.recent-materials *,.ai-upload-panel *,.ai-file-drop *,.assist-upload *,.assist-source *,.material-group-head *,.share-preview *{color:var(--v736-text)!important}
+
+/* live layers replace baked dummy name/weather/icons while keeping the worker artwork */
+.exact-home-stage{isolation:isolate}
+.home-live-identity{position:absolute;z-index:4;left:5.4%;top:13.8%;width:45%;min-height:13.6%;padding:3.2% 2% 2.4%;background:linear-gradient(90deg,rgba(3,16,31,.98) 0%,rgba(3,16,31,.96) 68%,rgba(3,16,31,0) 100%);color:#fff;pointer-events:none}
+.home-live-identity small{display:block;color:#f4bd36;font-size:clamp(9px,2.2vw,14px);font-weight:900;letter-spacing:.08em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-live-identity span{display:block;color:#e8f1fb;font-size:clamp(11px,2.5vw,16px);font-weight:700}
+.home-live-identity strong{display:block;color:#fff;font-size:clamp(22px,5.8vw,39px);line-height:1.08;font-weight:950;letter-spacing:-.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 3px 12px rgba(0,0,0,.45)}
+.home-live-identity em{display:inline-flex;margin-top:6px;padding:4px 8px;border-radius:999px;background:rgba(23,175,101,.14);border:1px solid rgba(67,229,151,.30);color:#78f0b5;font-size:clamp(8px,1.9vw,11px);font-style:normal;font-weight:900;letter-spacing:.08em}
+.home-live-weather{position:absolute;z-index:5;left:5.3%;top:25.7%;width:45.5%;min-height:12.7%;padding:2.4% 2.5%;display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:2.2%;border-radius:18px;background:linear-gradient(145deg,rgba(18,47,79,.99),rgba(6,24,43,.99));border:1px solid rgba(158,194,230,.32);box-shadow:0 10px 24px rgba(0,0,0,.32);color:#fff;pointer-events:none}
+.home-live-weather>span{font-size:clamp(27px,7vw,48px)}.home-live-weather>strong{font-size:clamp(23px,6vw,42px);font-weight:900;white-space:nowrap}.home-live-weather div{min-width:0}.home-live-weather b,.home-live-weather small{display:block;color:#fff!important;font-size:clamp(8px,2.15vw,14px);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.home-live-weather small{color:#d5e3f1!important}
+.home-live-circle{position:absolute;z-index:8;width:10.5%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(160,197,233,.34);background:linear-gradient(145deg,rgba(21,49,80,.98),rgba(5,18,34,.99));box-shadow:0 8px 20px rgba(0,0,0,.38);color:#fff;cursor:pointer}.home-live-circle:active{transform:scale(.95)}.home-live-circle span{font-size:clamp(17px,4.5vw,30px);line-height:1}.home-live-notice{right:5.3%;top:8.7%}.home-live-account{right:5.3%;top:15.2%}.home-live-circle i{position:absolute;right:-1px;top:-1px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;display:grid;place-items:center;background:#ef443b;color:#fff;font-size:10px;font-style:normal;font-weight:950;border:2px solid #0b1f35}.home-live-account i{width:13px;height:13px;min-width:13px;padding:0;background:#27cf82;border-color:#082038;right:1px;top:2px}
+/* disable invisible legacy notice/menu hotspots because live circles now own those actions */
+.exact-home .hs-notice,.exact-home .hs-menu{display:none!important}
+
+.home-live-modal{position:fixed;inset:0;z-index:1500;display:grid;align-items:end;background:rgba(0,0,0,.66);backdrop-filter:blur(10px);padding:12px}.home-live-modal.hidden{display:none!important}.home-live-sheet{width:min(100%,680px);margin:0 auto;padding:12px 15px calc(18px + env(safe-area-inset-bottom));border-radius:28px;background:linear-gradient(180deg,#123152,#061426);border:1px solid rgba(116,171,226,.3);box-shadow:0 28px 70px rgba(0,0,0,.55);color:#fff}.home-live-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.home-live-sheet-head span{display:block;color:#ffd55d;font-size:9px;letter-spacing:.22em;font-weight:950}.home-live-sheet-head h3{margin:4px 0 0;color:#fff;font-size:26px}.home-live-sheet-head button{width:42px;height:42px;border-radius:14px;border:1px solid rgba(119,172,225,.25);background:#081a2f;color:#fff;font-size:24px}.home-live-modal-body{display:grid;gap:10px;margin-top:14px}.home-live-row{padding:14px;border-radius:18px;background:#071a2e;border:1px solid rgba(111,164,219,.23);display:flex;align-items:center;justify-content:space-between;gap:12px}.home-live-row div{min-width:0}.home-live-row b,.home-live-row strong{display:block;color:#fff}.home-live-row small{display:block;color:#abc0d4;margin-top:3px}.home-live-row .status-online{color:#75ebb0}.home-live-modal-body button{width:100%;min-height:48px;border-radius:16px;border:1px solid rgba(111,164,219,.25);background:linear-gradient(145deg,#17395f,#081b30);color:#fff;font-weight:900}.home-live-modal-body button.gold{background:linear-gradient(145deg,#ffd760,#d88a0d);border-color:#ffe59a;color:#08111c}
+@media(max-width:420px){.home-live-identity{top:13.5%;left:5%;width:47%}.home-live-weather{left:5%;width:46.5%;top:25.8%;border-radius:15px}.home-live-circle{width:10.2%}}
+
+/* ===== VERTX CORE v7.37 FINAL READABILITY + LIVE HOME ===== */
+:root{--v737-bg:#020b17;--v737-panel:#071a2d;--v737-panel2:#0d2946;--v737-line:rgba(126,177,229,.28);--v737-text:#ffffff;--v737-sub:#d8e5f2;--v737-dim:#a7bdd2;--v737-gold:#ffc844}
+body{background:radial-gradient(circle at 50% -10%,#123b67 0,#061526 35%,#020914 75%)!important;color:var(--v737-text)!important}
+.screen:not(.exact-home){color:var(--v737-text)!important}
+.screen:not(.exact-home) .card,.screen:not(.exact-home) .form-card,.screen:not(.exact-home) .control-section,.screen:not(.exact-home) .menu-card,.screen:not(.exact-home) .material,.screen:not(.exact-home) .history-item,.screen:not(.exact-home) .site-card,.screen:not(.exact-home) .assist-result,.screen:not(.exact-home) .manual-step,.screen:not(.exact-home) .manual-tool-grid>div,.screen:not(.exact-home) .manual-all-tools,.screen:not(.exact-home) .manual-groups details,.screen:not(.exact-home) .ai-direct-upload,.screen:not(.exact-home) .drawing-pick-wrap,.screen:not(.exact-home) .field-control-intro,.screen:not(.exact-home) .share-preview{background:linear-gradient(145deg,rgba(17,49,81,.98),rgba(5,20,37,.99))!important;border:1px solid var(--v737-line)!important;color:var(--v737-text)!important;box-shadow:0 14px 30px rgba(0,0,0,.22)!important}
+.screen:not(.exact-home) h1,.screen:not(.exact-home) h2,.screen:not(.exact-home) h3,.screen:not(.exact-home) h4,.screen:not(.exact-home) h5,.screen:not(.exact-home) h6,.screen:not(.exact-home) b,.screen:not(.exact-home) strong,.screen:not(.exact-home) summary,.screen:not(.exact-home) .material-info b,.screen:not(.exact-home) .menu-card b{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}
+.screen:not(.exact-home) p,.screen:not(.exact-home) small,.screen:not(.exact-home) label,.screen:not(.exact-home) li,.screen:not(.exact-home) .muted,.screen:not(.exact-home) .material-info small,.screen:not(.exact-home) .history-meta{color:var(--v737-sub)!important;-webkit-text-fill-color:var(--v737-sub)!important;opacity:1!important}
+.screen:not(.exact-home) .eyebrow,.screen:not(.exact-home) .control-section>span,.screen:not(.exact-home) .drawing-pick-head span{color:var(--v737-gold)!important;-webkit-text-fill-color:var(--v737-gold)!important}
+.screen:not(.exact-home) input:not([type=checkbox]):not([type=radio]),.screen:not(.exact-home) select,.screen:not(.exact-home) textarea{background:#06182b!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid rgba(142,187,232,.4)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important}
+.screen:not(.exact-home) input::placeholder,.screen:not(.exact-home) textarea::placeholder{color:#91a8bf!important;-webkit-text-fill-color:#91a8bf!important;opacity:1!important}
+.screen:not(.exact-home) select option{background:#07192b;color:#fff}
+.screen:not(.exact-home) input[type=file]::file-selector-button{border:0;border-radius:12px;padding:9px 12px;background:linear-gradient(145deg,#ffd55f,#d79012);color:#06111d;font-weight:900}
+.screen:not(.exact-home) .primary-btn{background:linear-gradient(145deg,#ffd85f,#d78a0c)!important;color:#07111e!important;-webkit-text-fill-color:#07111e!important;border-color:#ffe59b!important;box-shadow:0 8px 20px rgba(216,140,20,.22)!important}
+.screen:not(.exact-home) .secondary-btn,.screen:not(.exact-home) .mini-btn,.screen:not(.exact-home) .text-btn{background:linear-gradient(145deg,#173a61,#081b31)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid rgba(133,181,230,.32)!important}
+.screen:not(.exact-home) .chip{background:#0b2440!important;color:#eaf4ff!important;-webkit-text-fill-color:#eaf4ff!important;border-color:rgba(128,177,227,.28)!important}.screen:not(.exact-home) .chip.active{background:linear-gradient(145deg,#ffd75c,#d78b10)!important;color:#06111d!important;-webkit-text-fill-color:#06111d!important}
+/* force the previously white AI/order islands into the dark design */
+#assist .ai-direct-upload,#assist .drawing-pick-wrap,#order .smart-suggestions,#order .recent-materials,#order .material-group-head,#clientShare .share-preview,#more .field-control-intro{background:linear-gradient(145deg,#102e4e,#061629)!important;color:#fff!important;border-color:rgba(126,177,229,.28)!important}
+#assist .ai-direct-upload *,#assist .drawing-pick-wrap *,#order .smart-suggestions *,#order .recent-materials *,#order .material-group-head *,#clientShare .share-preview *,#more .field-control-intro *{color:inherit!important;-webkit-text-fill-color:currentColor!important}
+/* HOME: fully cover baked dummy identity/weather with live company data */
+.home-live-identity{left:3.2%!important;top:10.7%!important;width:56%!important;min-height:13.6%!important;padding:4.1% 3.2% 3%!important;background:linear-gradient(90deg,rgba(3,16,31,1) 0%,rgba(3,16,31,.99) 76%,rgba(3,16,31,.12) 100%)!important;border-radius:0 18px 18px 0!important}
+.home-live-identity small{color:#ffd45a!important}.home-live-identity span{color:#f2f7fd!important}.home-live-identity strong{color:#fff!important;text-shadow:0 3px 12px rgba(0,0,0,.55)!important}.home-live-identity em{color:#7bf0b6!important}
+.home-live-weather{left:4.2%!important;top:25.1%!important;width:47.5%!important;min-height:12.5%!important;background:linear-gradient(145deg,#14375c,#061629)!important;color:#fff!important}
+.home-live-notice{right:4.8%!important;top:6.5%!important}.home-live-account{right:4.8%!important;top:13.5%!important}.home-live-account span{font-size:clamp(16px,4vw,25px)!important;font-weight:950!important;color:#fff!important}.home-live-notice span{font-size:clamp(16px,4vw,25px)!important;filter:saturate(.8)}
+.home-live-circle{border:1px solid rgba(194,220,246,.36)!important;background:linear-gradient(145deg,#193b61,#06172b)!important}.home-live-circle:focus-visible{outline:3px solid #ffd55f;outline-offset:2px}
+/* make the build visible only inside account modal, but cache-bust the app CSS/JS via v7.37 */
+@media(max-width:420px){.home-live-identity{left:2.6%!important;top:10.8%!important;width:58%!important}.home-live-weather{left:3.5%!important;top:25.1%!important;width:49%!important}.home-live-notice{right:4%!important}.home-live-account{right:4%!important}}

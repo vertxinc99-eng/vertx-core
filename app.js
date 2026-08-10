@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.34.0';
+const VERTX_BUILD='7.37.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -47,7 +47,7 @@ async function runSystemCheck(){
   checks.push(['資材ID重複',new Set(ids).size===ids.length,`${ids.length}件`]);
   checks.push(['資材名重複',new Set(names).size===names.length,`${names.length}件`]);
   checks.push(['注文下書き',true,Object.keys(state.cart||{}).length?`${Object.keys(state.cart).length}種類保存中`:'空']);
-  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.34.0',`v${VERTX_BUILD}`]);
+  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.37.0',`v${VERTX_BUILD}`]);
   try{const r=await fetch('/api/config',{cache:'no-store'});const cfg=await r.json();checks.push(['クラウド設定',Boolean(cfg.configured),cfg.configured?'Supabase OK':'設定不足']);checks.push(['AI/課金API',r.ok,r.ok?'API応答OK':'API応答エラー']);}catch(e){checks.push(['API接続',false,'接続できません']) }
   out.innerHTML=checks.map(([n,ok,d])=>`<div class="dev-check-row ${ok?'ok':'ng'}"><span>${ok?'✓':'!'} ${escapeHtml(n)}</span><small>${escapeHtml(d)}</small></div>`).join('');
   audit('システム診断',checks.every(x=>x[1])?'PASS':'要確認');
@@ -188,6 +188,7 @@ function go(screenId){
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.go===screenId || (screenId==='confirm'&&el.dataset.go==='order')));
   if(screenId==='history')renderHistory(); if(screenId==='more')updateLearningCount(); if(screenId==='confirm')renderConfirm(); if(screenId==='sites')renderSites(); if(screenId==='favorites')renderFavorites(); if(screenId==='materialsMaster')renderMaterialMaster(); if(screenId==='drawings')renderDrawings();if(screenId==='assist')loadAssistDrawings();if(screenId==='siteStock')renderSiteStock();if(screenId==='shortage')renderShortage();if(screenId==='sets')renderSets();if(screenId==='dispatch')renderDispatch();if(screenId==='compare')loadCompareDrawings();if(screenId==='siteDashboard')renderSiteDashboard();if(screenId==='analytics')renderAnalytics();if(screenId==='members')renderMembers();if(screenId==='plans')renderPlans();if(screenId==='returns')renderReturns();if(screenId==='returnLoad')renderReturnLoad();if(screenId==='siteCosts')renderSiteCosts();if(screenId==='siteQr')renderSiteQr();if(screenId==='suppliers')renderSuppliers();if(screenId==='auditLog')renderAuditLog();if(screenId==='devTest')renderDevTestPanel();if(screenId==='dailyReport')renderDailyReport();if(screenId==='siteAlbum')renderSiteAlbum();if(screenId==='clientShare')renderClientShare();
   applyViewerReadOnly(screenId);
+  if(screenId==='home'){renderHomeIdentityLive();updateHomeNoticeBadge();refreshHomeWeather(false)}
   window.scrollTo({top:0,behavior:'instant'});
 }
 function totals(){return MATERIALS.reduce((a,m)=>{const q=state.cart[m.id]||0;a.qty+=q;a.weight+=q*Number(m.weight||0);return a},{qty:0,weight:0})}
@@ -311,7 +312,7 @@ function printOrderById(id){const o=getHistory().find(x=>x.id===id);if(o)printOr
 function printDraft(){const o=currentDraft();if(!o.items.length)return toast('資材を選択してください');printOrder(o)}
 async function printOrder(o){
   const area=$('#printArea');
-  area.innerHTML=`<div class="print-sheet" style="display:block;background:#fff;color:#111;width:794px;min-height:1123px;padding:48px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Yu Gothic',sans-serif"><h1 style="font-size:28px;margin:0 0 28px">VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計：<b>${o.qty}点</b>　合計重量：<b>${formatWeight(o.weight)}</b></p><p>推奨車両：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:24px"><thead><tr><th style="border:1px solid #999;padding:9px;text-align:left">資材名</th><th style="border:1px solid #999;padding:9px">数量</th><th style="border:1px solid #999;padding:9px">単重</th><th style="border:1px solid #999;padding:9px">重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td style="border:1px solid #bbb;padding:9px">${escapeHtml(i.name)}</td><td style="border:1px solid #bbb;padding:9px;text-align:center">${i.qty}${escapeHtml(i.unit)}</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${Number(i.weight).toFixed(2)}kg</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p style="margin-top:24px">メモ：${escapeHtml(o.memo)}</p>`:''}<p style="margin-top:32px;font-size:11px;color:#666">VERTX CORE v7.34</p></div>`;
+  area.innerHTML=`<div class="print-sheet" style="display:block;background:#fff;color:#111;width:794px;min-height:1123px;padding:48px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Yu Gothic',sans-serif"><h1 style="font-size:28px;margin:0 0 28px">VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計：<b>${o.qty}点</b>　合計重量：<b>${formatWeight(o.weight)}</b></p><p>推奨車両：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:24px"><thead><tr><th style="border:1px solid #999;padding:9px;text-align:left">資材名</th><th style="border:1px solid #999;padding:9px">数量</th><th style="border:1px solid #999;padding:9px">単重</th><th style="border:1px solid #999;padding:9px">重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td style="border:1px solid #bbb;padding:9px">${escapeHtml(i.name)}</td><td style="border:1px solid #bbb;padding:9px;text-align:center">${i.qty}${escapeHtml(i.unit)}</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${Number(i.weight).toFixed(2)}kg</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p style="margin-top:24px">メモ：${escapeHtml(o.memo)}</p>`:''}<p style="margin-top:32px;font-size:11px;color:#666">VERTX CORE v7.36</p></div>`;
   const sheet=area.firstElementChild;
   try{
     if(!window.html2canvas||!window.jspdf?.jsPDF)throw new Error('PDF機能の読み込みに失敗しました');
@@ -904,6 +905,81 @@ function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),1800)}
 
 
+const HOME_WEATHER_CACHE_KEY='vertx_core_home_weather_v737';
+function homeDisplayName(){
+  const s=getCompanySession()||{};
+  const meta=cloudUser?.user_metadata||{};
+  const raw=String(s.user||getSavedIdentity()?.user||meta.display_name||meta.full_name||meta.name||cloudUser?.email||'ユーザー').trim();
+  return raw.includes('@')?raw.split('@')[0]:raw;
+}
+function homeGreetingText(){const h=new Date().getHours();return h<11?'おはようございます、':h<18?'こんにちは、':'お疲れさまです、'}
+function homeAccountInitial(){const n=homeDisplayName().replace(/\s+/g,'');return (n||'V').slice(0,1).toUpperCase()}
+function weatherLabel(code){
+  const c=Number(code); if(c===0)return ['☀️','晴れ']; if([1,2].includes(c))return ['🌤️','晴れ時々くもり']; if(c===3)return ['☁️','くもり']; if([45,48].includes(c))return ['🌫️','霧']; if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(c))return ['🌧️','雨']; if([71,73,75,77,85,86].includes(c))return ['🌨️','雪']; if([95,96,99].includes(c))return ['⛈️','雷雨']; return ['🌤️','天気'];
+}
+function renderHomeIdentityLive(){
+  const s=getCompanySession()||{};
+  const name=homeDisplayName();
+  if($('#homeGreetingLive'))$('#homeGreetingLive').textContent=homeGreetingText();
+  if($('#homeUserLive'))$('#homeUserLive').textContent=name||'ユーザー';
+  if($('#homeCompanyLive'))$('#homeCompanyLive').textContent=s.company||getSavedIdentity()?.company||'VERTX CORE';
+  if($('#homeRoleLive'))$('#homeRoleLive').textContent=`${navigator.onLine?'● ONLINE':'● OFFLINE'} · ${roleLabel(getEffectiveRole())}`;
+  if($('#homeAccountInitial'))$('#homeAccountInitial').textContent=homeAccountInitial();
+  const dot=$('#homeOnlineDot'); if(dot){dot.style.background=navigator.onLine?'#27cf82':'#ef544d';dot.title=navigator.onLine?'オンライン':'オフライン'}
+}
+function renderHomeWeatherData(w){
+  if(!w)return; const [icon,text]=weatherLabel(w.code);
+  $('#homeWeatherIcon')&&($('#homeWeatherIcon').textContent=icon);
+  $('#homeWeatherTemp')&&($('#homeWeatherTemp').textContent=`${Math.round(Number(w.temp)||0)}°C`);
+  $('#homeWeatherText')&&($('#homeWeatherText').textContent=text);
+  $('#homeWeatherHumidity')&&($('#homeWeatherHumidity').textContent=`湿度 ${Math.round(Number(w.humidity)||0)}%`);
+  $('#homeWeatherPlace')&&($('#homeWeatherPlace').textContent=w.place||'現在地');
+}
+async function refreshHomeWeather(force=false){
+  try{
+    const cached=JSON.parse(nativeGet(HOME_WEATHER_CACHE_KEY)||'null');
+    if(!force&&cached&&Date.now()-Number(cached.at||0)<15*60*1000){renderHomeWeatherData(cached);return}
+  }catch{}
+  const getPos=()=>new Promise(resolve=>{if(!navigator.geolocation)return resolve({coords:{latitude:35.6812,longitude:139.7671},fallback:true});navigator.geolocation.getCurrentPosition(resolve,()=>resolve({coords:{latitude:35.6812,longitude:139.7671},fallback:true}),{enableHighAccuracy:false,timeout:5000,maximumAge:3600000})});
+  try{
+    const pos=await getPos(),lat=pos.coords.latitude,lon=pos.coords.longitude;
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`;
+    const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error('weather'); const d=await r.json();
+    const w={temp:d.current?.temperature_2m,humidity:d.current?.relative_humidity_2m,code:d.current?.weather_code,place:pos.fallback?'東京':'現在地',at:Date.now()};
+    nativeSet(HOME_WEATHER_CACHE_KEY,JSON.stringify(w)); renderHomeWeatherData(w);
+  }catch(e){const el=$('#homeWeatherText');if(el)el.textContent='天気を取得できません'}
+}
+function homeNoticeItems(){
+  const today=todayIso(),orders=getHistory(),returns=getReturnTruckRequests(); const rows=[];
+  const pending=orders.filter(x=>x.status==='承認待ち').length; if(pending)rows.push({title:`承認待ち ${pending}件`,sub:'注文履歴から確認できます',go:'history'});
+  const deliveries=orders.filter(x=>x.date===today).length; if(deliveries)rows.push({title:`今日の搬入 ${deliveries}件`,sub:'配車予定を確認',go:'dispatch'});
+  const ret=returns.filter(x=>x.date===today&&x.status!=='返却完了').length; if(ret)rows.push({title:`今日の返却 ${ret}件`,sub:'返却予定を確認',go:'dispatch'});
+  const reports=getDailyReports().filter(x=>x.date===today).length; if(reports)rows.push({title:`本日の日報 ${reports}件`,sub:'KY・引継ぎを確認',go:'dailyReport'});
+  if(!rows.length)rows.push({title:'新しい通知はありません',sub:'今日も安全第一で。',go:'home'}); return rows;
+}
+function updateHomeNoticeBadge(){const n=homeNoticeItems().filter(x=>x.go!=='home').length;const el=$('#homeNoticeCount');if(el){el.textContent=String(n);el.style.display=n?'grid':'none'}}
+function openHomeLiveModal(kind){
+  const modal=$('#homeLiveModal'),body=$('#homeLiveModalBody'),title=$('#homeLiveModalTitle'),eye=$('#homeLiveModalEyebrow'); if(!modal||!body)return;
+  if(kind==='notice'){
+    eye.textContent='NOTIFICATIONS';title.textContent='通知';const rows=homeNoticeItems();body.innerHTML=rows.map(x=>`<button type="button" data-live-go="${escapeHtml(x.go)}"><span class="home-live-row"><div><b>${escapeHtml(x.title)}</b><small>${escapeHtml(x.sub)}</small></div><strong>›</strong></span></button>`).join('');
+    body.querySelectorAll('[data-live-go]').forEach(b=>b.onclick=()=>{modal.classList.add('hidden');go(b.dataset.liveGo)});
+  }else{
+    const s=getCompanySession()||{};eye.textContent='ACCOUNT';title.textContent='アカウント';body.innerHTML=`<div class="home-live-row"><div><b>${escapeHtml(homeDisplayName())}</b><small>${escapeHtml(s.company||getSavedIdentity()?.company||'会社未設定')}</small></div><strong class="status-online">${navigator.onLine?'● ONLINE':'● OFFLINE'}</strong></div><div class="home-live-row"><div><b>${escapeHtml(roleLabel(getEffectiveRole()))}</b><small>現在の権限</small></div><strong>${escapeHtml((s.plan||'free').toUpperCase())}</strong></div><div class="home-live-row"><div><b>VERTX CORE</b><small>現在のアプリバージョン</small></div><strong>v${escapeHtml(VERTX_BUILD)}</strong></div><button class="gold" type="button" data-live-go="companySettings">会社・アカウント設定</button><button type="button" id="homeModalSignOut">ログアウト</button>`;body.querySelector('[data-live-go]')?.addEventListener('click',()=>{modal.classList.add('hidden');go('companySettings')});$('#homeModalSignOut')?.addEventListener('click',signOut);
+  }
+  modal.classList.remove('hidden'); document.body.classList.add('modal-open');
+}
+function initLiveHomeUi(){
+  renderHomeIdentityLive();updateHomeNoticeBadge();refreshHomeWeather(false);
+  $('#homeNoticeBtn')&&($('#homeNoticeBtn').onclick=()=>openHomeLiveModal('notice'));
+  $('#homeAccountBtn')&&($('#homeAccountBtn').onclick=()=>openHomeLiveModal('account'));
+  $('#closeHomeLiveModal')&&($('#closeHomeLiveModal').onclick=()=>{$('#homeLiveModal')?.classList.add('hidden');document.body.classList.remove('modal-open')});
+  $('#homeLiveModal')&&($('#homeLiveModal').onclick=e=>{if(e.target.id==='homeLiveModal'){$('#homeLiveModal').classList.add('hidden');document.body.classList.remove('modal-open')}});
+  window.addEventListener('online',()=>{renderHomeIdentityLive();updateHomeNoticeBadge()});window.addEventListener('offline',renderHomeIdentityLive);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderHomeIdentityLive();updateHomeNoticeBadge();refreshHomeWeather(false)}});
+  window.setInterval(()=>{if(!document.hidden){renderHomeIdentityLive();updateHomeNoticeBadge();refreshHomeWeather(false)}},15*60*1000);
+}
+
+
 function renderCompanyIdentity(){
   const s=getCompanySession();
   const gate=$('#companyGate');
@@ -913,7 +989,7 @@ function renderCompanyIdentity(){
   if($('#companyNameView'))$('#companyNameView').textContent=s.company||'-';
   if($('#companyCodeView'))$('#companyCodeView').textContent=s.code||'-';
   if($('#companyUserView'))$('#companyUserView').textContent=s.user||cloudUser?.email||'-';
-  document.body.dataset.role=getEffectiveRole();applyRoleUi();applyPlanUi();updateDevTestBanner();
+  document.body.dataset.role=getEffectiveRole();applyRoleUi();applyPlanUi();updateDevTestBanner();renderHomeIdentityLive();updateHomeNoticeBadge();
   return true;
 }
 function setAuthStatus(msg){const el=$('#authStatus');if(el)el.textContent=msg}
@@ -1210,9 +1286,9 @@ function runCoreSelfCheck(){
   const screens=new Set(Array.from(document.querySelectorAll('section.screen[id]')).map(x=>x.id));
   document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(target&&!screens.has(target))issues.push('リンク先不足:'+target)});
   ['searchInput','toConfirmBtn','submitOrderBtn','runAiBtn','voiceStartBtn','runPhotoAiBtn','requestReturnTruckBtn','saveDailyReportBtn','publishShareBtn','openFullManual'].forEach(id=>{if(!document.getElementById(id))issues.push('操作部品不足:'+id)});
-  if(VERTX_BUILD!=='7.34.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
+  if(VERTX_BUILD!=='7.35.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
   const unique=[...new Set(issues)];
-  if(unique.length)console.warn('CORE SELF CHECK',unique);else console.info('CORE SELF CHECK PASS v7.34');
+  if(unique.length)console.warn('CORE SELF CHECK',unique);else console.info('CORE SELF CHECK PASS v7.36');
   return unique;
 }
 
@@ -1281,7 +1357,7 @@ function openContextHelp(screenId){
   $('#contextHelpModal')?.classList.remove('hidden');
 }
 function closeContextHelp(){ $('#contextHelpModal')?.classList.add('hidden') }
-function startApp(){if(appStarted)return;appStarted=true;ensureContextHelpButtons();bindQuickActions();const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
+function startApp(){if(appStarted)return;appStarted=true;initLiveHomeUi();ensureContextHelpButtons();bindQuickActions();const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
 async function cloudBoot(){
   prefillSavedIdentity();
   prefillCompanyFromUrl();
