@@ -1157,3 +1157,93 @@ body{background:radial-gradient(circle at 50% -12%,#173f66 0,#061526 38%,#020812
   .home-live-circle{width:46px!important;height:46px!important}.home-live-notice{right:3.8%!important;top:4.4%!important}.home-live-account{right:3.8%!important;top:11.4%!important}
   .exact-home-stage::after{right:1.8%!important;width:14.6%!important;height:19.2%!important}
 }
+
+
+/* ===== VERTX CORE v7.41 APP UI FIX ===== */
+/* Return load: keep every control inside its card on iPhone widths */
+#returnLoad .load-builder{overflow:hidden!important}
+#returnLoad .load-builder>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+#returnLoad .load-builder label{min-width:0!important;width:100%!important}
+#returnLoad .load-builder input,#returnLoad .load-builder select,#returnLoad .load-builder textarea{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+#returnLoad .load-input-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(112px,34%)!important;gap:10px!important;width:100%!important;max-width:100%!important;align-items:end!important}
+#returnLoad .load-input-grid label{margin:0!important;min-width:0!important}
+#returnLoad .load-input-grid #addLoadItemBtn{width:100%!important;max-width:100%!important;min-width:0!important;height:52px!important;margin:0!important;padding:0 10px!important;white-space:nowrap!important}
+#returnLoad .load-plan{margin-top:12px!important;padding:14px!important;border-radius:16px!important;background:linear-gradient(145deg,#0d2c4c,#061829)!important;border:1px solid rgba(153,198,240,.26)!important;color:#fff!important}
+#returnLoad .load-plan span{color:#68b8ff!important;-webkit-text-fill-color:#68b8ff!important}
+#returnLoad .load-plan b{color:#fff!important;-webkit-text-fill-color:#fff!important}
+#returnLoad .load-plan small{color:#b9cadb!important;-webkit-text-fill-color:#b9cadb!important}
+
+/* Kill remaining white/light islands across authenticated screens */
+.screen:not(.exact-home) .daily-truck-row,
+.screen:not(.exact-home) .ky-box,
+.screen:not(.exact-home) .ky-input-box,
+.screen:not(.exact-home) .daily-ky-summary,
+.screen:not(.exact-home) .handover-markup-box,
+.screen:not(.exact-home) .handover-zoom-bar,
+.screen:not(.exact-home) .handover-tools button,
+.screen:not(.exact-home) .handover-photo-note,
+.screen:not(.exact-home) .public-block,
+.screen:not(.exact-home) .public-ky-row,
+.screen:not(.exact-home) .manual-start-card,
+.screen:not(.exact-home) .manual-help-box,
+.screen:not(.exact-home) .manual-start-steps>div,
+.screen:not(.exact-home) .manual-more,
+.screen:not(.exact-home) .context-help-sheet,
+.screen:not(.exact-home) .context-help-body .help-step,
+.screen:not(.exact-home) .manual-tool-grid>div,
+.screen:not(.exact-home) .viewer-readonly-notice,
+.screen:not(.exact-home) .quick-strip button,
+.screen:not(.exact-home) .dev-test-status,
+.screen:not(.exact-home) .dev-role-grid button,
+.screen:not(.exact-home) .dev-check-result,
+.screen:not(.exact-home) .clean-grid .core-card,
+.screen:not(.exact-home) .control-section button,
+.screen:not(.exact-home) .public-photo-grid figure{
+  background:linear-gradient(145deg,#0e2e4f,#051628)!important;
+  border-color:rgba(151,198,239,.26)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:currentColor!important;
+}
+.screen:not(.exact-home) .daily-truck-row *,
+.screen:not(.exact-home) .ky-box *,
+.screen:not(.exact-home) .ky-input-box *,
+.screen:not(.exact-home) .daily-ky-summary *,
+.screen:not(.exact-home) .handover-markup-box *,
+.screen:not(.exact-home) .handover-zoom-bar *,
+.screen:not(.exact-home) .handover-photo-note *,
+.screen:not(.exact-home) .public-block *,
+.screen:not(.exact-home) .public-ky-row *,
+.screen:not(.exact-home) .manual-start-card *,
+.screen:not(.exact-home) .manual-help-box *,
+.screen:not(.exact-home) .manual-more *,
+.screen:not(.exact-home) .context-help-sheet *,
+.screen:not(.exact-home) .viewer-readonly-notice *{
+  opacity:1!important;
+}
+.screen:not(.exact-home) .handover-photo-upload{background:linear-gradient(145deg,#173a61,#081b31)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:rgba(151,198,239,.28)!important}
+.screen:not(.exact-home) .manual-warning{background:#3a1c1d!important;color:#ffc2c2!important;border-color:rgba(255,130,130,.25)!important}
+.screen:not(.exact-home) .manual-note,.screen:not(.exact-home) .context-help-body .help-note{background:#3a2c0d!important;color:#ffe39a!important;border-color:rgba(255,215,105,.22)!important}
+.screen:not(.exact-home) .ai-status.error{background:#3d171b!important;color:#ffb0b6!important;-webkit-text-fill-color:#ffb0b6!important}
+
+/* HOME: separate greeting/name and rebalance live buttons */
+.home-live-identity{gap:2px!important;padding:10px 12px!important}
+.home-live-identity small{line-height:1.15!important;margin:0!important}
+.home-live-identity span{line-height:1.2!important;margin:0!important;font-size:10px!important}
+.home-live-identity strong{line-height:1.05!important;margin:0!important;font-size:clamp(20px,5vw,29px)!important}
+.home-live-identity em{margin-top:5px!important;line-height:1!important}
+.exact-home-stage::after{right:2.1%!important;top:3.0%!important;width:16.3%!important;height:10.2%!important;border-radius:22px!important}
+.home-live-circle{width:46px!important;height:46px!important;border-radius:16px!important}
+.home-live-notice{right:10.0%!important;top:4.8%!important}
+.home-live-account{right:3.1%!important;top:4.8%!important}
+.home-live-circle i{right:-3px!important;top:-3px!important}
+
+@media(max-width:430px){
+  #returnLoad .load-input-grid{grid-template-columns:minmax(0,1fr) 116px!important;gap:9px!important}
+  #returnLoad .load-input-grid #addLoadItemBtn{font-size:15px!important;padding:0 7px!important}
+  .home-live-identity{left:3.8%!important;top:11.8%!important;width:48%!important;padding:9px 10px!important}
+  .home-live-weather{left:3.8%!important;top:23.7%!important;width:47%!important}
+  .home-live-circle{width:43px!important;height:43px!important}
+  .home-live-notice{right:10.8%!important;top:4.6%!important}
+  .home-live-account{right:3.2%!important;top:4.6%!important}
+  .exact-home-stage::after{right:1.7%!important;top:3.1%!important;width:17.7%!important;height:9.8%!important}
+}
