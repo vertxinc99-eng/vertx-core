@@ -1313,3 +1313,59 @@ body{background:radial-gradient(circle at 50% -12%,#173f66 0,#061526 38%,#020812
   .home-live-notice{right:11.2%!important;top:5.0%!important}
   .home-live-account{right:3.4%!important;top:5.0%!important}
 }
+
+
+/* ===== VERTX CORE v7.43 LOGIN VIEWPORT FIX ===== */
+/* The legacy .company-gate::before blue hero was covering the auth UI. */
+#cloudAuthGate.auth-gate::before{content:none!important;display:none!important}
+#cloudAuthGate.auth-gate{
+  position:fixed!important;inset:0!important;z-index:10000!important;
+  display:block!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:calc(18px + env(safe-area-inset-top)) 14px calc(34px + env(safe-area-inset-bottom))!important;
+  background:radial-gradient(circle at 50% -10%,#173f68 0,#0a2038 28%,#03101d 62%,#020812 100%)!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#cloudAuthGate.auth-gate.hidden{display:none!important}
+#cloudAuthGate .auth-shell{
+  width:min(100%,460px)!important;
+  min-height:calc(100dvh - 52px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
+  margin:0 auto!important;
+  display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+  gap:16px!important;
+}
+#cloudAuthGate .auth-brand-block{
+  flex:0 0 auto!important;display:flex!important;align-items:center!important;gap:14px!important;
+  padding:8px 4px 2px!important;position:relative!important;z-index:1!important;
+}
+#cloudAuthGate .auth-logo-wrap{width:64px!important;height:64px!important;border-radius:21px!important;flex:0 0 64px!important}
+#cloudAuthGate .auth-logo-wrap img{width:44px!important;height:44px!important}
+#cloudAuthGate .auth-brand-block h2{font-size:28px!important;line-height:1.08!important}
+#cloudAuthGate .auth-brand-block p:not(.auth-kicker){font-size:12px!important;line-height:1.45!important}
+#cloudAuthGate .auth-card{
+  flex:0 0 auto!important;margin:0!important;padding:22px!important;border-radius:27px!important;
+  position:relative!important;z-index:1!important;overflow:visible!important;
+}
+#cloudAuthGate .auth-card-head h3{font-size:28px!important}
+#cloudAuthGate .auth-card-head p{margin-bottom:16px!important}
+#cloudAuthGate .auth-field{margin-bottom:12px!important}
+#cloudAuthGate .auth-field input{height:56px!important;padding:14px 16px!important}
+#cloudAuthGate .auth-main-btn,#cloudAuthGate .auth-sub-btn{min-height:56px!important}
+#cloudAuthGate .auth-foot{margin-top:auto!important;padding:4px 0 2px!important;color:#8fa7bf!important}
+body:has(#cloudAuthGate:not(.hidden)) .app-shell{visibility:hidden!important;pointer-events:none!important}
+body:has(#cloudAuthGate:not(.hidden)) .bottom-nav{display:none!important}
+body:has(#cloudAuthGate:not(.hidden)){overflow:hidden!important}
+@media(max-width:430px){
+  #cloudAuthGate.auth-gate{padding:calc(12px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom))!important}
+  #cloudAuthGate .auth-shell{min-height:calc(100dvh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;gap:12px!important}
+  #cloudAuthGate .auth-brand-block{padding-top:2px!important}
+  #cloudAuthGate .auth-logo-wrap{width:56px!important;height:56px!important;flex-basis:56px!important;border-radius:18px!important}
+  #cloudAuthGate .auth-logo-wrap img{width:38px!important;height:38px!important}
+  #cloudAuthGate .auth-brand-block h2{font-size:24px!important}
+  #cloudAuthGate .auth-brand-block p:not(.auth-kicker){font-size:11px!important;margin-top:4px!important}
+  #cloudAuthGate .auth-card{padding:18px!important;border-radius:24px!important}
+  #cloudAuthGate .auth-card-head h3{font-size:25px!important;margin-top:5px!important}
+  #cloudAuthGate .auth-card-head p{font-size:12px!important;margin-bottom:13px!important}
+  #cloudAuthGate .auth-field input{height:52px!important}
+  #cloudAuthGate .auth-main-btn,#cloudAuthGate .auth-sub-btn{min-height:52px!important}
+  #cloudAuthGate .auth-status{margin-top:10px!important;padding:9px 11px!important;font-size:11px!important}
+}
