@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#07111b">
-  <title>VERTX CORE v7.28 FIELD CLEAN</title>
-  <link rel="stylesheet" href="style.css?v=7.28.0">
+  <meta name="theme-color" content="#03101f">
+  <title>VERTX CORE v7.33 EXACT SYSTEM</title>
+  <link rel="stylesheet" href="style.css?v=7.33.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate">
@@ -40,38 +40,29 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.28 FIELD CLEAN</span></h1>
+        <h1>CORE <span>v7.33 EXACT SYSTEM</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
 
     <main>
-      <section id="home" class="screen active">
-        <div class="hero card">
-          <div class="hero-role-row"><span id="homeRoleChip" class="role-chip">FIELD</span><span class="live-dot">LIVE</span></div>
-          <p id="homeGreeting" class="muted">お疲れさまです</p>
-          <h2 id="homeHeadline">今日も安全第一で。</h2>
-          <p id="homeRoleLead" class="hero-lead">現場・注文・搬入をすぐ確認できます。</p>
-          <button class="primary-btn hero-action" data-go="sites"><span class="btn-app-icon">＋</span> 注文を作る</button>
-        </div>
-
-        <div class="stats-grid">
-          <article class="card stat"><span>今日の注文</span><strong id="todayCount">0</strong></article>
-          <article class="card stat"><span>保存済み履歴</span><strong id="historyCount">0</strong></article>
+      <section id="home" class="screen active exact-home">
+        <div class="exact-home-stage" aria-label="VERTX CORE ホーム">
+          <img class="exact-home-art" src="vertx-core-home-reference.jpg" alt="VERTX CORE ホーム画面">
+          <button class="home-hotspot hs-order" data-go="sites" aria-label="注文を作る"></button>
+          <button class="home-hotspot hs-sites" data-go="sites" aria-label="現場一覧"></button>
+          <button class="home-hotspot hs-return" data-go="returnLoad" aria-label="返却車"></button>
+          <button class="home-hotspot hs-ky" data-go="dailyReport" aria-label="職長日報・KY"></button>
+          <button class="home-hotspot hs-share" data-go="clientShare" aria-label="元請け共有"></button>
+          <button class="home-hotspot hs-photo" data-go="siteAlbum" aria-label="写真"></button>
+          <button class="home-hotspot hs-history" data-go="history" aria-label="注文履歴"></button>
+          <button class="home-hotspot hs-center" id="homeQuickActionBtn" type="button" aria-label="クイック操作"></button>
+          <button class="home-hotspot hs-notice" data-go="more" aria-label="お知らせ"></button>
+          <button class="home-hotspot hs-menu" data-go="more" aria-label="メニュー"></button>
         </div>
         <div id="adminOpsSummary" class="admin-ops-summary hidden"></div>
-
-        <div class="section-head home-section-head"><div><p class="eyebrow">FIELD TOOLS</p><h3>よく使う機能</h3></div><button class="text-btn" data-go="more">すべて見る →</button></div>
-        <div class="menu-grid clean-grid">
-          <button class="menu-card core-card core-primary" data-go="sites"><span class="app-icon">📍</span><b>現場から注文</b><small>現場を選んですぐ資材注文</small></button>
-          <button class="menu-card core-card" data-go="history"><span class="app-icon">📋</span><b>注文履歴</b><small>過去の注文・再確認</small></button>
-          <button class="menu-card core-card ai-card" data-go="assist"><span class="app-icon">✦</span><b>AI図面解析</b><small>図面から資材候補を作成</small></button>
-          <button class="menu-card core-card" data-go="returnLoad"><span class="app-icon">⚖</span><b>返却重量</b><small>3t・4tの積載目安まで確認</small></button>
-          <button class="menu-card core-card" data-go="dispatch"><span class="app-icon">🚚</span><b>搬入・返却予定</b><small>今日のトラック予定を確認</small></button>
-          <button class="menu-card core-card" data-go="dailyReport"><span class="app-icon">🦺</span><b>職長日報・KY</b><small>引継ぎまで1画面</small></button>
-          <button class="menu-card core-card" data-go="siteStock"><span class="app-icon">▤</span><b>現場在庫</b><small>納品・返却後の残数確認</small></button>
-          <button class="menu-card core-card" data-go="clientShare"><span class="app-icon">🔗</span><b>元請け共有</b><small>現状・写真・KY・搬入返却</small></button>
-        </div>
+        <span id="todayCount" class="hidden">0</span><span id="historyCount" class="hidden">0</span>
+        <span id="homeRoleChip" class="hidden">FIELD</span><span id="homeGreeting" class="hidden">お疲れさまです</span><span id="homeHeadline" class="hidden">今日も安全第一で。</span><span id="homeRoleLead" class="hidden">現場・注文・搬入をすぐ確認できます。</span>
       </section>
 
       <section id="sites" class="screen">
@@ -629,6 +620,23 @@
     </div>
   </div>
 
+
+  <div id="quickActionModal" class="quick-action-modal hidden" role="dialog" aria-modal="true" aria-labelledby="quickActionTitle">
+    <div class="quick-action-sheet">
+      <div class="quick-action-handle"></div>
+      <div class="quick-action-head"><div><span>QUICK ACTION</span><h3 id="quickActionTitle">すぐ使う</h3></div><button id="closeQuickActionBtn" type="button" aria-label="閉じる">×</button></div>
+      <p class="quick-action-lead">現場でよく使う操作だけ、ここから一発で開けます。</p>
+      <div class="quick-action-grid">
+        <button type="button" data-quick-go="order"><span>🛒</span><b>新規注文</b><small>資材をすぐ入力</small></button>
+        <button type="button" data-quick-go="shortage"><span>＋</span><b>不足材</b><small>足りない分だけ追加</small></button>
+        <button type="button" data-quick-go="returnLoad"><span>⚖</span><b>返却重量</b><small>積載確認→返却車</small></button>
+        <button type="button" data-quick-go="assist"><span>✦</span><b>図面AI</b><small>図面から資材候補</small></button>
+        <button type="button" data-quick-go="dailyReport"><span>KY</span><b>職長日報</b><small>KY・引継ぎ</small></button>
+        <button type="button" data-quick-go="dispatch"><span>🚚</span><b>配車予定</b><small>搬入・返却を確認</small></button>
+      </div>
+    </div>
+  </div>
+
   <div id="contextHelpModal" class="context-help-modal hidden" role="dialog" aria-modal="true" aria-labelledby="contextHelpTitle">
     <div class="context-help-sheet">
       <div class="context-help-handle"></div>
@@ -642,6 +650,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.27.0"></script>
+  <script src="app.js?v=7.33.0"></script>
 </body>
 </html>

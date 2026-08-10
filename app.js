@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.25.0';
+const VERTX_BUILD='7.33.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -47,6 +47,7 @@ async function runSystemCheck(){
   checks.push(['資材ID重複',new Set(ids).size===ids.length,`${ids.length}件`]);
   checks.push(['資材名重複',new Set(names).size===names.length,`${names.length}件`]);
   checks.push(['注文下書き',true,Object.keys(state.cart||{}).length?`${Object.keys(state.cart).length}種類保存中`:'空']);
+  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.33.0',`v${VERTX_BUILD}`]);
   try{const r=await fetch('/api/config',{cache:'no-store'});const cfg=await r.json();checks.push(['クラウド設定',Boolean(cfg.configured),cfg.configured?'Supabase OK':'設定不足']);checks.push(['AI/課金API',r.ok,r.ok?'API応答OK':'API応答エラー']);}catch(e){checks.push(['API接続',false,'接続できません']) }
   out.innerHTML=checks.map(([n,ok,d])=>`<div class="dev-check-row ${ok?'ok':'ng'}"><span>${ok?'✓':'!'} ${escapeHtml(n)}</span><small>${escapeHtml(d)}</small></div>`).join('');
   audit('システム診断',checks.every(x=>x[1])?'PASS':'要確認');
@@ -310,7 +311,7 @@ function printOrderById(id){const o=getHistory().find(x=>x.id===id);if(o)printOr
 function printDraft(){const o=currentDraft();if(!o.items.length)return toast('資材を選択してください');printOrder(o)}
 async function printOrder(o){
   const area=$('#printArea');
-  area.innerHTML=`<div class="print-sheet" style="display:block;background:#fff;color:#111;width:794px;min-height:1123px;padding:48px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Yu Gothic',sans-serif"><h1 style="font-size:28px;margin:0 0 28px">VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計：<b>${o.qty}点</b>　合計重量：<b>${formatWeight(o.weight)}</b></p><p>推奨車両：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:24px"><thead><tr><th style="border:1px solid #999;padding:9px;text-align:left">資材名</th><th style="border:1px solid #999;padding:9px">数量</th><th style="border:1px solid #999;padding:9px">単重</th><th style="border:1px solid #999;padding:9px">重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td style="border:1px solid #bbb;padding:9px">${escapeHtml(i.name)}</td><td style="border:1px solid #bbb;padding:9px;text-align:center">${i.qty}${escapeHtml(i.unit)}</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${Number(i.weight).toFixed(2)}kg</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p style="margin-top:24px">メモ：${escapeHtml(o.memo)}</p>`:''}<p style="margin-top:32px;font-size:11px;color:#666">VERTX CORE v7.16</p></div>`;
+  area.innerHTML=`<div class="print-sheet" style="display:block;background:#fff;color:#111;width:794px;min-height:1123px;padding:48px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Yu Gothic',sans-serif"><h1 style="font-size:28px;margin:0 0 28px">VERTX CORE 資材注文書</h1><p>現場：<b>${escapeHtml(o.site)}</b></p>${o.date?`<p>希望日：${escapeHtml(o.date)}</p>`:''}<p>合計：<b>${o.qty}点</b>　合計重量：<b>${formatWeight(o.weight)}</b></p><p>推奨車両：<b>${escapeHtml(o.truck||truckFor(o.weight))}</b></p>${o.drawingId?`<p>添付図面：<b>${escapeHtml(o.drawingName||'図面')}</b></p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:24px"><thead><tr><th style="border:1px solid #999;padding:9px;text-align:left">資材名</th><th style="border:1px solid #999;padding:9px">数量</th><th style="border:1px solid #999;padding:9px">単重</th><th style="border:1px solid #999;padding:9px">重量</th></tr></thead><tbody>${o.items.map(i=>`<tr><td style="border:1px solid #bbb;padding:9px">${escapeHtml(i.name)}</td><td style="border:1px solid #bbb;padding:9px;text-align:center">${i.qty}${escapeHtml(i.unit)}</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${Number(i.weight).toFixed(2)}kg</td><td style="border:1px solid #bbb;padding:9px;text-align:right">${(i.qty*i.weight).toFixed(1)}kg</td></tr>`).join('')}</tbody></table>${o.memo?`<p style="margin-top:24px">メモ：${escapeHtml(o.memo)}</p>`:''}<p style="margin-top:32px;font-size:11px;color:#666">VERTX CORE v7.33</p></div>`;
   const sheet=area.firstElementChild;
   try{
     if(!window.html2canvas||!window.jspdf?.jsPDF)throw new Error('PDF機能の読み込みに失敗しました');
@@ -819,7 +820,7 @@ async function renderMembers(){
   if(!supabaseClient||!s?.orgId)return;
   try{const {data:toks,error:tErr}=await supabaseClient.rpc('get_organization_role_invites',{p_org:s.orgId});if(!tErr&&toks?.[0])roleInviteTokens={admin:toks[0].admin_token||null,member:toks[0].member_token||null,viewer:toks[0].viewer_token||null};}catch(e){console.warn('invite token load',e)}
   const {data,error}=await supabaseClient.rpc('list_organization_members',{p_org:s.orgId});
-  if(error){root.innerHTML+=`<div class="member-error"><b>メンバー機能のDB更新が必要です</b><p>SUPABASE_V5_1_MIGRATION.sql をSupabase SQL Editorで1回実行してください。</p><small>${escapeHtml(error.message)}</small></div>`;return}
+  if(error){root.innerHTML+=`<div class="member-error"><b>メンバー機能のDB更新が必要です</b><p>SUPABASE_V5_2_MIGRATION.sql をSupabase SQL Editorで1回実行してください。</p><small>${escapeHtml(error.message)}</small></div>`;return}
   const canManage=['owner','admin'].includes(s.role);
   document.querySelectorAll('[data-invite-role]').forEach(btn=>{const role=btn.dataset.inviteRole;btn.style.display=(canManage&&(role!=='admin'||s.role==='owner'))?'':'none';});
   root.innerHTML=`<div class="company-profile"><span>現在の権限</span><strong>${escapeHtml(roleLabel(s.role))}</strong></div>`+(data||[]).map(m=>`<div class="history-item-row"><span>${escapeHtml(m.email||'メンバー')}<small>${escapeHtml(roleLabel(m.role))}</small></span>${canManage&&m.role!=='owner'?`<select data-member-user="${m.user_id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理者</option><option value="member" ${m.role==='member'?'selected':''}>職長</option><option value="viewer" ${m.role==='viewer'?'selected':''}>閲覧</option></select>`:`<strong>${escapeHtml(roleLabel(m.role))}</strong>`}</div>`).join('');
@@ -1194,9 +1195,41 @@ function renderClientPreview(p){const root=$('#sharePreview');if(!root)return;if
 async function publishClientShare(){const site=$('#shareSite')?.value||'';if(!site)return toast('現場を選択してください');if(!cloudReady||!supabaseClient||!getCompanySession()?.orgId)return toast('元請け共有はクラウド接続時に利用できます');const all=getClientShareMeta(),old=all[site]||{},token=old.token||crypto.randomUUID(),notice=$('#shareNotice')?.value.trim()||'',payload=buildClientSnapshot(site,notice),row={token,organization_id:getCompanySession().orgId,site_name:site,payload,updated_at:new Date().toISOString()};const {error}=await supabaseClient.from('site_public_shares').upsert(row,{onConflict:'token'});if(error)return toast('共有ページ更新失敗: '+error.message);const url=`${location.origin}${location.pathname}?site_share=${encodeURIComponent(token)}`;all[site]={token,url,notice};saveClientShareMeta(all);renderClientShare();audit('元請け共有更新',site);toast('共有ページを更新しました')}
 async function copyClientShareUrl(url){try{await navigator.clipboard.writeText(url);toast('共有URLをコピーしました')}catch{prompt('このURLをコピーしてください',url)}}
 async function openPublicSiteShare(token){document.querySelector('#cloudAuthGate')?.classList.add('hidden');document.querySelector('#companyGate')?.classList.add('hidden');document.querySelector('.topbar')?.classList.add('hidden');document.querySelector('.bottom-nav')?.classList.add('hidden');document.querySelectorAll('section.screen').forEach(x=>x.classList.remove('active'));$('#publicSiteShare')?.classList.add('active');const root=$('#publicSiteShareContent');try{const {data,error}=await supabaseClient.rpc('get_public_site_share',{p_token:token});if(error)throw error;const p=Array.isArray(data)?data[0]?.payload:data?.payload||data;if(!p)throw new Error('共有ページが見つかりません');const ky=(p.kyRisks||[]).length?(p.kyRisks||[]).map((r,i)=>`<div class="public-ky-row"><b>KY ${i+1}</b><span>${escapeHtml(r.hazard||'')}</span><small>${escapeHtml(r.measure||'')}</small></div>`).join(''):(p.kyText||p.kyMeasure)?`<div class="public-ky-row"><b>KY</b><span>${escapeHtml(p.kyText||'')}</span><small>${escapeHtml(p.kyMeasure||'')}</small></div>`:'<p>KYはまだ共有されていません</p>';root.innerHTML=`<div class="public-share-brand"><b>VERTX CORE</b><span>現場共有</span></div><div class="public-site-head"><span>現場の今</span><h1>${escapeHtml(p.site||'現場')}</h1><small>最終更新 ${new Date(p.updatedAt||Date.now()).toLocaleString('ja-JP')}</small></div><section class="public-block"><h2>現場の現状</h2><p>${escapeHtml(p.status||'更新待ち')}</p>${p.notice?`<div class="public-notice">${escapeHtml(p.notice)}</div>`:''}</section><section class="public-block public-safety-block"><h2>KY・安全共有</h2>${p.safetyGoal?`<div class="public-safety-goal">重点安全目標：${escapeHtml(p.safetyGoal)}</div>`:''}<div class="public-ky-list">${ky}</div></section><section class="public-block"><h2>現場写真</h2><div class="public-photo-grid">${(p.photos||[]).slice(0,5).map(x=>`<figure><img src="${x.dataUrl}"><figcaption><b>${escapeHtml(x.tag||'')}</b> ${escapeHtml(x.comment||'')}</figcaption></figure>`).join('')||'<p>共有写真はありません</p>'}</div></section><section class="public-block"><h2>搬入予定</h2>${(p.deliveries||[]).map(x=>`<div class="public-row"><b>${escapeHtml(x.date||'')} ${escapeHtml(x.time||'')}</b><span>${escapeHtml(x.truck||'')} · ${escapeHtml(x.status||'')}</span></div>`).join('')||'<p>予定なし</p>'}</section><section class="public-block"><h2>返却・搬出予定</h2>${(p.returns||[]).map(x=>`<div class="public-row"><b>${escapeHtml(x.date||'')} ${escapeHtml(x.time||'')}</b><span>${escapeHtml(x.truck||'')} · ${escapeHtml(x.status||'')}</span></div>`).join('')||'<p>予定なし</p>'}</section><section class="public-block"><h2>最近の注文</h2>${(p.orders||[]).slice(0,3).map(o=>`<div class="public-order"><b>${escapeHtml(o.date||'')} ${escapeHtml(o.status||'')}</b><p>${(o.items||[]).map(i=>`${escapeHtml(i.name)} ${Number(i.qty)||0}${escapeHtml(i.unit||'')}`).join(' / ')}</p></div>`).join('')||'<p>注文情報なし</p>'}</section><footer>VERTX CORE · 現場共有</footer>`}catch(e){root.innerHTML=`<div class="card empty">共有ページを読み込めませんでした。${escapeHtml(e.message||'')}</div>`}}
-function runCoreSelfCheck(){const issues=[];const ids=new Set(),names=new Set();for(const m of MATERIALS){if(ids.has(String(m.id)))issues.push('資材ID重複:'+m.id);ids.add(String(m.id));const n=normalizeMatName(m.name);if(names.has(n))issues.push('資材名重複:'+m.name);names.add(n)}['dailyReport','handoverCanvas','handoverPhotoInput','siteAlbum','clientShare','publicSiteShare','returnLoad','manual'].forEach(id=>{if(!document.getElementById(id))issues.push('画面不足:'+id)});if(issues.length)console.warn('CORE SELF CHECK',issues);else console.info('CORE SELF CHECK PASS v7.28');return issues}
+function runCoreSelfCheck(){
+  const issues=[];
+  const ids=new Set(),names=new Set();
+  for(const m of MATERIALS){
+    if(ids.has(String(m.id)))issues.push('資材ID重複:'+m.id);
+    ids.add(String(m.id));
+    const n=normalizeMatName(m.name);
+    if(names.has(n))issues.push('資材名重複:'+m.name);
+    names.add(n);
+  }
+  const requiredScreens=['home','sites','order','confirm','history','assist','photoAi','voiceOrder','siteStock','returnLoad','dispatch','dailyReport','siteAlbum','clientShare','manual','more'];
+  requiredScreens.forEach(id=>{if(!document.getElementById(id))issues.push('画面不足:'+id)});
+  const screens=new Set(Array.from(document.querySelectorAll('section.screen[id]')).map(x=>x.id));
+  document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(target&&!screens.has(target))issues.push('リンク先不足:'+target)});
+  ['searchInput','toConfirmBtn','submitOrderBtn','runAiBtn','voiceStartBtn','runPhotoAiBtn','requestReturnTruckBtn','saveDailyReportBtn','publishShareBtn','openFullManual'].forEach(id=>{if(!document.getElementById(id))issues.push('操作部品不足:'+id)});
+  if(VERTX_BUILD!=='7.33.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
+  const unique=[...new Set(issues)];
+  if(unique.length)console.warn('CORE SELF CHECK',unique);else console.info('CORE SELF CHECK PASS v7.33');
+  return unique;
+}
 
 
+
+function openQuickActions(){
+  const modal=$('#quickActionModal');if(!modal)return;
+  document.querySelectorAll('[data-quick-go]').forEach(btn=>{btn.style.display=canOpenScreen(btn.dataset.quickGo)?'':'none'});
+  modal.classList.remove('hidden');
+}
+function closeQuickActions(){ $('#quickActionModal')?.classList.add('hidden') }
+function bindQuickActions(){
+  const open=$('#homeQuickActionBtn'),close=$('#closeQuickActionBtn'),modal=$('#quickActionModal');
+  if(open)open.onclick=openQuickActions;if(close)close.onclick=closeQuickActions;
+  if(modal)modal.onclick=e=>{if(e.target===modal)closeQuickActions()};
+  document.querySelectorAll('[data-quick-go]').forEach(btn=>btn.onclick=()=>{const target=btn.dataset.quickGo;closeQuickActions();go(target)});
+}
 
 const SCREEN_HELP={
   sites:{title:'現場を作る・選ぶ',steps:[['現場を追加','現場名を入力して「＋ 現場を追加」。'],['使う現場を選ぶ','一覧から現場をタップ。以後の注文・返却・日報に使います。']],example:'例：〇〇ビル新築工事'},
@@ -1248,7 +1281,7 @@ function openContextHelp(screenId){
   $('#contextHelpModal')?.classList.remove('hidden');
 }
 function closeContextHelp(){ $('#contextHelpModal')?.classList.add('hidden') }
-function startApp(){if(appStarted)return;appStarted=true;ensureContextHelpButtons();const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
+function startApp(){if(appStarted)return;appStarted=true;ensureContextHelpButtons();bindQuickActions();const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
 async function cloudBoot(){
   prefillSavedIdentity();
   prefillCompanyFromUrl();
