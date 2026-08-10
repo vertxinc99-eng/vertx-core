@@ -1584,3 +1584,8 @@ body:has(.exact-home.active) .exact-home-art{
   .exact-home .home-live-notice{top:5.3%!important}
   .exact-home .home-live-account{top:12.1%!important}
 }
+
+
+/* v7.48 account avatar hard fix */
+.exact-home .home-live-account>span{font-size:0!important;padding:2px!important;background:#102c4b!important}
+.exact-home .home-live-account>span img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center 22%!important;border-radius:14px!important}
