@@ -1247,3 +1247,69 @@ body{background:radial-gradient(circle at 50% -12%,#173f66 0,#061526 38%,#020812
   .home-live-account{right:3.2%!important;top:4.6%!important}
   .exact-home-stage::after{right:1.7%!important;top:3.1%!important;width:17.7%!important;height:9.8%!important}
 }
+
+
+/* ===== VERTX CORE v7.42 HOME OVERLAY CLEANUP ===== */
+/* Use the cleaned artwork so no old fixed name / weather / notification graphics show through. */
+.exact-home-stage::after{display:none!important;content:none!important}
+.exact-home-art{display:block!important;width:100%!important;height:auto!important;filter:saturate(.98) contrast(1.015)!important}
+
+/* Identity: compact and isolated from weather. */
+.home-live-identity{
+  left:3.8%!important;
+  top:11.1%!important;
+  width:45.5%!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:9px 11px 10px!important;
+  gap:1px!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(5,22,39,.97),rgba(9,39,67,.96))!important;
+  border:1px solid rgba(162,204,244,.25)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.30)!important;
+  overflow:hidden!important;
+}
+.home-live-identity small{font-size:8px!important;line-height:1.05!important;margin:0!important;letter-spacing:.12em!important}
+.home-live-identity span{font-size:10px!important;line-height:1.12!important;margin:2px 0 0!important}
+.home-live-identity strong{font-size:clamp(19px,5vw,28px)!important;line-height:1.02!important;margin:1px 0 0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.home-live-identity em{font-size:8px!important;line-height:1!important;margin-top:6px!important;padding:3px 7px!important;white-space:nowrap!important}
+
+/* Weather: clear visual gap below identity. */
+.home-live-weather{
+  left:3.8%!important;
+  top:23.9%!important;
+  width:45.5%!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:9px 10px!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(8,34,59,.97),rgba(4,20,36,.97))!important;
+  border:1px solid rgba(162,204,244,.23)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.27)!important;
+}
+.home-live-weather>span{font-size:22px!important}
+.home-live-weather>strong{font-size:19px!important}
+.home-live-weather div b{font-size:10px!important}
+.home-live-weather div small{font-size:8px!important;line-height:1.25!important}
+
+/* Right-side live actions: two separate buttons with guaranteed gap. */
+.home-live-circle{
+  width:43px!important;
+  height:43px!important;
+  border-radius:15px!important;
+  background:linear-gradient(145deg,#12395f,#061a2f)!important;
+  border:1px solid rgba(174,211,245,.33)!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.34)!important;
+}
+.home-live-notice{right:11.3%!important;top:5.0%!important}
+.home-live-account{right:3.8%!important;top:5.0%!important}
+.home-live-circle i{right:-3px!important;top:-3px!important}
+.home-live-notice span,.home-live-account span{line-height:1!important}
+
+@media(max-width:430px){
+  .home-live-identity{left:3.5%!important;top:11.0%!important;width:46.5%!important;padding:8px 9px 9px!important}
+  .home-live-weather{left:3.5%!important;top:24.0%!important;width:46.5%!important;padding:8px 9px!important}
+  .home-live-circle{width:40px!important;height:40px!important;border-radius:14px!important}
+  .home-live-notice{right:11.2%!important;top:5.0%!important}
+  .home-live-account{right:3.4%!important;top:5.0%!important}
+}
