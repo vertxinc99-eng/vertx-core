@@ -4,22 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#03101f">
-  <title>VERTX CORE v7.37 LIVE UI</title>
-  <link rel="stylesheet" href="style.css?v=7.37.0">
+  <title>VERTX CORE v7.39 POLISHED UI</title>
+  <link rel="stylesheet" href="style.css?v=7.39.0">
 </head>
 <body>
-  <div id="cloudAuthGate" class="company-gate">
-    <div class="company-gate-card">
-      <p class="eyebrow">VERTX CORE CLOUD</p>
-      <h2>ログイン</h2>
-      <p class="muted">同じ会社の現場・注文・在庫・資材マスタ・図面を、スマホやPCで共有します。</p>
-      <label>メールアドレス<input id="authEmail" type="email" placeholder="name@example.com" autocomplete="email"></label>
-      <label>パスワード<input id="authPassword" type="password" placeholder="8文字以上" autocomplete="current-password"></label>
-      <div class="action-grid">
-        <button id="authLoginBtn" class="primary-btn full">ログイン</button>
-        <button id="authSignupBtn" class="secondary-btn full">新規登録</button>
+  <div id="cloudAuthGate" class="company-gate auth-gate">
+    <div class="auth-shell">
+      <div class="auth-brand-block">
+        <div class="auth-logo-wrap"><img src="vertx-mark.svg" alt="VERTX logo"></div>
+        <div><p class="auth-kicker">VERTX CORE</p><h2>現場を、ひとつに。</h2><p>注文・返却・KY・AIをスマホひとつで。</p></div>
       </div>
-      <small id="authStatus">初回は新規登録してください。</small>
+      <div class="company-gate-card auth-card">
+        <div class="auth-card-head"><span>ACCOUNT</span><h3>ログイン</h3><p>登録したメールアドレスとパスワードを入力してください。</p></div>
+        <label class="auth-field"><span>メールアドレス</span><input id="authEmail" type="email" placeholder="name@example.com" autocomplete="email"></label>
+        <label class="auth-field"><span>パスワード</span><input id="authPassword" type="password" placeholder="8文字以上" autocomplete="current-password"></label>
+        <button id="authLoginBtn" class="primary-btn full auth-main-btn">ログイン</button>
+        <button id="authSignupBtn" class="secondary-btn full auth-sub-btn">初めて使う方はこちら</button>
+        <small id="authStatus" class="auth-status">初回は新規登録してください。</small>
+      </div>
+      <div class="auth-foot">SECURE CLOUD · VERTX CORE</div>
     </div>
   </div>
   <div id="companyGate" class="company-gate hidden">
@@ -38,9 +41,12 @@
   </div>
   <div class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.36 LIVE HOME</span></h1>
+      <div class="topbar-brand">
+        <img class="topbar-logo" src="vertx-mark.svg" alt="VERTX logo mark">
+        <div class="topbar-brand-copy">
+          <p class="eyebrow">VERTX</p>
+          <h1>CORE <span>v7.39 POLISHED UI</span></h1>
+        </div>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -49,6 +55,8 @@
       <section id="home" class="screen active exact-home">
         <div class="exact-home-stage" aria-label="VERTX CORE ホーム">
           <img class="exact-home-art" src="vertx-core-home-reference.jpg" alt="VERTX CORE ホーム画面">
+          <div class="home-clean-mask" aria-hidden="true"></div>
+          <div class="home-section-label">TODAY</div>
           <div class="home-live-identity" aria-live="polite">
             <small id="homeCompanyLive">VERTX CORE</small>
             <span id="homeGreetingLive">おはようございます、</span>
@@ -161,8 +169,12 @@
           <div class="upload-icon">▧</div>
           <h3>図面を追加</h3>
           <p class="muted">PDF / JPG / PNG を端末内に保存します。アップロードした図面は注文に添付できます。</p>
-          <label class="primary-btn upload-btn">＋ 図面を選択<input id="drawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label>
-          <small class="local-note">複数ファイルをまとめて選択できます。端末のブラウザ内に保存します。</small>
+          <label class="upload-block upload-btn">
+            <span class="upload-block-title">＋ 図面を追加</span>
+            <span class="upload-shell"><span class="upload-trigger">ファイルを選択</span><span id="drawingInputName" class="upload-file-name">ファイル未選択</span></span>
+            <input id="drawingInput" type="file" accept="application/pdf,image/*" multiple hidden>
+          </label>
+          <small class="local-note">PDF / JPG / PNG を複数まとめて選択できます。</small>
         </div>
         <div class="section-head"><h3>保存済み図面</h3></div>
         <div id="drawingList" class="history-list"></div>
@@ -174,7 +186,7 @@
         <div class="card assist-note ai-note"><b>図面をAIが読んで資材候補を作る</b><p>保存済みのPDF・JPG・PNGをAIへ送信し、枠組・単管を中心に図面上で確認できる情報から資材候補を作ります。AI結果は発注確定ではありません。数量・納まりは必ず人が確認してください。</p></div>
 
         <div class="card form-card">
-          <div class="ai-direct-upload"><b>ここから図面を追加</b><p class="muted">先に「図面アップロード」へ戻らなくても、AI解析画面からPDF・JPG・PNGを複数追加できます。</p><label class="secondary-btn upload-btn">＋ 解析する図面を追加<input id="aiDrawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label></div>
+          <div class="ai-direct-upload"><b>ここから図面を追加</b><p class="muted">先に「図面アップロード」へ戻らなくても、AI解析画面からPDF・JPG・PNGを複数追加できます。</p><label class="upload-block upload-btn compact"><span class="upload-block-title">＋ 解析する図面を追加</span><span class="upload-shell"><span class="upload-trigger">ファイルを選択</span><span id="aiDrawingInputName" class="upload-file-name">ファイル未選択</span></span><input id="aiDrawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label></div>
           <div class="drawing-pick-wrap"><div class="drawing-pick-head"><b>解析する図面</b><span>複数選択OK</span></div><div id="assistDrawingList" class="drawing-check-list"><div class="muted">図面を読み込み中…</div></div><div class="drawing-pick-actions"><button type="button" id="selectAllDrawings" class="mini-btn">すべて選択</button><button type="button" id="clearAllDrawings" class="mini-btn">選択解除</button></div><small class="muted">平面・立面・断面・詳細図をまとめて選ぶと、AIが相互に見比べて資材候補を作ります。</small></div>
           <label>解析モード<select id="aiMode"><option value="auto">自動判定</option><option value="frame">枠組足場を優先</option><option value="pipe">単管足場を優先</option></select></label>
           <label>現場メモ（任意）<textarea id="aiContext" rows="3" placeholder="例：解体足場、防音パネル養生、道路面に朝顔あり"></textarea></label>
@@ -246,7 +258,7 @@
       </section>
       <section id="photoAi" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">PHOTO AI</p><h2>現場写真AI</h2></div></div>
-        <div class="card form-card"><label class="primary-btn upload-btn">＋ 現場写真を選択<input id="photoAiInput" type="file" accept="image/*" multiple hidden></label><div id="photoAiFiles" class="muted">写真未選択</div><label>確認したいこと<textarea id="photoAiContext" rows="3" placeholder="例：不足しそうな資材、写っている足場材を確認"></textarea></label><button id="runPhotoAiBtn" class="primary-btn full">✦ 写真をAI解析</button><div id="photoAiStatus" class="ai-status hidden"></div></div><div id="photoAiResult" class="card assist-result empty">写真を選択してください</div><div class="action-grid"><button id="applyPhotoAiBtn" class="primary-btn full hidden">候補を注文へ入れる</button><button id="applyPhotoReturnBtn" class="secondary-btn full hidden">候補を返却重量へ入れる</button></div>
+        <div class="card form-card"><label class="upload-block upload-btn compact"><span class="upload-block-title">＋ 現場写真を追加</span><span class="upload-shell"><span class="upload-trigger">ファイルを選択</span><span id="photoAiFiles" class="upload-file-name">ファイル未選択</span></span><input id="photoAiInput" type="file" accept="image/*" multiple hidden></label><label>確認したいこと<textarea id="photoAiContext" rows="3" placeholder="例：不足しそうな資材、写っている足場材を確認"></textarea></label><button id="runPhotoAiBtn" class="primary-btn full">✦ 写真をAI解析</button><div id="photoAiStatus" class="ai-status hidden"></div></div><div id="photoAiResult" class="card assist-result empty">写真を選択してください</div><div class="action-grid"><button id="applyPhotoAiBtn" class="primary-btn full hidden">候補を注文へ入れる</button><button id="applyPhotoReturnBtn" class="secondary-btn full hidden">候補を返却重量へ入れる</button></div>
       </section>
       <section id="siteDashboard" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">SITE DASHBOARD</p><h2>現場ダッシュボード</h2></div></div><div class="card form-card"><label>現場<select id="dashSite"></select></label></div><div id="siteDashboardBody"></div>
@@ -402,7 +414,7 @@
           <div class="handover-markup-box">
             <div class="section-head tight"><h3>引継ぎ写真メモ</h3><span>必要な時だけ</span></div>
             <p class="handover-help">写真を選んで、現場の注意箇所に直接書き込めます。KYは上の入力式が基本です。</p>
-            <label class="secondary-btn full handover-photo-upload">📷 引継ぎ写真を選ぶ<input id="handoverPhotoInput" type="file" accept="image/*" hidden></label>
+            <label class="upload-block upload-btn compact handover-photo-upload"><span class="upload-block-title">＋ 引継ぎ写真を追加</span><span class="upload-shell"><span class="upload-trigger">ファイルを選択</span><span id="handoverPhotoInputName" class="upload-file-name">ファイル未選択</span></span><input id="handoverPhotoInput" type="file" accept="image/*" hidden></label>
             <div id="handoverMarkupEditor" class="handover-editor hidden">
               <div class="handover-zoom-bar"><span>2本指で拡大・移動</span><b id="handoverZoomLabel">100%</b><button type="button" id="handoverZoomResetBtn">等倍に戻す</button></div>
               <canvas id="handoverCanvas" width="720" height="480"></canvas>
@@ -431,7 +443,7 @@
           <label>現場<select id="albumSite"></select></label>
           <div class="field-grid two"><label>分類<select id="albumTag"><option>施工前</option><option>施工中</option><option>完了</option><option>搬入</option><option>返却</option><option>その他</option></select></label><label>共有設定<select id="albumShare"><option value="yes">元請け共有OK</option><option value="no">社内のみ</option></select></label></div>
           <label>コメント<input id="albumComment" type="text" placeholder="例：北面5段まで完了"></label>
-          <label class="primary-btn upload-btn">＋ 写真を追加<input id="albumPhotoInput" type="file" accept="image/*" multiple hidden></label>
+          <label class="upload-block upload-btn compact"><span class="upload-block-title">＋ 写真を追加</span><span class="upload-shell"><span class="upload-trigger">ファイルを選択</span><span id="albumPhotoInputName" class="upload-file-name">ファイル未選択</span></span><input id="albumPhotoInput" type="file" accept="image/*" multiple hidden></label>
           <small class="muted">1回最大5枚。スマホ向けに自動圧縮します。</small>
         </div>
         <div id="albumGrid" class="album-grid"></div>
@@ -671,6 +683,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.37.0"></script>
+  <script src="app.js?v=7.39.0"></script>
 </body>
 </html>

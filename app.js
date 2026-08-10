@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.37.0';
+const VERTX_BUILD='7.39.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -47,7 +47,7 @@ async function runSystemCheck(){
   checks.push(['資材ID重複',new Set(ids).size===ids.length,`${ids.length}件`]);
   checks.push(['資材名重複',new Set(names).size===names.length,`${names.length}件`]);
   checks.push(['注文下書き',true,Object.keys(state.cart||{}).length?`${Object.keys(state.cart).length}種類保存中`:'空']);
-  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.37.0',`v${VERTX_BUILD}`]);
+  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.39.0',`v${VERTX_BUILD}`]);
   try{const r=await fetch('/api/config',{cache:'no-store'});const cfg=await r.json();checks.push(['クラウド設定',Boolean(cfg.configured),cfg.configured?'Supabase OK':'設定不足']);checks.push(['AI/課金API',r.ok,r.ok?'API応答OK':'API応答エラー']);}catch(e){checks.push(['API接続',false,'接続できません']) }
   out.innerHTML=checks.map(([n,ok,d])=>`<div class="dev-check-row ${ok?'ok':'ng'}"><span>${ok?'✓':'!'} ${escapeHtml(n)}</span><small>${escapeHtml(d)}</small></div>`).join('');
   audit('システム診断',checks.every(x=>x[1])?'PASS':'要確認');
@@ -905,6 +905,11 @@ function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),1800)}
 
 
+function formatSelectedFiles(files,empty='ファイル未選択'){const arr=[...(files||[])];if(!arr.length)return empty;const names=arr.map(x=>x.name);return names.length<=2?names.join(' / '):`${names.slice(0,2).join(' / ')} ほか${names.length-2}件`}
+function bindUploadFileName(inputSelector,labelSelector,empty='ファイル未選択'){const input=$(inputSelector),label=$(labelSelector);if(!input||!label)return;const render=()=>{label.textContent=formatSelectedFiles(input.files,empty)};render();input.addEventListener('change',render)}
+function initUnifiedUploadUi(){bindUploadFileName('#drawingInput','#drawingInputName');bindUploadFileName('#aiDrawingInput','#aiDrawingInputName');bindUploadFileName('#photoAiInput','#photoAiFiles','写真未選択');bindUploadFileName('#handoverPhotoInput','#handoverPhotoInputName','ファイル未選択');bindUploadFileName('#albumPhotoInput','#albumPhotoInputName','写真未選択')}
+
+
 const HOME_WEATHER_CACHE_KEY='vertx_core_home_weather_v737';
 function homeDisplayName(){
   const s=getCompanySession()||{};
@@ -1286,7 +1291,7 @@ function runCoreSelfCheck(){
   const screens=new Set(Array.from(document.querySelectorAll('section.screen[id]')).map(x=>x.id));
   document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(target&&!screens.has(target))issues.push('リンク先不足:'+target)});
   ['searchInput','toConfirmBtn','submitOrderBtn','runAiBtn','voiceStartBtn','runPhotoAiBtn','requestReturnTruckBtn','saveDailyReportBtn','publishShareBtn','openFullManual'].forEach(id=>{if(!document.getElementById(id))issues.push('操作部品不足:'+id)});
-  if(VERTX_BUILD!=='7.35.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
+  if(VERTX_BUILD!=='7.39.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
   const unique=[...new Set(issues)];
   if(unique.length)console.warn('CORE SELF CHECK',unique);else console.info('CORE SELF CHECK PASS v7.36');
   return unique;
@@ -1357,7 +1362,7 @@ function openContextHelp(screenId){
   $('#contextHelpModal')?.classList.remove('hidden');
 }
 function closeContextHelp(){ $('#contextHelpModal')?.classList.add('hidden') }
-function startApp(){if(appStarted)return;appStarted=true;initLiveHomeUi();ensureContextHelpButtons();bindQuickActions();const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
+function startApp(){if(appStarted)return;appStarted=true;initLiveHomeUi();ensureContextHelpButtons();bindQuickActions();initUnifiedUploadUi();const d=new Date();d.setDate(d.getDate()+1);if($('#deliveryDate')&&!getOrderMeta().date)$('#deliveryDate').value=d.toISOString().slice(0,10);restoreOrderMeta();if(state.selectedSite&&$('#siteName'))$('#siteName').value=state.selectedSite;renderCategories();renderMaterials();updateDashboard();updateDevTestBanner();toggleAssistOptions();const last=lsGet('vertx_core_last_screen')||'home';go(canOpenScreen(last)?last:'home');prefillSiteFromUrl()}
 async function cloudBoot(){
   prefillSavedIdentity();
   prefillCompanyFromUrl();
