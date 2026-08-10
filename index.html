@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#03101f">
   <title>VERTX CORE v7.44 LOGIN VIEWPORT FIX</title>
-  <link rel="stylesheet" href="style.css?v=7.45.0">
+  <link rel="stylesheet" href="style.css?v=7.47.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate auth-gate">
@@ -54,7 +54,7 @@
     <main>
       <section id="home" class="screen active exact-home">
         <div class="exact-home-stage" aria-label="VERTX CORE ホーム">
-          <img class="exact-home-art" src="vertx-core-home-reference.jpg" alt="VERTX CORE ホーム画面">
+          <img class="exact-home-art" src="vertx-core-home-clean.jpg" alt="VERTX CORE ホーム画面">
           <div class="home-live-identity" aria-live="polite">
             <small id="homeCompanyLive">VERTX CORE</small>
             <span id="homeGreetingLive">おはようございます、</span>
@@ -182,6 +182,7 @@
       <section id="assist" class="screen">
         <div class="screen-head"><button class="back-btn" data-go="home">‹</button><div><p class="eyebrow">AI DRAWING ANALYSIS</p><h2>AI図面解析</h2></div></div>
         <div class="card assist-note ai-note"><b>図面をAIが読んで資材候補を作る</b><p>保存済みのPDF・JPG・PNGをAIへ送信し、枠組・単管を中心に図面上で確認できる情報から資材候補を作ります。AI結果は発注確定ではありません。数量・納まりは必ず人が確認してください。</p></div>
+        <div class="card ai-learning-note"><div><span>COMPANY LEARNING</span><b>注文で直した数量を次回AIへ反映</b><p>AI候補を注文へ入れたあと、人が数量・資材を修正して注文確定すると「AI予測 → 最終確定」の差分を会社ごとに学習します。</p></div><em>類似例を最大36件参照</em></div>
 
         <div class="card form-card">
           <div class="ai-direct-upload"><b>ここから図面を追加</b><p class="muted">先に「図面アップロード」へ戻らなくても、AI解析画面からPDF・JPG・PNGを複数追加できます。</p><label class="upload-block upload-btn compact"><span class="upload-block-title">＋ 解析する図面を追加</span><span class="upload-shell"><span class="upload-trigger">ファイルを選択</span><span id="aiDrawingInputName" class="upload-file-name">ファイル未選択</span></span><input id="aiDrawingInput" type="file" accept="application/pdf,image/*" multiple hidden></label></div>
@@ -681,6 +682,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.42.0"></script>
+  <script src="app.js?v=7.47.0"></script>
 </body>
 </html>

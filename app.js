@@ -1,4 +1,4 @@
-const VERTX_BUILD='7.45.0';
+const VERTX_BUILD='7.47.0';
 // VERTX CORE v5.8 NEXT UI + BILLING
 const VERTX_SESSION_KEY='vertx_core_company_session';
 let supabaseClient=null;
@@ -47,7 +47,7 @@ async function runSystemCheck(){
   checks.push(['資材ID重複',new Set(ids).size===ids.length,`${ids.length}件`]);
   checks.push(['資材名重複',new Set(names).size===names.length,`${names.length}件`]);
   checks.push(['注文下書き',true,Object.keys(state.cart||{}).length?`${Object.keys(state.cart).length}種類保存中`:'空']);
-  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.45.0',`v${VERTX_BUILD}`]);
+  const coreIssues=runCoreSelfCheck();checks.push(['画面・ボタン整合性',coreIssues.length===0,coreIssues.length?coreIssues.slice(0,3).join(' / '):'主要画面・リンクOK']);checks.push(['ビルド',VERTX_BUILD==='7.47.0',`v${VERTX_BUILD}`]);
   try{const r=await fetch('/api/config',{cache:'no-store'});const cfg=await r.json();checks.push(['クラウド設定',Boolean(cfg.configured),cfg.configured?'Supabase OK':'設定不足']);checks.push(['AI/課金API',r.ok,r.ok?'API応答OK':'API応答エラー']);}catch(e){checks.push(['API接続',false,'接続できません']) }
   out.innerHTML=checks.map(([n,ok,d])=>`<div class="dev-check-row ${ok?'ok':'ng'}"><span>${ok?'✓':'!'} ${escapeHtml(n)}</span><small>${escapeHtml(d)}</small></div>`).join('');
   audit('システム診断',checks.every(x=>x[1])?'PASS':'要確認');
@@ -137,7 +137,7 @@ const MATERIAL_MENU_MIGRATION="v7.6-menu-fix";
   lsSet('vertx_core_materials',JSON.stringify(MATERIALS));
   lsSet('vertx_core_material_menu_migration',MATERIAL_MENU_MIGRATION);
 })();
-const state={cart:(()=>{try{return JSON.parse(lsGet('vertx_core_draft_cart')||'{}')}catch{return {}}})(),category:'すべて',search:'',selectedSite:lsGet('vertx_core_last_site')||'',selectedDrawingId:null,aiSource:null,favorites:new Set(JSON.parse(lsGet('vertx_core_favorites')||'[]'))};
+const state={cart:(()=>{try{return JSON.parse(lsGet('vertx_core_draft_cart')||'{}')}catch{return {}}})(),category:'すべて',search:'',selectedSite:lsGet('vertx_core_last_site')||'',selectedDrawingId:null,aiSource:null,aiSnapshot:null,favorites:new Set(JSON.parse(lsGet('vertx_core_favorites')||'[]'))};
 
 const RECENT_MATERIAL_KEY='vertx_core_recent_materials_v715';
 const SITE_PATTERN_KEY='vertx_core_site_patterns_v715';
@@ -294,7 +294,7 @@ function renderConfirm(){if($('#confirmSupplier'))$('#confirmSupplier').innerHTM
 }
 function getHistory(){try{return JSON.parse(lsGet('vertx_core_orders')||'[]')}catch{return []}}
 function saveHistory(v){lsSet('vertx_core_orders',JSON.stringify(v));updateDashboard()}
-function submitOrder(){if(getEffectiveRole()==='viewer')return toast('閲覧権限では注文できません');const order=currentDraft();if(!order.items.length){toast('資材を選択してください');go('order');return}order.id=Date.now();const role=getEffectiveRole();order.status=['owner','admin'].includes(role)?'発注済':'承認待ち';order.testRole=isDevTestMode()?role:'';order.requestedBy=getCompanySession()?.user||cloudUser?.email||'';const history=getHistory();history.unshift(order);saveHistory(history);order.items.forEach(i=>rememberMaterial(i.id));learnSitePattern(order);audit('注文作成',`${order.site} / ${order.qty}点 / ${formatWeight(order.weight)} / ${order.status}`);if(state.aiSource)saveAiLearningExample(state.aiSource);const sites=getSites();if(order.site!=='現場名未入力'&&!sites.includes(order.site)){sites.unshift(order.site);saveSites(sites)}state.cart={};state.selectedSite='';state.selectedDrawingId=null;state.aiSource=null;lsRemove('vertx_core_draft_cart');lsRemove('vertx_core_last_site');lsRemove(ORDER_META_KEY);$('#siteName').value='';$('#orderMemo').value='';renderMaterials();go('success')}
+function submitOrder(){if(getEffectiveRole()==='viewer')return toast('閲覧権限では注文できません');const order=currentDraft();if(!order.items.length){toast('資材を選択してください');go('order');return}order.id=Date.now();const role=getEffectiveRole();order.status=['owner','admin'].includes(role)?'発注済':'承認待ち';order.testRole=isDevTestMode()?role:'';order.requestedBy=getCompanySession()?.user||cloudUser?.email||'';const history=getHistory();history.unshift(order);saveHistory(history);order.items.forEach(i=>rememberMaterial(i.id));learnSitePattern(order);audit('注文作成',`${order.site} / ${order.qty}点 / ${formatWeight(order.weight)} / ${order.status}`);if(state.aiSource||state.aiSnapshot||nativeGet(tenantKey('vertx_core_ai_snapshot')))saveAiLearningExample(state.aiSource||state.aiSnapshot?.source_type||'drawing');const sites=getSites();if(order.site!=='現場名未入力'&&!sites.includes(order.site)){sites.unshift(order.site);saveSites(sites)}state.cart={};state.selectedSite='';state.selectedDrawingId=null;state.aiSource=null;lsRemove('vertx_core_draft_cart');lsRemove('vertx_core_last_site');lsRemove(ORDER_META_KEY);$('#siteName').value='';$('#orderMemo').value='';renderMaterials();go('success')}
 function renderHistory(){const h=getHistory();const viewer=getEffectiveRole()==='viewer',canApprove=['owner','admin'].includes(getEffectiveRole());$('#historyList').innerHTML=h.length?h.map(o=>`<article class="card history-card"><header><div><h3>${escapeHtml(o.site)}</h3><div class="history-meta">${formatDate(o.createdAt)}${o.date?`・希望 ${escapeHtml(o.date)}`:''}</div></div><span class="order-status ${o.status==='承認待ち'?'pending':'approved'}">${escapeHtml(o.status||'発注済')}</span></header><div class="history-item-row"><span>推定重量</span><strong>${formatWeight(Number(o.weight))}</strong></div><div class="history-item-row"><span>乗る車</span><strong>${escapeHtml(o.truck||truckFor(Number(o.weight)))}</strong></div>${o.requestedBy?`<div class="history-item-row"><span>作成者</span><strong>${escapeHtml(o.requestedBy)}</strong></div>`:''}${o.drawingId?`<div class="history-item-row"><span>図面</span><button class="inline-link" data-open-drawing="${o.drawingId}">${escapeHtml(o.drawingName||'開く')}</button></div>`:''}<div class="history-actions">${canApprove&&o.status==='承認待ち'?`<button class="approve-btn" data-approve="${o.id}">✓ 承認して発注</button>`:''}${viewer?'':`<button data-reorder="${o.id}">コピー</button>`}<button data-pdf="${o.id}">PDF</button><button data-line="${o.id}">LINE</button>${viewer?'':`<button data-delete="${o.id}">削除</button>`}</div></article>`).join(''):'<div class="card empty">まだ注文履歴がありません</div>';$$('[data-reorder]').forEach(b=>b.onclick=()=>reorder(Number(b.dataset.reorder)));$$('[data-delete]').forEach(b=>b.onclick=()=>deleteOrder(Number(b.dataset.delete)));$$('[data-pdf]').forEach(b=>b.onclick=()=>printOrderById(Number(b.dataset.pdf)));$$('[data-line]').forEach(b=>b.onclick=()=>shareOrderById(Number(b.dataset.line)));$$('[data-open-drawing]').forEach(b=>b.onclick=()=>openDrawing(Number(b.dataset.openDrawing)));$$('[data-approve]').forEach(b=>b.onclick=()=>approveOrder(Number(b.dataset.approve)))}
 function approveOrder(id){if(!['owner','admin'].includes(getEffectiveRole()))return toast('承認権限がありません');const h=getHistory();const o=h.find(x=>x.id===id);if(!o)return;o.status='発注済';o.approvedAt=new Date().toISOString();saveHistory(h);renderHistory();updateDashboard();toast('注文を承認しました')}
 
@@ -435,15 +435,34 @@ async function compressImageForAi(blob,mimeType='image/jpeg'){
 function blobToBase64(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]||'');r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
 function setAiStatus(msg,type=''){const el=$('#aiStatus');if(!el)return;el.textContent=msg;el.className='ai-status'+(type?' '+type:'');el.classList.toggle('hidden',!msg)}
 function compressImageBlob(blob,maxSide=1800,quality=.78){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(blob);img.onload=()=>{try{const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(b=>{URL.revokeObjectURL(url);b?resolve(b):reject(new Error('画像圧縮に失敗しました'))},'image/jpeg',quality)}catch(e){URL.revokeObjectURL(url);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('画像を読み込めませんでした'))};img.src=url})}
-async function getAiLearningContext(){
+async function getAiLearningContext(query={}){
+  const normalizeExample=x=>{
+    const payload=x?.corrected_materials;
+    if(Array.isArray(payload))return {...x,final_materials:payload,predicted_materials:[],correction_delta:[],site:'',scaffold_type:''};
+    if(payload&&typeof payload==='object')return {...x,final_materials:Array.isArray(payload.final)?payload.final:[],predicted_materials:Array.isArray(payload.predicted)?payload.predicted:[],correction_delta:Array.isArray(payload.delta)?payload.delta:[],site:String(payload.site||''),scaffold_type:String(payload.scaffold_type||''),analysis_summary:String(payload.analysis_summary||'')};
+    return {...x,final_materials:[],predicted_materials:[],correction_delta:[],site:'',scaffold_type:''};
+  };
+  const words=v=>String(v||'').toLowerCase().replace(/[、。・,./\\()（）\-_:：]/g,' ').split(/\s+/).filter(x=>x.length>1);
+  const scoreExample=x=>{
+    let score=0; const qSite=String(query.site||''),qSource=String(query.source_type||''),qCtx=words(query.context),hay=words(`${x.context||''} ${x.site||''} ${x.scaffold_type||''} ${x.analysis_summary||''}`);
+    if(qSource&&x.source_type===qSource)score+=10;
+    if(qSite&&x.site===qSite)score+=18;
+    for(const w of qCtx)if(hay.some(h=>h.includes(w)||w.includes(h)))score+=2;
+    const ageDays=Math.max(0,(Date.now()-new Date(x.created_at||0).getTime())/86400000);score+=Math.max(0,8-Math.min(8,ageDays/30));
+    if(x.correction_delta?.length)score+=6;
+    return score;
+  };
   const local=(()=>{try{return JSON.parse(nativeGet(tenantKey('vertx_core_ai_learning_local'))||'[]')}catch{return []}})();
+  let all=local;
   try{
-    const org=getCompanySession()?.orgId;if(!org||!cloudReady||!supabaseClient)return local.slice(0,12);
-    const {data,error}=await supabaseClient.from('ai_learning_examples').select('source_type,context,corrected_materials,created_at').eq('organization_id',org).order('created_at',{ascending:false}).limit(12);
-    if(error)throw error;
-    const cloud=(data||[]).map(x=>({source_type:x.source_type,context:x.context,corrected_materials:x.corrected_materials,created_at:x.created_at}));
-    return cloud.length?cloud:local.slice(0,12);
-  }catch(e){console.warn('learning context',e);return local.slice(0,12)}
+    const org=getCompanySession()?.orgId;
+    if(org&&cloudReady&&supabaseClient){
+      const {data,error}=await supabaseClient.from('ai_learning_examples').select('source_type,context,corrected_materials,created_at').eq('organization_id',org).order('created_at',{ascending:false}).limit(80);
+      if(error)throw error;
+      if(data?.length)all=data;
+    }
+  }catch(e){console.warn('learning context',e)}
+  return (all||[]).map(normalizeExample).map(x=>({...x,_score:scoreExample(x)})).sort((a,b)=>b._score-a._score).slice(0,36).map(({_score,...x})=>x);
 }
 function aiCacheKey(drawings,mode,context){return JSON.stringify({ids:drawings.map(d=>[d.id,d.createdAt||'',d.size||0]),mode,context,learning:lsGet('vertx_core_ai_learning_version')||'0',build:VERTX_BUILD})}
 function getAiCache(key){try{const all=JSON.parse(nativeGet(tenantKey('vertx_core_ai_cache'))||'{}');const hit=all[key];if(hit&&Date.now()-hit.ts<7*24*3600*1000)return hit.analysis}catch{}return null}
@@ -470,7 +489,7 @@ async function runAiAnalysis(){
     setAiStatus(`CORE AIが${drawings.length}枚を最適化中…`);
     const prepared=await Promise.all(drawings.map(async d=>{let aiBlob=d.blob;if((d.type||'').startsWith('image/')&&Number(d.size)>350*1024)aiBlob=await compressImageBlob(d.blob,maxSide,quality);return {d,aiBlob,bytes:Number(aiBlob.size||d.size||0)}}));
     const totalBytes=prepared.reduce((s,x)=>s+x.bytes,0);if(totalBytes>2.55*1024*1024)throw new Error('図面の合計サイズが大きすぎます。必要な立面・断面だけに絞ってください。');
-    const [files,learningExamples]=await Promise.all([Promise.all(prepared.map(async({d,aiBlob})=>({filename:d.name,mimeType:d.type,dataBase64:await blobToBase64(aiBlob)}))),getAiLearningContext()]);
+    const [files,learningExamples]=await Promise.all([Promise.all(prepared.map(async({d,aiBlob})=>({filename:d.name,mimeType:d.type,dataBase64:await blobToBase64(aiBlob)}))),getAiLearningContext({site:state.selectedSite,source_type:'drawing',context})]);
     const materialNames=MATERIALS.map(m=>m.name);
     const common={method:'POST',headers:{'Content-Type':'application/json'}};
     setAiStatus('CORE AIが図面を照合中… 失敗時は自動で軽量解析に切り替えます。');
@@ -492,8 +511,8 @@ async function runAiAnalysis(){
       }
     }
     if(!r.ok)throw new Error(data.error||`AI解析エラー (${r.status})`);
-    setAiCache(cacheKey,data.analysis);renderAiResult(data.analysis,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});
-    setAiStatus(`解析完了。会社の確定例${learningExamples.length}件と資材呼称を参照しました。`);audit('AI図面解析',`${drawings.length}枚 / 学習例${learningExamples.length}件 / 候補${aiCandidate.length}種類`);
+    state.aiSnapshot={source_type:'drawing',site:state.selectedSite||'',context,scaffold_type:data.analysis?.scaffold_type||'',summary:data.analysis?.summary||'',predicted:(data.analysis?.materials||[]).map(x=>({material_name:x.material_name,quantity:Number(x.quantity)||0,unit:x.unit||'',confidence:Number(x.confidence)||0,reason:x.reason||''})),drawing_names:drawings.map(x=>x.name),captured_at:new Date().toISOString()};nativeSet(tenantKey('vertx_core_ai_snapshot'),JSON.stringify(state.aiSnapshot));setAiCache(cacheKey,data.analysis);renderAiResult(data.analysis,{id:drawings[0].id,name:drawings.map(x=>x.name).join(' / ')});
+    setAiStatus(`解析完了。会社の類似確定例${learningExamples.length}件＋修正差分＋資材呼称を参照しました。`);audit('AI図面解析',`${drawings.length}枚 / 学習例${learningExamples.length}件 / 候補${aiCandidate.length}種類`);
   }catch(e){const msg=e?.message||'AI解析に失敗しました';const friendly=/load failed|fetch failed|failed to fetch/i.test(msg)?'通信に失敗しました。図面を1〜4枚に絞って再試行してください。':msg;setAiStatus(friendly,'error');audit('AI図面解析エラー',friendly);$('#aiResult').classList.add('empty');$('#aiResult').textContent='AI解析に失敗しました。エラー表示を確認して、もう一度試してください。'}
   finally{$('#runAiBtn').disabled=false}
 }
@@ -507,7 +526,7 @@ function renderAiResult(a,d){
   $('#applyAiBtn').classList.toggle('hidden',!aiCandidate.length);
   state.selectedDrawingId=d.id;if($('#selectedDrawingName'))$('#selectedDrawingName').textContent=d.name;
 }
-function applyAiCandidate(){if(!aiCandidate.length)return toast('注文へ入れられるAI候補がありません');state.cart={};state.aiSource='drawing';aiCandidate.forEach(x=>state.cart[x.id]=(state.cart[x.id]||0)+x.qty);persistDraftState();renderMaterials();go('order');toast('AI候補を注文へ入れました。数量を確認してください')}
+function applyAiCandidate(){if(!aiCandidate.length)return toast('注文へ入れられるAI候補がありません');state.cart={};state.aiSource='drawing';if(!state.aiSnapshot){try{state.aiSnapshot=JSON.parse(nativeGet(tenantKey('vertx_core_ai_snapshot'))||'null')}catch{}}aiCandidate.forEach(x=>state.cart[x.id]=(state.cart[x.id]||0)+x.qty);persistDraftState();renderMaterials();go('order');toast('AI候補を注文へ入れました。数量を確認してください')}
 
 // 資材マスタ編集（後から名前・カテゴリー・単重・単位を変更可能）
 function renderMaterialMaster(){const root=$('#masterList');if(!root)return;const sorted=MATERIALS.map((m,i)=>({m,i})).sort((a,b)=>materialSort(a.m,b.m));root.innerHTML=sorted.map(({m,i})=>`<article class="card master-row"><input class="master-name" data-mi="${i}" data-mf="name" value="${escapeHtml(m.name)}"><div class="master-grid"><input data-mi="${i}" data-mf="category" value="${escapeHtml(m.category)}" aria-label="カテゴリー"><input type="number" step="0.01" min="0" data-mi="${i}" data-mf="weight" value="${Number(m.weight)}" aria-label="単重"><input data-mi="${i}" data-mf="unit" value="${escapeHtml(m.unit)}" aria-label="単位"></div><small>カテゴリー / 単重kg / 単位</small><button class="danger-link" data-master-delete="${i}">この資材を削除</button></article>`).join('');root.querySelectorAll('[data-mf]').forEach(inp=>inp.onchange=()=>{const i=Number(inp.dataset.mi),f=inp.dataset.mf;MATERIALS[i][f]=f==='weight'?Math.max(0,Number(inp.value)||0):inp.value.trim();saveMaterialMaster();renderCategories();renderMaterials()});root.querySelectorAll('[data-master-delete]').forEach(b=>b.onclick=()=>{if(confirm('この資材を削除しますか？')){MATERIALS.splice(Number(b.dataset.masterDelete),1);saveMaterialMaster();renderMaterialMaster();renderCategories();renderMaterials()}})}
@@ -859,10 +878,19 @@ async function saveAiLearningExample(source='drawing'){
   try{
     const finalItems=Object.entries(state.cart||{}).map(([id,qty])=>{const m=MATERIALS.find(x=>String(x.id)===String(id));return m&&Number(qty)>0?{material_name:m.name,quantity:Number(qty),unit:m.unit}:null}).filter(Boolean);
     if(!finalItems.length)return;
-    const example={source_type:source,context:($('#aiContext')?.value||$('#photoAiContext')?.value||'').trim(),corrected_materials:finalItems,created_at:new Date().toISOString()};
-    try{const key=tenantKey('vertx_core_ai_learning_local');const prev=JSON.parse(nativeGet(key)||'[]');nativeSet(key,JSON.stringify([example,...prev].slice(0,30)))}catch{}
+    let snap=state.aiSnapshot; if(!snap){try{snap=JSON.parse(nativeGet(tenantKey('vertx_core_ai_snapshot'))||'null')}catch{}}
+    const predicted=(snap?.predicted||[]).map(x=>({material_name:String(x.material_name||''),quantity:Number(x.quantity)||0,unit:x.unit||'',confidence:Number(x.confidence)||0}));
+    const norm=v=>String(v||'').replace(/\s+/g,'').toLowerCase();
+    const names=new Set([...predicted.map(x=>norm(x.material_name)),...finalItems.map(x=>norm(x.material_name))]);
+    const delta=[...names].map(key=>{const p=predicted.find(x=>norm(x.material_name)===key),f=finalItems.find(x=>norm(x.material_name)===key);const pq=Number(p?.quantity)||0,fq=Number(f?.quantity)||0;if(pq===fq)return null;return {material_name:f?.material_name||p?.material_name||key,predicted:pq,final:fq,diff:fq-pq,ratio:pq?Number((fq/pq).toFixed(3)):null};}).filter(Boolean);
+    const payload={version:2,site:snap?.site||state.selectedSite||'',scaffold_type:snap?.scaffold_type||'',analysis_summary:snap?.summary||'',drawing_names:snap?.drawing_names||[],predicted,final:finalItems,delta};
+    const baseCtx=(snap?.context||$('#aiContext')?.value||$('#photoAiContext')?.value||'').trim();
+    const context=`${baseCtx}${payload.site?`\n現場:${payload.site}`:''}${payload.scaffold_type?`\n足場判定:${payload.scaffold_type}`:''}`.trim();
+    const example={source_type:source,context,corrected_materials:payload,created_at:new Date().toISOString()};
+    try{const key=tenantKey('vertx_core_ai_learning_local');const prev=JSON.parse(nativeGet(key)||'[]');nativeSet(key,JSON.stringify([example,...prev].slice(0,120)))}catch{}
     const org=getCompanySession()?.orgId;if(org&&cloudReady&&supabaseClient){const {error}=await supabaseClient.from('ai_learning_examples').insert({organization_id:org,source_type:example.source_type,context:example.context,corrected_materials:example.corrected_materials});if(error)console.warn('cloud learning save failed',error)}
-    lsSet('vertx_core_ai_learning_version',String(Date.now()));updateLearningCount();
+    lsSet('vertx_core_ai_learning_version',String(Date.now()));nativeSet(tenantKey('vertx_core_ai_snapshot'),'');state.aiSnapshot=null;updateLearningCount();
+    audit('AI学習保存',`${source} / 修正差分${delta.length}種類 / 確定${finalItems.length}種類`);
   }catch(e){console.warn('learning save failed',e)}
 }
 async function updateLearningCount(){
@@ -894,7 +922,7 @@ function applyPlanUi(){
   const p=getCompanySession()?.plan||'standard';document.body.dataset.plan=p;
   // 本番決済接続前は画面を消さず、プラン状態のみ反映する。決済導入時に機能ゲートへ切替可能。
 }
-async function runPhotoAi(){if(!photoAiFiles.length)return toast('写真を選択してください');const st=$('#photoAiStatus');st.classList.remove('hidden');st.textContent='CORE AIが写真を最適化しています…';const started=performance.now();try{const selected=photoAiFiles.slice(0,6);const [drawings,learningExamples]=await Promise.all([Promise.all(selected.map(async f=>{const b=await compressImageForAi(f,f.type);return {filename:f.name,mimeType:f.type,dataBase64:await blobToBase64(b)}})),getAiLearningContext()]);st.textContent='CORE AIが現場写真を確認しています…';const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),75000);let r;try{r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files:drawings,materialNames:MATERIALS.map(m=>m.name),companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),learningExamples,mode:'photo',speedMode:'fast',context:$('#photoAiContext').value.trim()+' 現場写真です。写っている足場資材を候補として抽出してください。数量に自信がない場合は低いconfidenceで返してください。'})})}finally{clearTimeout(timer)}const data=await r.json();if(!r.ok)throw new Error(data.error||'写真解析に失敗しました');const a=data.analysis||data;photoAiCandidates=a.materials||a.candidates||[];$('#photoAiResult').innerHTML=`<h3>${escapeHtml(a.summary||'写真AI結果')}</h3>`+photoAiCandidates.map(x=>`<div class="history-item-row"><span>${escapeHtml(x.material_name||x.name||x.material||'資材')}</span><strong>${Number(x.qty||x.quantity||0)||'?'} </strong></div>`).join('');$('#applyPhotoAiBtn').classList.toggle('hidden',!photoAiCandidates.length);$('#applyPhotoReturnBtn')?.classList.toggle('hidden',!photoAiCandidates.length);const sec=((performance.now()-started)/1000).toFixed(1);st.textContent=`解析完了 ${sec}秒 / 学習例${learningExamples.length}件参照`;audit('写真AI解析',`${selected.length}枚 / ${sec}秒 / 候補${photoAiCandidates.length}種類`)}catch(e){const msg=e?.name==='AbortError'?'写真AIが時間超過しました。写真を1〜3枚に絞って再試行してください。':(e.message||'写真解析に失敗しました');st.textContent=msg;$('#photoAiResult').textContent='解析できませんでした';audit('写真AIエラー',msg)}}
+async function runPhotoAi(){if(!photoAiFiles.length)return toast('写真を選択してください');const st=$('#photoAiStatus');st.classList.remove('hidden');st.textContent='CORE AIが写真を最適化しています…';const started=performance.now();try{const selected=photoAiFiles.slice(0,6);const [drawings,learningExamples]=await Promise.all([Promise.all(selected.map(async f=>{const b=await compressImageForAi(f,f.type);return {filename:f.name,mimeType:f.type,dataBase64:await blobToBase64(b)}})),getAiLearningContext({site:state.selectedSite,source_type:'photo',context:$('#photoAiContext')?.value||''})]);st.textContent='CORE AIが現場写真を確認しています…';const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),75000);let r;try{r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({files:drawings,materialNames:MATERIALS.map(m=>m.name),companyVocabulary:MATERIALS.slice(0,450).map(m=>({name:m.name,aliases:m.aliases||'',category:m.category})),learningExamples,mode:'photo',speedMode:'fast',context:$('#photoAiContext').value.trim()+' 現場写真です。写っている足場資材を候補として抽出してください。数量に自信がない場合は低いconfidenceで返してください。'})})}finally{clearTimeout(timer)}const data=await r.json();if(!r.ok)throw new Error(data.error||'写真解析に失敗しました');const a=data.analysis||data;photoAiCandidates=a.materials||a.candidates||[];state.aiSnapshot={source_type:'photo',site:state.selectedSite||'',context:$('#photoAiContext')?.value||'',scaffold_type:a.scaffold_type||'photo',summary:a.summary||'',predicted:photoAiCandidates.map(x=>({material_name:x.material_name||x.name||x.material||'',quantity:Number(x.qty||x.quantity)||0,unit:x.unit||'',confidence:Number(x.confidence)||0,reason:x.reason||''})),drawing_names:selected.map(x=>x.name),captured_at:new Date().toISOString()};nativeSet(tenantKey('vertx_core_ai_snapshot'),JSON.stringify(state.aiSnapshot));$('#photoAiResult').innerHTML=`<h3>${escapeHtml(a.summary||'写真AI結果')}</h3>`+photoAiCandidates.map(x=>`<div class="history-item-row"><span>${escapeHtml(x.material_name||x.name||x.material||'資材')}</span><strong>${Number(x.qty||x.quantity||0)||'?'} </strong></div>`).join('');$('#applyPhotoAiBtn').classList.toggle('hidden',!photoAiCandidates.length);$('#applyPhotoReturnBtn')?.classList.toggle('hidden',!photoAiCandidates.length);const sec=((performance.now()-started)/1000).toFixed(1);st.textContent=`解析完了 ${sec}秒 / 学習例${learningExamples.length}件参照`;audit('写真AI解析',`${selected.length}枚 / ${sec}秒 / 候補${photoAiCandidates.length}種類`)}catch(e){const msg=e?.name==='AbortError'?'写真AIが時間超過しました。写真を1〜3枚に絞って再試行してください。':(e.message||'写真解析に失敗しました');st.textContent=msg;$('#photoAiResult').textContent='解析できませんでした';audit('写真AIエラー',msg)}}
 
 function applyPhotoAi(){let n=0;state.aiSource='photo';for(const x of photoAiCandidates){const name=x.material_name||x.name||x.material||'';const m=MATERIALS.find(y=>y.name===name)||matchMaterialLoose(name);const q=Number(x.qty||x.quantity||0);if(m&&q>0){state.cart[m.id]=(state.cart[m.id]||0)+q;n++}}persistDraftState();renderMaterials();go('order');toast(`${n}種類を注文へ追加しました`)}
 function matchMaterialLoose(name=''){const q=normalizeVoiceText(name);let best=null,bestScore=0;for(const m of MATERIALS){for(const n of voiceMaterialNames(m)){if(q===n)return m;if(q.includes(n)||n.includes(q)){const sc=Math.min(q.length,n.length);if(sc>bestScore){best=m;bestScore=sc}}}}return best}
@@ -1291,7 +1319,7 @@ function runCoreSelfCheck(){
   const screens=new Set(Array.from(document.querySelectorAll('section.screen[id]')).map(x=>x.id));
   document.querySelectorAll('[data-go]').forEach(el=>{const target=el.dataset.go;if(target&&!screens.has(target))issues.push('リンク先不足:'+target)});
   ['searchInput','toConfirmBtn','submitOrderBtn','runAiBtn','voiceStartBtn','runPhotoAiBtn','requestReturnTruckBtn','saveDailyReportBtn','publishShareBtn','openFullManual'].forEach(id=>{if(!document.getElementById(id))issues.push('操作部品不足:'+id)});
-  if(VERTX_BUILD!=='7.45.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
+  if(VERTX_BUILD!=='7.47.0')issues.push('ビルド番号不一致:'+VERTX_BUILD);
   const unique=[...new Set(issues)];
   if(unique.length)console.warn('CORE SELF CHECK',unique);else console.info('CORE SELF CHECK PASS v7.36');
   return unique;

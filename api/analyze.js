@@ -29,15 +29,32 @@ module.exports = async function handler(req, res) {
     const estimatedBytes = files.reduce((s,f)=>s+Math.floor((String(f.dataBase64||'').length*3)/4),0);
     if (estimatedBytes > MAX_BYTES) return send(res, 413, { error: '選択した図面の合計サイズが送信上限を超えています。必要な立面・断面に絞ってください。' });
     const catalog = Array.isArray(materialNames) ? materialNames.slice(0, 450).join(' / ') : '';
-    const learned = Array.isArray(learningExamples) ? learningExamples.slice(0,12).map((x,i)=>`確定例${i+1}: 条件=${String(x.context||'なし').slice(0,180)} / 確定資材=${JSON.stringify(x.corrected_materials||[]).slice(0,1200)}`).join('\n') : '';
+    const learned = Array.isArray(learningExamples) ? learningExamples.slice(0,36).map((x,i)=>{
+      const final=x.final_materials || (Array.isArray(x.corrected_materials)?x.corrected_materials:x.corrected_materials?.final) || [];
+      const predicted=x.predicted_materials || x.corrected_materials?.predicted || [];
+      const delta=x.correction_delta || x.corrected_materials?.delta || [];
+      return `類似確定例${i+1}: 種別=${String(x.source_type||'')} / 現場=${String(x.site||x.corrected_materials?.site||'')} / 足場=${String(x.scaffold_type||x.corrected_materials?.scaffold_type||'')} / 条件=${String(x.context||'なし').slice(0,260)} / AI予測=${JSON.stringify(predicted).slice(0,1300)} / 人が確定=${JSON.stringify(final).slice(0,1600)} / 修正差分=${JSON.stringify(delta).slice(0,1400)}`;
+    }).join('\n') : '';
 
     const vocabulary = Array.isArray(companyVocabulary) ? companyVocabulary.slice(0,450).map(x=>`${String(x.name||'')} (${String(x.category||'')}) 別名:${String(x.aliases||'')}`).join(' / ') : '';
 
-    const instructions = `あなたは日本の仮設足場、とくに解体現場の枠組足場・単管足場の資材拾いを補助する専門アシスタントです。\n図面に明示された寸法、凡例、注記、立面・断面を読み、確認できる範囲だけから資材候補を出してください。\n数量が図面から確定できないものは無理に断定せず confidence を下げ、reason に根拠と不確実性を書いてください。\n優先対象: 建枠、調整枠、筋違/ブレス、鋼製布板/アンチ、手摺/下さん、ジャッキベース、固定ベース、単管パイプ、直交/自在クランプ、ブラケット、壁つなぎ、防音パネル、透過パネル、メッシュシート、朝顔、階段/タラップ、かんざしパイプ。\n安全上、AI結果は候補であり発注確定ではありません。\nmaterial_name は可能な限りこの会社の資材マスタの表示名をそのまま使ってください。会社固有の呼び方を優先します。
-候補数量の根拠が弱い場合は confidence を0.55未満にし、reasonに不足している図面や寸法を書いてください。`;
+    const instructions = `あなたは日本の仮設足場の資材拾いを補助する専門AIです。特に解体現場の枠組足場・単管足場・防音養生・朝顔・仮囲いを扱います。
+最重要ルール:
+1. 図面に読める事実（寸法、スパン、段数、面、凡例、注記）を先に整理し、その事実から数量を計算する。推測だけで数量を作らない。
+2. 平面・立面・断面・詳細図を相互照合し、同じ部材を二重計上しない。面ごとの数量→全体数量の順で考える。
+3. 会社の過去確定例は「似た現場で人がAIをどう直したか」を学ぶ教材として使う。特に修正差分（AI予測→最終確定）の傾向を重視する。ただし現在図面の明示情報を上書きしない。
+4. material_name は会社資材マスタの正式表示名を優先し、別名・現場呼称を正規化する。
+5. 枠組足場では枠寸法(610/914/1224/1519/1829)、アンチ、ブレス、下さん、幅木、ジャッキ、階段、壁つなぎ、養生材の組合せ整合性を確認する。
+6. 単管足場では単管長さ、直交/自在クランプ、ブラケット、ベース、壁つなぎ等の整合性を確認する。
+7. 数量根拠が弱い部材は confidence を0.55未満にする。図面に数量根拠が無い場合 quantity=0 でもよい。reasonには不足情報を明記する。
+8. confidence 0.75以上は、寸法・スパン・段数・図面注記など具体的根拠がある場合だけ。
+9. 過去例と現在図面が食い違う場合は現在図面を優先し warnings に記載する。
+10. AI結果は発注確定ではない。安全・荷姿・現場納まりは人が確認する。
+
+計算時は、各資材について「何面 × 何スパン × 何段」「端部補正」「開口・階段・朝顔・防音パネル等の追加/除外」を内部で確認し、reasonには短く具体的な数量根拠を書く。`;
 
     const content = [
-      { type: 'input_text', text: `解析モード: ${mode}\n現場メモ: ${context || 'なし'}\n利用中の資材マスタ候補: ${catalog || '未指定'}\n会社固有の呼称辞書: ${vocabulary || '未指定'}\nこの会社の過去の確定例（似る場合だけ参考にし、図面より優先しない）:\n${learned || 'なし'}\n添付された複数の平面図・立面図・断面図・詳細図を相互に照合し、同じ現場の一式として解析してください。同一資材は重複行を作らず1行に統合し、重複カウントを避けてください。図面間で矛盾がある場合はwarningsに書いてください。数量根拠は立面・平面・断面のどこから読んだかreasonに短く示し、足場タイプ・読み取れた寸法・資材候補と数量・根拠・注意点を抽出してください。` }
+      { type: 'input_text', text: `解析モード: ${mode}\n現場メモ: ${context || 'なし'}\n利用中の資材マスタ候補: ${catalog || '未指定'}\n会社固有の呼称辞書: ${vocabulary || '未指定'}\nこの会社の過去の確定例（似る場合だけ参考にし、図面より優先しない）:\n${learned || 'なし'}\nまず図面ごとに読める寸法・面・スパン・段数・注記を整理し、その後で相互照合して数量を計算してください。同一資材は1行に統合し、平面と立面の同じ箇所を二重計上しないでください。過去の類似確定例では、AI予測と人の最終確定の差分が現在条件にも当てはまるかを確認してください。理由のない丸め・慣習数量の追加は禁止です。図面間の矛盾、読めない寸法、必要図面不足はwarningsへ。reasonには『東面12スパン×5段』のように数量根拠を具体的に示してください。` }
     ];
     for (const f of files) {
       const filename=String(f.filename||'drawing');
@@ -49,7 +66,7 @@ module.exports = async function handler(req, res) {
     }
 
     const payload = {
-      model: process.env.OPENAI_MODEL || (speedMode==='fallback' ? 'gpt-4.1-mini' : 'gpt-5-mini'),
+      model: process.env.OPENAI_MODEL || (speedMode==='fallback' ? 'gpt-5-mini' : 'gpt-5'),
       store: false,
       instructions,
       input: [{ role: 'user', content }],
