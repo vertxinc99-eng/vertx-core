@@ -834,3 +834,94 @@ body:has(.exact-home.active) .app-shell{
     transform:none!important;
   }
 }
+
+/* ===== VERTX CORE v7.35 FULLBLEED HOME FIX ===== */
+/* 1) 参照画像のiPhone外枠と焼き込みナビを画像側で除去済み。画面幅いっぱいに表示する。 */
+body:has(.exact-home.active){background:#020812!important;overflow-y:auto!important;}
+body:has(.exact-home.active) .topbar{display:none!important;}
+body:has(.exact-home.active) .app-shell{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0 0 calc(98px + env(safe-area-inset-bottom))!important;
+  background:#020812!important;
+  box-shadow:none!important;
+}
+body:has(.exact-home.active) main,
+body:has(.exact-home.active) .exact-home,
+body:has(.exact-home.active) .exact-home-stage{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  background:#020812!important;
+}
+.exact-home-art{
+  display:block!important;
+  width:100vw!important;
+  max-width:none!important;
+  height:auto!important;
+  margin:0!important;
+  object-fit:cover!important;
+  object-position:top center!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+/* 2) 画像に焼き込まれていた下部Dockは削除し、本物のナビを同じ位置に固定 */
+body:has(.exact-home.active) .bottom-nav{
+  display:grid!important;
+  position:fixed!important;
+  z-index:900!important;
+  left:10px!important;
+  right:10px!important;
+  bottom:calc(8px + env(safe-area-inset-bottom))!important;
+  width:auto!important;
+  height:78px!important;
+  margin:0!important;
+}
+/* 3) HOME画像内カードのタップ領域をクロップ後の座標に合わせる */
+.hs-order{left:4.25%!important;top:34.77%!important;width:91.38%!important;height:22.22%!important}
+.hs-sites{left:4.36%!important;top:58.82%!important;width:29.91%!important;height:20.88%!important}
+.hs-return{left:34.94%!important;top:58.82%!important;width:29.91%!important;height:20.88%!important}
+.hs-ky{left:65.06%!important;top:58.82%!important;width:30.46%!important;height:20.88%!important}
+.hs-share{left:4.36%!important;top:81.16%!important;width:45.42%!important;height:16.76%!important}
+.hs-photo{left:50.55%!important;top:81.16%!important;width:44.86%!important;height:16.76%!important}
+/* 画像側から下部ナビを消したので旧ナビ用hotspotは無効化 */
+.exact-home .hs-history,.exact-home .hs-center,.exact-home .hs-notice,.exact-home .hs-menu{display:none!important}
+@media(min-width:721px){
+  body:has(.exact-home.active) .exact-home-stage,
+  body:has(.exact-home.active) .exact-home-art{width:min(100vw,720px)!important;margin-left:auto!important;margin-right:auto!important}
+  body:has(.exact-home.active) .app-shell{max-width:720px!important;margin:0 auto!important}
+}
+
+
+/* ===== VERTX CORE v7.36 LIVE HOME + READABILITY ===== */
+:root{--v736-text:#f7fbff;--v736-sub:#d4e2f1;--v736-dim:#a9bed3;--v736-deep:#03101f}
+/* dark-page readability: no low-contrast legacy text */
+.screen:not(.exact-home),.screen:not(.exact-home) .card,.screen:not(.exact-home) .form-card,.screen:not(.exact-home) .control-section,.screen:not(.exact-home) .material,.screen:not(.exact-home) .history-item,.screen:not(.exact-home) .site-card{color:var(--v736-text)!important}
+.screen:not(.exact-home) h1,.screen:not(.exact-home) h2,.screen:not(.exact-home) h3,.screen:not(.exact-home) h4,.screen:not(.exact-home) h5,.screen:not(.exact-home) b,.screen:not(.exact-home) strong,.screen:not(.exact-home) summary{color:var(--v736-text)!important;text-shadow:none!important}
+.screen:not(.exact-home) p,.screen:not(.exact-home) small,.screen:not(.exact-home) label,.screen:not(.exact-home) li,.screen:not(.exact-home) .muted,.screen:not(.exact-home) .history-meta,.screen:not(.exact-home) .material-info small{color:var(--v736-sub)!important;opacity:1!important}
+.screen:not(.exact-home) .eyebrow,.screen:not(.exact-home) .control-section>span{color:#ffd55d!important}
+.screen:not(.exact-home) .primary-btn,.screen:not(.exact-home) .chip.active{color:#08111c!important;-webkit-text-fill-color:#08111c!important}
+.screen:not(.exact-home) .secondary-btn,.screen:not(.exact-home) .text-btn,.screen:not(.exact-home) button:not(.primary-btn):not(.chip.active){-webkit-text-fill-color:currentColor}
+/* kill remaining white legacy islands that caused black-on-white/black-on-dark mixes */
+.smart-suggestions,.recent-materials,.ai-upload-panel,.ai-file-drop,.assist-upload,.assist-source,.material-group-head,.share-preview,.manual-example,.field-control-intro{background:linear-gradient(145deg,#102b49,#06172a)!important;border-color:rgba(112,168,226,.26)!important;color:var(--v736-text)!important}
+.smart-suggestions *,.recent-materials *,.ai-upload-panel *,.ai-file-drop *,.assist-upload *,.assist-source *,.material-group-head *,.share-preview *{color:var(--v736-text)!important}
+
+/* live layers replace baked dummy name/weather/icons while keeping the worker artwork */
+.exact-home-stage{isolation:isolate}
+.home-live-identity{position:absolute;z-index:4;left:5.4%;top:13.8%;width:45%;min-height:13.6%;padding:3.2% 2% 2.4%;background:linear-gradient(90deg,rgba(3,16,31,.98) 0%,rgba(3,16,31,.96) 68%,rgba(3,16,31,0) 100%);color:#fff;pointer-events:none}
+.home-live-identity small{display:block;color:#f4bd36;font-size:clamp(9px,2.2vw,14px);font-weight:900;letter-spacing:.08em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-live-identity span{display:block;color:#e8f1fb;font-size:clamp(11px,2.5vw,16px);font-weight:700}
+.home-live-identity strong{display:block;color:#fff;font-size:clamp(22px,5.8vw,39px);line-height:1.08;font-weight:950;letter-spacing:-.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 3px 12px rgba(0,0,0,.45)}
+.home-live-identity em{display:inline-flex;margin-top:6px;padding:4px 8px;border-radius:999px;background:rgba(23,175,101,.14);border:1px solid rgba(67,229,151,.30);color:#78f0b5;font-size:clamp(8px,1.9vw,11px);font-style:normal;font-weight:900;letter-spacing:.08em}
+.home-live-weather{position:absolute;z-index:5;left:5.3%;top:25.7%;width:45.5%;min-height:12.7%;padding:2.4% 2.5%;display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:2.2%;border-radius:18px;background:linear-gradient(145deg,rgba(18,47,79,.99),rgba(6,24,43,.99));border:1px solid rgba(158,194,230,.32);box-shadow:0 10px 24px rgba(0,0,0,.32);color:#fff;pointer-events:none}
+.home-live-weather>span{font-size:clamp(27px,7vw,48px)}.home-live-weather>strong{font-size:clamp(23px,6vw,42px);font-weight:900;white-space:nowrap}.home-live-weather div{min-width:0}.home-live-weather b,.home-live-weather small{display:block;color:#fff!important;font-size:clamp(8px,2.15vw,14px);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.home-live-weather small{color:#d5e3f1!important}
+.home-live-circle{position:absolute;z-index:8;width:10.5%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(160,197,233,.34);background:linear-gradient(145deg,rgba(21,49,80,.98),rgba(5,18,34,.99));box-shadow:0 8px 20px rgba(0,0,0,.38);color:#fff;cursor:pointer}.home-live-circle:active{transform:scale(.95)}.home-live-circle span{font-size:clamp(17px,4.5vw,30px);line-height:1}.home-live-notice{right:5.3%;top:8.7%}.home-live-account{right:5.3%;top:15.2%}.home-live-circle i{position:absolute;right:-1px;top:-1px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;display:grid;place-items:center;background:#ef443b;color:#fff;font-size:10px;font-style:normal;font-weight:950;border:2px solid #0b1f35}.home-live-account i{width:13px;height:13px;min-width:13px;padding:0;background:#27cf82;border-color:#082038;right:1px;top:2px}
+/* disable invisible legacy notice/menu hotspots because live circles now own those actions */
+.exact-home .hs-notice,.exact-home .hs-menu{display:none!important}
+
+.home-live-modal{position:fixed;inset:0;z-index:1500;display:grid;align-items:end;background:rgba(0,0,0,.66);backdrop-filter:blur(10px);padding:12px}.home-live-modal.hidden{display:none!important}.home-live-sheet{width:min(100%,680px);margin:0 auto;padding:12px 15px calc(18px + env(safe-area-inset-bottom));border-radius:28px;background:linear-gradient(180deg,#123152,#061426);border:1px solid rgba(116,171,226,.3);box-shadow:0 28px 70px rgba(0,0,0,.55);color:#fff}.home-live-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.home-live-sheet-head span{display:block;color:#ffd55d;font-size:9px;letter-spacing:.22em;font-weight:950}.home-live-sheet-head h3{margin:4px 0 0;color:#fff;font-size:26px}.home-live-sheet-head button{width:42px;height:42px;border-radius:14px;border:1px solid rgba(119,172,225,.25);background:#081a2f;color:#fff;font-size:24px}.home-live-modal-body{display:grid;gap:10px;margin-top:14px}.home-live-row{padding:14px;border-radius:18px;background:#071a2e;border:1px solid rgba(111,164,219,.23);display:flex;align-items:center;justify-content:space-between;gap:12px}.home-live-row div{min-width:0}.home-live-row b,.home-live-row strong{display:block;color:#fff}.home-live-row small{display:block;color:#abc0d4;margin-top:3px}.home-live-row .status-online{color:#75ebb0}.home-live-modal-body button{width:100%;min-height:48px;border-radius:16px;border:1px solid rgba(111,164,219,.25);background:linear-gradient(145deg,#17395f,#081b30);color:#fff;font-weight:900}.home-live-modal-body button.gold{background:linear-gradient(145deg,#ffd760,#d88a0d);border-color:#ffe59a;color:#08111c}
+@media(max-width:420px){.home-live-identity{top:13.5%;left:5%;width:47%}.home-live-weather{left:5%;width:46.5%;top:25.8%;border-radius:15px}.home-live-circle{width:10.2%}}

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#03101f">
-  <title>VERTX CORE v7.34 HOME SCROLL ART</title>
-  <link rel="stylesheet" href="style.css?v=7.34.0">
+  <title>VERTX CORE v7.36 LIVE HOME</title>
+  <link rel="stylesheet" href="style.css?v=7.36.0">
 </head>
 <body>
   <div id="cloudAuthGate" class="company-gate">
@@ -40,7 +40,7 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">VERTX</p>
-        <h1>CORE <span>v7.34 HOME SCROLL ART</span></h1>
+        <h1>CORE <span>v7.36 LIVE HOME</span></h1>
       </div>
       <div class="company-top-actions"><button id="companyBadge" class="company-badge" type="button">会社未選択</button><button id="resetBtn" class="icon-btn" aria-label="データを初期化">↻</button></div>
     </header>
@@ -49,6 +49,19 @@
       <section id="home" class="screen active exact-home">
         <div class="exact-home-stage" aria-label="VERTX CORE ホーム">
           <img class="exact-home-art" src="vertx-core-home-reference.jpg" alt="VERTX CORE ホーム画面">
+          <div class="home-live-identity" aria-live="polite">
+            <small id="homeCompanyLive">VERTX CORE</small>
+            <span>おはようございます、</span>
+            <strong id="homeUserLive">ユーザー</strong>
+            <em id="homeRoleLive">ONLINE</em>
+          </div>
+          <div class="home-live-weather" id="homeWeatherCard" aria-live="polite">
+            <span id="homeWeatherIcon">☀️</span>
+            <strong id="homeWeatherTemp">--°C</strong>
+            <div><b id="homeWeatherPlace">現在地</b><small id="homeWeatherText">天気を取得中</small><small id="homeWeatherHumidity">湿度 --%</small></div>
+          </div>
+          <button id="homeNoticeBtn" class="home-live-circle home-live-notice" type="button" aria-label="通知"><span>♟</span><i id="homeNoticeCount">0</i></button>
+          <button id="homeAccountBtn" class="home-live-circle home-live-account" type="button" aria-label="アカウント"><span>●</span><i id="homeOnlineDot"></i></button>
           <button class="home-hotspot hs-order" data-go="sites" aria-label="注文を作る"></button>
           <button class="home-hotspot hs-sites" data-go="sites" aria-label="現場一覧"></button>
           <button class="home-hotspot hs-return" data-go="returnLoad" aria-label="返却車"></button>
@@ -621,6 +634,14 @@
   </div>
 
 
+  <div id="homeLiveModal" class="home-live-modal hidden" role="dialog" aria-modal="true" aria-labelledby="homeLiveModalTitle">
+    <div class="home-live-sheet">
+      <div class="quick-action-handle"></div>
+      <div class="home-live-sheet-head"><div><span id="homeLiveModalEyebrow">VERTX CORE</span><h3 id="homeLiveModalTitle">アカウント</h3></div><button id="closeHomeLiveModal" type="button" aria-label="閉じる">×</button></div>
+      <div id="homeLiveModalBody" class="home-live-modal-body"></div>
+    </div>
+  </div>
+
   <div id="quickActionModal" class="quick-action-modal hidden" role="dialog" aria-modal="true" aria-labelledby="quickActionTitle">
     <div class="quick-action-sheet">
       <div class="quick-action-handle"></div>
@@ -650,6 +671,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7.34.0"></script>
+  <script src="app.js?v=7.36.0"></script>
 </body>
 </html>
