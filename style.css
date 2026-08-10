@@ -1459,3 +1459,60 @@ body:has(#cloudAuthGate:not(.hidden)){overflow:hidden!important}
   #order .material-group-title b{font-size:17px!important}
   #order .material-group-title span{font-size:11px!important;padding:6px 9px!important}
 }
+
+
+/* ===== VERTX CORE v7.45 HOME VERTICAL CONTROL + CRANE FIX ===== */
+body:has(.exact-home.active) .exact-home-stage{position:relative!important;overflow:hidden!important;background:#071526!important}
+body:has(.exact-home.active) .exact-home-art{display:block!important;width:100%!important;height:auto!important;object-fit:contain!important;object-position:center top!important;filter:saturate(.98) contrast(1.01)!important}
+
+/* Completely cover the old baked greeting/weather while keeping the original crane intact. */
+.exact-home .home-live-identity{
+  left:3.8%!important;top:11.0%!important;width:44.5%!important;min-height:11.7%!important;
+  padding:13px 15px!important;border-radius:23px!important;
+  background:linear-gradient(145deg,#0d3154,#061a2f)!important;
+  border:1px solid rgba(154,201,244,.38)!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.34)!important;
+  overflow:hidden!important;
+}
+.exact-home .home-live-identity small{display:block!important;margin:0 0 5px!important;color:#f3c44e!important;font-size:10px!important;font-weight:950!important;letter-spacing:.18em!important;line-height:1!important}
+.exact-home .home-live-identity span{display:block!important;margin:0 0 2px!important;color:#fff!important;font-size:13px!important;font-weight:800!important;line-height:1.2!important}
+.exact-home .home-live-identity strong{display:block!important;margin:0!important;color:#fff!important;font-size:clamp(24px,5.7vw,39px)!important;font-weight:950!important;line-height:1.05!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.exact-home .home-live-identity em{display:block!important;margin-top:9px!important;padding:5px 9px!important;border-radius:999px!important;border:1px solid rgba(41,207,130,.58)!important;background:rgba(11,77,64,.42)!important;color:#74efbd!important;font-size:10px!important;font-style:normal!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+
+.exact-home .home-live-weather{
+  left:3.8%!important;top:23.4%!important;width:41.5%!important;min-height:10.2%!important;
+  padding:12px 14px!important;border-radius:22px!important;
+  background:linear-gradient(145deg,#0d3154,#061a2f)!important;
+  border:1px solid rgba(154,201,244,.38)!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.34)!important;
+  overflow:hidden!important;
+}
+
+/* Right controls are a clean vertical stack, aligned over the original baked controls. */
+.exact-home .home-live-circle{
+  width:58px!important;height:58px!important;border-radius:20px!important;
+  background:linear-gradient(145deg,#143b65,#061b31)!important;
+  border:1px solid rgba(178,214,247,.42)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.38)!important;
+  overflow:visible!important;
+}
+.exact-home .home-live-notice{right:4.0%!important;top:5.0%!important}
+.exact-home .home-live-account{right:4.0%!important;top:11.6%!important}
+.exact-home .home-live-circle>span{width:100%!important;height:100%!important;display:grid!important;place-items:center!important;border-radius:inherit!important;overflow:hidden!important}
+.exact-home .home-live-account>span{padding:3px!important;background:#102c4b!important}
+.exact-home .home-live-account>span img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:15px!important}
+.exact-home .home-live-account i{right:-3px!important;top:-3px!important;width:15px!important;height:15px!important;min-width:15px!important;border:3px solid #08213a!important}
+.exact-home .home-live-notice i{right:-5px!important;top:-5px!important}
+
+@media(max-width:430px){
+  .exact-home .home-live-identity{left:3.5%!important;top:10.8%!important;width:46%!important;min-height:12%!important;padding:11px 12px!important;border-radius:19px!important}
+  .exact-home .home-live-identity small{font-size:9px!important;margin-bottom:4px!important}
+  .exact-home .home-live-identity span{font-size:11px!important}
+  .exact-home .home-live-identity strong{font-size:clamp(23px,6.2vw,30px)!important}
+  .exact-home .home-live-identity em{font-size:9px!important;margin-top:7px!important;padding:4px 8px!important}
+  .exact-home .home-live-weather{left:3.5%!important;top:23.3%!important;width:43.5%!important;min-height:10.3%!important;padding:10px 11px!important;border-radius:18px!important}
+  .exact-home .home-live-circle{width:52px!important;height:52px!important;border-radius:18px!important}
+  .exact-home .home-live-notice{right:3.5%!important;top:5.0%!important}
+  .exact-home .home-live-account{right:3.5%!important;top:11.7%!important}
+  .exact-home .home-live-account>span img{border-radius:14px!important}
+}
